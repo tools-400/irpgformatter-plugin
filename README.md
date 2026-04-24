@@ -4,6 +4,8 @@
 
 Plug-in for formatting RPGLE **\*\*free** source code in RDi (Rational Developer for i).
 
+Further information about the iRpgFormatter are available on the [iRpgFormatter Web Site](https://tools-400.github.io/irpgformatter/).
+
 ## Usage
 
 ### Formatting Source Code
