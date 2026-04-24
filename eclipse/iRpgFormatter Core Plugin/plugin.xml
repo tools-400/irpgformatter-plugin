@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================
+       iRPGFormatter Property-Tester
+     ==========================================
+   -->
+
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+
+        <propertyTester
+            class="de.tools400.lpex.irpgformatter.expressions.QSYSRemoteObjectPropertyTester"
+            id="de.tools400.lpex.irpgformatter.expressions.QSYSRemoteObjectPropertyTester"
+            namespace="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief"
+            properties="type,subtype"
+            type="java.lang.Object">
+        </propertyTester>
+
+        <propertyTester
+            class="de.tools400.lpex.irpgformatter.expressions.SystemFilterReferencesPropertyTester"
+            id="de.tools400.lpex.irpgformatter.expressions.SystemFilterReferencesPropertyTester"
+            namespace="de.tools400.lpex.irpgformatter.expressions.systemfilterreference"
+            properties="type,subsystem"
+            type="java.lang.Object">
+        </propertyTester>
+
+   </extension>
+
+   <!--
+     ==========================================
+       iRPGFormatter popup menu extension
+     ==========================================
+   -->
+
+   <extension
+         point="com.ibm.lpex.preload">
+      <preload
+            class="de.tools400.lpex.irpgformatter.Preload">
+      </preload>
+   </extension>
+
+   <!--
+     ==========================================
+       iRPGFormatter preferences
+     ==========================================
+   -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+         name="iRPGFormatter"
+         category="com.ibm.etools.iseries.edit.ui.preferences.ParserPreferenceRPGILE"
+         class="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage"
+         id="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage">
+           <keywordReference id="de.tools400.lpex.irpgformatter.IRPGFormatterPreferencePage"/>
+      </page>
+   </extension>
+
+   <extension point="org.eclipse.ui.keywords">
+      <keyword
+         label="%preferenceKeywords.IRPGFormatterPreferencePage"
+         id="de.tools400.lpex.irpgformatter.IRPGFormatterPreferencePage"/>
+   </extension>
+
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="de.tools400.lpex.irpgformatter.preferences.PreferencesInitializer">
+      </initializer>
+   </extension>
+
+   <!--
+     ==========================================
+       Print Selected Objects command
+     ==========================================
+   -->
+   <extension
+         point="org.eclipse.ui.commands">
+         
+      <category
+            name="%Label_category"
+            id="de.tools400.lpex.irpgformatter.commands">
+      </category>
+
+      <command
+            id="de.tools400.lpex.irpgformatter.commands.format"
+            categoryId="de.tools400.lpex.irpgformatter.commands"
+            name="%Label_formatCommand">
+      </command>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="de.tools400.lpex.irpgformatter.handlers.FormatRemoteSourceHandler"
+            commandId="de.tools400.lpex.irpgformatter.commands.format">
+      </handler>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.menus">
+
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.rse.ui.view.systemView?after=additions">
+         <menu
+               id="de.tools400.lpex.irpgformatter.menu.source"
+               label="%Label_sourceMenu">
+            <command
+                  commandId="de.tools400.lpex.irpgformatter.commands.format"
+                  label="%Label_formatCommand"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <iterate
+                        ifEmpty="false"
+                        operator="and">
+<!--
+                     <adapt
+                           type="com.ibm.etools.iseries.comm.interfaces.ISeriesHostObjectBrief">
+                        <or>
+                           <test
+                                 property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.subtype"
+                                 value="SRC">
+                           </test>
+                           <and>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.type"
+                                    value="*FILE">
+                              </test>
+                              <or>
+                                 <test
+                                       property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.subtype"
+                                       value="PF-SRC">
+                                 </test>
+                              </or>
+                           </and>
+                        </or>
+                     </adapt>
+-->
+                  </iterate>
+               </visibleWhen>
+            </command>
+<!--
+            <command
+                  commandId="de.tools400.lpex.irpgformatter.commands.printSelectedObjects"
+                  label="Print Selected Objects to Console"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <iterate
+                        ifEmpty="false"
+                        operator="and">
+                     <adapt
+                           type="org.eclipse.rse.core.filters.SystemFilterReference">
+                        <or>
+                           <test
+                                 property="de.tools400.lpex.irpgformatter.expressions.systemfilterreference.subsystem"
+                                 value="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSObjectSubSystem">
+                           </test>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </visibleWhen>
+            </command>
+-->
+         </menu>
+      </menuContribution>
+
+   </extension>
+
+</plugin>

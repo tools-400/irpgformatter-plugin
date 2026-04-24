@@ -1,0 +1,317 @@
+/*******************************************************************************
+ * Copyright (c) 2026 Thomas Raddatz
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ *******************************************************************************/
+
+package de.tools400.lpex.irpgformatter.formatter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+import de.tools400.lpex.irpgformatter.input.IRpgleInput;
+import de.tools400.lpex.irpgformatter.parser.StatementType;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
+import de.tools400.lpex.irpgformatter.rules.FormattingRules;
+import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
+import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
+import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
+import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
+
+/**
+ * RPGLE source code formatter.
+ * <p>
+ * Formats control specifications, definition specifications, and compiler
+ * directives according to the formatting rules defined in RPGLE-Formatter.md.
+ * </p>
+ */
+public class RpgleFormatter {
+
+    private static final String SOURCE_TYPE_RPGLE = "RPGLE";
+    private static final String SOURCE_TYPE_SQLRPGLE = "SQLRPGLE";
+
+    private static final Set<String> SUPPORTED_SOURCE_TYPES;
+    static {
+        Set<String> types = new HashSet<String>();
+        types.add(SOURCE_TYPE_RPGLE);
+        types.add(SOURCE_TYPE_SQLRPGLE);
+        SUPPORTED_SOURCE_TYPES = Collections.unmodifiableSet(types);
+    }
+
+    private final FormatterConfig config;
+    private final FormatterUtils formatterUtils;
+    private final Tokenizer tokenizer;
+
+    private int errorCount;
+    private int endColumn;
+
+    public RpgleFormatter(FormatterConfig config) {
+        this.config = config;
+        this.endColumn = config.getEndColumn(100);
+        this.formatterUtils = new FormatterUtils(config);
+        this.tokenizer = new Tokenizer(config);
+    }
+
+    public RpgleFormatter() {
+        this(FormatterConfig.fromPreferences());
+    }
+
+    public static boolean isSupportedSourceType(String sourceType) {
+        return sourceType != null && SUPPORTED_SOURCE_TYPES.contains(sourceType.toUpperCase());
+    }
+
+    public static String validateInput(IRpgleInput input) throws Exception {
+        
+        String sourceType = input.getSourceType();
+        if (!isSupportedSourceType(sourceType)) {
+            return Messages.bind(Messages.Error_Unsupported_source_type_A, sourceType);
+        }
+        
+        if (!input.isFreeFormat()) {
+            return Messages.Error_Not_free_format;
+        }
+        return null;
+    }
+
+    public FormatterConfig getConfig() {
+        return config;
+    }
+
+    public void setSourceLength(int sourceLength) {
+        this.endColumn = config.getEndColumn(sourceLength);
+    }
+
+    /**
+     * Formats the RPGLE source from the given input.
+     *
+     * @param input - the input source
+     * @return array of formatted source lines
+     * @throws RpgleFormatterException if formatting fails
+     */
+    public String[] format(IRpgleInput input, int indent) throws RpgleFormatterException {
+
+        if (!input.isFreeFormat()) {
+            IRpgleFormatterPlugin.logError(Messages.Error_Not_free_format, null);
+            return input.getSourceLines();
+        }
+
+        errorCount = 0;
+
+        String[] sourceLines = input.getSourceLines();
+        List<String> formattedLines = new ArrayList<String>();
+
+        // Step 1: Collect multi-line statements
+        int startLineNumber = input.getStartLineNumber();
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber);
+
+        // Step 2: Process each statement
+        for (CollectedStatement statement : statements) {
+
+            // Format the statement
+            StatementType type = statement.getType();
+
+            List<String> formatted;
+            if (type == StatementType.OTHER) {
+                formatted = statement.getOriginalStatements();
+            } else {
+                for (String embeddedComment : statement.getEmbeddedComments()) {
+                    formattedLines.add(embeddedComment);
+                }
+                try {
+                    formatted = formatLine(statement, type, indent);
+                } catch (Exception e) {
+                    if (e instanceof LineOverflowException) {
+                        ((LineOverflowException)e).setLineNumbers(statement.getStartLineNumber(), statement.getEndLineNumber());
+                    } else {
+                        IRpgleFormatterPlugin.logError("Unexpected formatting error.", e);
+                    }
+                    formatted = statement.getOriginalStatements();
+                    errorCount++;
+                }
+            }
+            formattedLines.addAll(formatted);
+        }
+
+        return formattedLines.toArray(new String[0]);
+    }
+
+    public int getErrorCount() {
+        return errorCount;
+    }
+
+    /**
+     * Formats a single line based on its statement type.
+     */
+    private List<String> formatLine(CollectedStatement statement, StatementType type, int defaultIndent) throws RpgleFormatterException {
+        List<String> result = new ArrayList<String>();
+
+        int indent = statement.getIndentLevel() * config.getIndent() + defaultIndent;
+
+        switch (type) {
+        case BLANK:
+            // Add blank line without indent
+            result.add("");
+            break;
+        case FREE_DIRECTIVE:
+            // Add **free without indent, but case formatted
+            String freeSpecialWord = statement.getStatement();
+            freeSpecialWord = FormattingRules.applyFormattingRule(freeSpecialWord,
+                new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
+            result.add(freeSpecialWord);
+            break;
+        case COMMENT:
+            // Add as is without indent
+            result.addAll(formatKeepOriginal(statement));
+            break;
+        case COMPILER_DIRECTIVE:
+            // Format and add without indent
+            result.addAll(formatCompilerDirective(statement));
+            break;
+        case CTL_OPT:
+            // Format with indent
+            result.addAll(formatCtlOpt(statement, indent));
+            break;
+        case DCL_C:
+            // Format with indent
+            result.addAll(formatDclC(statement, indent));
+            break;
+        case DCL_DS:
+        case DCL_PR:
+        case DCL_PI:
+        case DCL_ENUM:
+        case DCL_PROC:
+            // Format with indent
+            result.addAll(formatDclBlock(statement, type, indent));
+            break;
+        case DCL_F:
+        case DCL_S:
+            // Format with indent
+            result.addAll(formatDclStatement(statement, indent));
+            break;
+        case DCL_SUBF:
+            // Format with indent
+            result.addAll(formatSubField(statement, indent));
+            break;
+        case END_DS:
+        case END_PR:
+        case END_PI:
+        case END_ENUM:
+        case END_PROC:
+            // Format with indent
+            result.addAll(formatEndStatement(statement, indent));
+            break;
+        case OTHER:
+        default:
+            // Format with indent
+            result.addAll(formatKeepOriginal(statement));
+            break;
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns the line unchanged.
+     */
+    private List<String> formatKeepOriginal(CollectedStatement statement) {
+
+        List<String> lines = statement.getOriginalStatements();
+
+        return lines;
+    }
+
+    /**
+     * Formats a compiler directive.
+     */
+    private List<String> formatCompilerDirective(CollectedStatement statement) {
+
+        List<String> result = new ArrayList<String>();
+
+        String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(statement.getStatement());
+        result.add(formatted);
+
+        return result;
+    }
+
+    /**
+     * Formats a ctl-opt statement.
+     */
+    private List<String> formatCtlOpt(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+
+        return Arrays.asList(results);
+    }
+
+    /**
+     * Formats a dcl-c (constant) statement.
+     *
+     * @throws RpgleFormatterException
+     */
+    private List<String> formatDclC(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+
+        return Arrays.asList(results);
+    }
+
+    /**
+     * Formats dcl-ds, dcl-pr, dcl-pi statements.
+     */
+    private List<String> formatDclBlock(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+
+        return Arrays.asList(results);
+    }
+
+    /**
+     * Formats dcl-f, dcl-s statements.
+     */
+    private List<String> formatDclStatement(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+
+        return Arrays.asList(results);
+    }
+
+    /**
+     * Formats a sub-statement (parameter, subfield).
+     */
+    private List<String> formatSubField(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, endColumn);
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        tokens = formatterUtils.sortConstValueToEnd(tokens);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn, subFieldAlignCol);
+
+        return Arrays.asList(results);
+    }
+
+    /**
+     * Formats an end statement (end-ds, end-pr, end-pi).
+     *
+     * @throws RpgleFormatterException
+     */
+    private List<String> formatEndStatement(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+
+        return Arrays.asList(results);
+    }
+}
