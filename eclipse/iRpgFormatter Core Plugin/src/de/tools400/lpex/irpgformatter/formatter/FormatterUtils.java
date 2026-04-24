@@ -530,8 +530,10 @@ public class FormatterUtils implements RpgleSourceConstants {
                     // First part
                     maxLength = maxLineLength - currentLine.length() - prefix.length() - contChar.length();
                     breakPoint = strategy.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength));
-                    // Check minimum name length (only when a fresh line could satisfy the rule)
-                    if (!currentLine.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint) && minNameLengthRule.isSatisfiedBy(maxLineLength)) {
+                    // Check minimum name length — move to a fresh line when the
+                    // breakpoint is too small.  Recursion is safe because the
+                    // recursive call uses subIndent, making condition 1 false.
+                    if (!currentLine.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint)) {
                         parts.add(currentLine);
                         currentLine = subIndent;
                         String[] nameParts = breakNameOrLiteral(currentLine, token, contChar, maxLineLength, prefix, suffix, strategy);

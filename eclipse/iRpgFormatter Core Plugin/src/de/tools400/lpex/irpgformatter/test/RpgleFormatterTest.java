@@ -1048,6 +1048,193 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  field1 char(10);", result[1]);
     }
 
+    // --- format - formatter directives (@formatter:off / @formatter:on) ---
+
+    @Test
+    public void format_formatterDirective_basicOffOn() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:off",
+            "dcl-s   myVar2   char( 10 );",
+            "// @formatter:on",
+            "dcl-s   myVar3   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(5, result.length);
+        assertEquals("dcl-s myVar1 char(10);", result[0]);
+        assertEquals("// @formatter:off", result[1]);
+        assertEquals("dcl-s   myVar2   char( 10 );", result[2]);
+        assertEquals("// @formatter:on", result[3]);
+        assertEquals("dcl-s myVar3 char(10);", result[4]);
+    }
+
+    @Test
+    public void format_formatterDirective_offUntilEnd() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:off",
+            "dcl-s   myVar2   char( 10 );",
+            "dcl-s   myVar3   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(4, result.length);
+        assertEquals("dcl-s myVar1 char(10);", result[0]);
+        assertEquals("// @formatter:off", result[1]);
+        assertEquals("dcl-s   myVar2   char( 10 );", result[2]);
+        assertEquals("dcl-s   myVar3   char( 10 );", result[3]);
+    }
+
+    @Test
+    public void format_formatterDirective_multipleBlocks() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:off",
+            "dcl-s   myVar2   char( 10 );",
+            "// @formatter:on",
+            "dcl-s   myVar3   char( 10 );",
+            "// @formatter:off",
+            "dcl-s   myVar4   char( 10 );",
+            "// @formatter:on",
+            "dcl-s   myVar5   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(9, result.length);
+        assertEquals("dcl-s myVar1 char(10);", result[0]);
+        assertEquals("dcl-s   myVar2   char( 10 );", result[2]);
+        assertEquals("dcl-s myVar3 char(10);", result[4]);
+        assertEquals("dcl-s   myVar4   char( 10 );", result[6]);
+        assertEquals("dcl-s myVar5 char(10);", result[8]);
+    }
+
+    @Test
+    public void format_formatterDirective_caseInsensitive() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @FORMATTER:OFF",
+            "dcl-s   myVar1   char( 10 );",
+            "// @Formatter:On",
+            "dcl-s   myVar2   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(4, result.length);
+        assertEquals("// @FORMATTER:OFF", result[0]);
+        assertEquals("dcl-s   myVar1   char( 10 );", result[1]);
+        assertEquals("// @Formatter:On", result[2]);
+        assertEquals("dcl-s myVar2 char(10);", result[3]);
+    }
+
+    @Test
+    public void format_formatterDirective_flexibleWhitespace() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "//   @formatter:off",
+            "dcl-s   myVar1   char( 10 );",
+            "//     @formatter:on",
+            "dcl-s   myVar2   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(4, result.length);
+        assertEquals("//   @formatter:off", result[0]);
+        assertEquals("dcl-s   myVar1   char( 10 );", result[1]);
+        assertEquals("//     @formatter:on", result[2]);
+        assertEquals("dcl-s myVar2 char(10);", result[3]);
+    }
+
+    @Test
+    public void format_formatterDirective_blankLinesAndComments() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @formatter:off",
+            "",
+            "// a regular comment",
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:on"
+        ),0);
+        // @formatter:on
+        assertEquals(5, result.length);
+        assertEquals("// @formatter:off", result[0]);
+        assertEquals("", result[1]);
+        assertEquals("// a regular comment", result[2]);
+        assertEquals("dcl-s   myVar1   char( 10 );", result[3]);
+        assertEquals("// @formatter:on", result[4]);
+    }
+
+    @Test
+    public void format_formatterDirective_blockStatements() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @formatter:off",
+            "dcl-ds   myDs ;",
+            "  field1   char( 10 ) ;",
+            "end-ds ;",
+            "// @formatter:on"
+        ),0);
+        // @formatter:on
+        assertEquals(5, result.length);
+        assertEquals("// @formatter:off", result[0]);
+        assertEquals("dcl-ds   myDs ;", result[1]);
+        assertEquals("  field1   char( 10 ) ;", result[2]);
+        assertEquals("end-ds ;", result[3]);
+        assertEquals("// @formatter:on", result[4]);
+    }
+
+    @Test
+    public void format_formatterDirective_redundantDirectives() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @formatter:off",
+            "// @formatter:off",
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:on",
+            "// @formatter:on",
+            "dcl-s   myVar2   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(6, result.length);
+        assertEquals("dcl-s   myVar1   char( 10 );", result[2]);
+        assertEquals("dcl-s myVar2 char(10);", result[5]);
+    }
+
+    @Test
+    public void format_formatterDirective_noFalseTrigger() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @formatter:off but with extra text",
+            "dcl-s   myVar1   char( 10 );",
+            "// @formatter:on  trailing",
+            "dcl-s   myVar2   char( 10 );"
+        ),0);
+        // @formatter:on
+        assertEquals(4, result.length);
+        // Both lines should be formatted because the directives have extra text
+        assertEquals("dcl-s myVar1 char(10);", result[1]);
+        assertEquals("dcl-s myVar2 char(10);", result[3]);
+    }
+
+    @Test
+    public void format_formatterDirective_continuationLines() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "// @formatter:off",
+            "dcl-pr myFirst...",
+            "Proc",
+            "  char(10);",
+            "end-pr;",
+            "// @formatter:on"
+        ),0);
+        // @formatter:on
+        assertEquals(6, result.length);
+        assertEquals("// @formatter:off", result[0]);
+        assertEquals("dcl-pr myFirst...", result[1]);
+        assertEquals("Proc", result[2]);
+        assertEquals("  char(10);", result[3]);
+        assertEquals("end-pr;", result[4]);
+        assertEquals("// @formatter:on", result[5]);
+    }
+
     private String buildStatement(String[] result) throws RpgleFormatterException {
 
         CollectedStatement statement = new CollectedStatement();

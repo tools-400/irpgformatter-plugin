@@ -14,6 +14,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
@@ -38,6 +40,8 @@ public class RpgleFormatter {
 
     private static final String SOURCE_TYPE_RPGLE = "RPGLE";
     private static final String SOURCE_TYPE_SQLRPGLE = "SQLRPGLE";
+
+    private static final Pattern FORMATTER_DIRECTIVE_PATTERN = Pattern.compile("^\\s*//\\s*@formatter:(on|off)\\s*$", Pattern.CASE_INSENSITIVE);
 
     private static final Set<String> SUPPORTED_SOURCE_TYPES;
     static {
@@ -114,10 +118,25 @@ public class RpgleFormatter {
         CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber);
 
         // Step 2: Process each statement
+        boolean formatterDisabled = false;
         for (CollectedStatement statement : statements) {
 
             // Format the statement
             StatementType type = statement.getType();
+
+            // Check for formatter directive
+            int directive = getFormatterDirective(statement, type);
+            if (directive != 0) {
+                formattedLines.addAll(statement.getOriginalStatements());
+                formatterDisabled = (directive == -1);
+                continue;
+            }
+
+            // If formatter is disabled, output original lines unchanged
+            if (formatterDisabled) {
+                formattedLines.addAll(statement.getOriginalStatements());
+                continue;
+            }
 
             List<String> formatted;
             if (type == StatementType.OTHER) {
@@ -146,6 +165,23 @@ public class RpgleFormatter {
 
     public int getErrorCount() {
         return errorCount;
+    }
+
+    /**
+     * Checks whether a COMMENT-type statement is a formatter directive.
+     *
+     * @return {@code -1} for {@code @formatter:off}, {@code +1} for
+     *         {@code @formatter:on}, {@code 0} if not a directive
+     */
+    private int getFormatterDirective(CollectedStatement statement, StatementType type) {
+        if (type != StatementType.COMMENT) {
+            return 0;
+        }
+        Matcher matcher = FORMATTER_DIRECTIVE_PATTERN.matcher(statement.getStatement());
+        if (matcher.matches()) {
+            return "off".equalsIgnoreCase(matcher.group(1)) ? -1 : 1;
+        }
+        return 0;
     }
 
     /**
