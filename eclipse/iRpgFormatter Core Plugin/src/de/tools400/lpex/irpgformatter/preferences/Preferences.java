@@ -53,6 +53,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
 
     private static final String EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
+    private static final String EXECUTE_IRPG_FORMATTER = "executeIrpgFormatter";
     private static final String FORMAT_ON_SAVE = "formatOnSave";
 
     private static final String DATA_TYPES = "dataTypes";
@@ -81,6 +82,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_CUSTOM_PREVIEW_CONTENT = false;
 
     private static final boolean DEFAULT_EXECUTE_IBM_FORMATTER = true;
+    private static final boolean DEFAULT_EXECUTE_IRPG_FORMATTER = true;
     private static final boolean DEFAULT_FORMAT_ON_SAVE = false;
 
     private static Map<String, String> cachedDataTypes;
@@ -281,6 +283,14 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setValue(EXECUTE_IBM_FORMATTER, enabled);
     }
 
+    public boolean isExecuteIrpgFormatter() {
+        return preferenceStore.getBoolean(EXECUTE_IRPG_FORMATTER);
+    }
+
+    public void setExecuteIrpgFormatter(boolean enabled) {
+        preferenceStore.setValue(EXECUTE_IRPG_FORMATTER, enabled);
+    }
+
     public boolean isFormatOnSave() {
         return preferenceStore.getBoolean(FORMAT_ON_SAVE);
     }
@@ -411,6 +421,7 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(BREAK_BEFORE_KEYWORD, getDefaultBreakBeforeKeyword());
         preferenceStore.setDefault(SORT_CONST_VALUE_TO_END, getDefaultSortConstValueToEnd());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, getDefaultExecuteIbmFormatter());
+        preferenceStore.setDefault(EXECUTE_IRPG_FORMATTER, getDefaultExecuteIrpgFormatter());
         preferenceStore.setDefault(FORMAT_ON_SAVE, getDefaultFormatOnSave());
         preferenceStore.setDefault(USER_KEY_ACTIONS, getDefaultUserKeyActions());
         preferenceStore.setDefault(DATA_TYPES, getDefaultDataTypesAsString());
@@ -465,6 +476,10 @@ public final class Preferences implements RpgleSourceConstants {
 
     public boolean getDefaultExecuteIbmFormatter() {
         return DEFAULT_EXECUTE_IBM_FORMATTER;
+    }
+
+    public boolean getDefaultExecuteIrpgFormatter() {
+        return DEFAULT_EXECUTE_IRPG_FORMATTER;
     }
 
     public boolean getDefaultFormatOnSave() {

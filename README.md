@@ -186,20 +186,42 @@ If the formatter encounters an error while formatting a statement, the original 
 
 Access preferences via **Window > Preferences > iRPGFormatter**
 
+#### IBM Settings
+
 | Setting                         | Default          | Description                                                              |
 | ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
 | **Keyword casing style**        | All Lowercase    | How keywords are formatted (see Keyword Casing above)                    |
+| **Execute IBM formatter**       | On               | Run the IBM formatter before iRPGFormatter                               |
+
+#### General Settings
+
+| Setting                         | Default          | Description                                                              |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
+| **Use const() keyword**         | Off              | Wrap constant values in `const()` for DCL-C statements                   |
+| **Delimiter before parameter**  | Off              | Place colon delimiter before parameter instead of after                  |
 | **Parameter spacing**           | Before parameter | Spacing around colon between keyword parameters                          |
 | **Align sub-fields**            | On               | Align keywords within blocks at a common column                          |
-| **Use const() keyword**         | Off              | Wrap constant values in `const()` for DCL-C statements                   |
-| **Sort const value to end**     | Off              | Move `const()`/`value()` keyword to the end of the statement             |
-| **Break before keyword**        | Off              | Break line before keyword when parameters don't fit                      |
-| **Delimiter before parameter**  | Off              | Place colon delimiter before parameter instead of after                  |
 | **Break between case change**   | Off              | Break long names at camelCase boundaries                                 |
-| **Execute IBM formatter**       | On               | Run the IBM formatter before iRPGFormatter                               |
+| **Break before keyword**        | Off              | Break line before keyword when parameters don't fit                      |
+| **Sort const value to end**     | Off              | Move `const()`/`value()` keyword to the end of the statement             |
+| **Maximum name length**         | 60               | Max characters for a name or literal before it is split with `...`       |
+| **Minimum name length**         | 20               | Min characters that must remain on a line when splitting long names       |
+| **Execute iRPG formatter**      | On               | Run the iRPGFormatter to apply iRPG formatting rules                     |
+
+#### Save Actions
+
+| Setting                         | Default          | Description                                                              |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
 | **Format on save**              | Off              | Automatically format when saving the source member                       |
+
+#### Settings
+
+| Setting                         | Default          | Description                                                              |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
+| **Data Types**                  | (built-in list)  | Custom data type casing mappings                                         |
+| **Declaration Types**           | (built-in list)  | Custom declaration type casing mappings                                  |
 | **Keywords**                    | (built-in list)  | Custom keyword casing mappings                                           |
-| **Keyword Parameters**          | (built-in list)  | Custom keyword parameter casing mappings (e.g., \*NOPASS, \*OMIT)        |
+| **Special Words**               | (built-in list)  | Custom keyword parameter casing mappings (e.g., \*NOPASS, \*OMIT)        |
 
 ### Advanced Settings (RDi)
 

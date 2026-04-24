@@ -109,6 +109,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Spinner maxNameLengthSpinner;
     private Spinner minNameLengthSpinner;
     private Button executeIbmFormatterCheckbox;
+    private Button executeIrpgFormatterCheckbox;
     private Button formatOnSaveCheckbox;
 
     private KeywordEditor dataTypesEditor;
@@ -663,6 +664,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         minNameLengthSpinner = createLabeledSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50, 30,
             spinnerPreviewUpdater);
 
+        // Execute iRPG formatter
+        executeIrpgFormatterCheckbox = createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter, null);
     }
 
     private void createSaveActionsGroup(Composite parent) {
@@ -894,6 +897,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         minNameLengthSpinner.setSelection(preferences.getMinNameLength());
 
         executeIbmFormatterCheckbox.setSelection(preferences.isExecuteIbmFormatter());
+        executeIrpgFormatterCheckbox.setSelection(preferences.isExecuteIrpgFormatter());
 
         dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDataTypes()));
         declarationTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDeclarationTypes()));
@@ -953,6 +957,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setMinLiteralLength(minNameLengthSpinner.getSelection());
 
         preferences.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
+        preferences.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
 
         preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.entries));
         preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.entries));
@@ -994,6 +999,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         // Reset execute IBM formatter
         executeIbmFormatterCheckbox.setSelection(preferences.getDefaultExecuteIbmFormatter());
+        executeIrpgFormatterCheckbox.setSelection(preferences.getDefaultExecuteIrpgFormatter());
 
         // Reset keyword editors
         dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultDataTypes()));

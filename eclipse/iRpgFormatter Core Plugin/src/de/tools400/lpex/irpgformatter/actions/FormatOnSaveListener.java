@@ -75,9 +75,11 @@ public final class FormatOnSaveListener {
             String firstLine = LpexViewUtils.getElementText(view, 1);
             defaultIndent = StringUtils.getIndent(firstLine).length();
         }
-        String[] formattedSourceLines = formatter.format(input, defaultIndent);
 
-        IRpgleOutput output = input.getOutput();
-        output.writeSourceLines(formattedSourceLines);
+        if (Preferences.getInstance().isExecuteIrpgFormatter()) {
+            String[] formattedSourceLines = formatter.format(input, defaultIndent);
+            IRpgleOutput output = input.getOutput();
+            output.writeSourceLines(formattedSourceLines);
+        }
     }
 }

@@ -90,6 +90,7 @@ public class FormatLpexSourceAction implements LpexAction {
         throws RpgleFormatterException {
 
         boolean executeIbmFormatter = Preferences.getInstance().isExecuteIbmFormatter();
+        boolean executeIrpgFormatter = Preferences.getInstance().isExecuteIrpgFormatter();
 
         RpgleFormatter formatter = new RpgleFormatter();
         int sourceLength = LpexViewUtils.getMaxLineLength(view);
@@ -106,18 +107,24 @@ public class FormatLpexSourceAction implements LpexAction {
             defaultIndent = getIndent(firstLine);
         }
 
-        String[] formattedSourceLines = formatter.format(input, defaultIndent);
+        if (executeIrpgFormatter) {
+            String[] formattedSourceLines = formatter.format(input, defaultIndent);
 
-        // Write formatted source back to view
-        IRpgleOutput output = input.getOutput();
-        output.writeSourceLines(formattedSourceLines);
+            // Write formatted source back to view
+            IRpgleOutput output = input.getOutput();
+            output.writeSourceLines(formattedSourceLines);
 
-        if (haveSelection && formattedSourceLines.length > 0) {
-            endLine = startLine + formattedSourceLines.length - 1;
-            LpexViewUtils.selectBlockRange(view, startLine, endLine);
-            LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
-        } else {
+            if (haveSelection && formattedSourceLines.length > 0) {
+                endLine = startLine + formattedSourceLines.length - 1;
+                LpexViewUtils.selectBlockRange(view, startLine, endLine);
+                LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
+            } else {
+                LpexViewUtils.displayMessage(view, Messages.Message_Source_formatted_successfully);
+            }
+        } else if (executeIbmFormatter) {
             LpexViewUtils.displayMessage(view, Messages.Message_Source_formatted_successfully);
+        } else {
+            LpexViewUtils.displayMessage(view, Messages.Message_No_formatting_applied);
         }
 
         restoreCursorPosition(view);

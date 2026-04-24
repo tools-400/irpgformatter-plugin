@@ -35,6 +35,7 @@ public class Messages extends NLS {
     public static String Label_Max_name_length;
     public static String Label_Min_name_length;
     public static String Label_Execute_IBM_formatter;
+    public static String Label_Execute_iRPG_formatter;
     public static String Label_Save_Actions;
     public static String Label_Format_on_save;
     public static String Label_Settings;
@@ -87,6 +88,7 @@ public class Messages extends NLS {
     public static String Tooltip_Max_name_length;
     public static String Tooltip_Min_name_length;
     public static String Tooltip_Execute_IBM_formatter;
+    public static String Tooltip_Execute_iRPG_formatter;
     public static String Tooltip_Format_on_save;
     public static String Tooltip_View_Edit_raw_code;
     public static String Tooltip_Custom_preview_contents;
@@ -99,6 +101,7 @@ public class Messages extends NLS {
 
     public static String Message_Source_formatted_successfully;
     public static String Message_Source_Lines_A_B_formatted_successfully;
+    public static String Message_No_formatting_applied;
 
     public static String Error_Format_failed_A;
     public static String Error_Failed_reading_file_A;
