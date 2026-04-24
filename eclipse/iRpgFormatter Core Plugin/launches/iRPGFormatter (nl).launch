@@ -14,9 +14,14 @@
     <setAttribute key="deselected_workspace_bundles">
         <setEntry value="biz.isphere.adapter"/>
         <setEntry value="biz.isphere.antcontrib"/>
+        <setEntry value="biz.isphere.base"/>
+        <setEntry value="biz.isphere.base.help"/>
+        <setEntry value="biz.isphere.common.libraries"/>
         <setEntry value="biz.isphere.comparefilters"/>
+        <setEntry value="biz.isphere.core"/>
         <setEntry value="biz.isphere.core.help"/>
         <setEntry value="biz.isphere.development"/>
+        <setEntry value="biz.isphere.ide"/>
         <setEntry value="biz.isphere.joblogexplorer"/>
         <setEntry value="biz.isphere.joblogexplorer.help"/>
         <setEntry value="biz.isphere.joblogexplorer.rse"/>
@@ -877,16 +882,12 @@
     <setAttribute key="selected_workspace_bundles">
         <setEntry value="OpenClosedProjects@default:default"/>
         <setEntry value="OpenClosedProjectsExtension@default:default"/>
-        <setEntry value="biz.isphere.base.help@default:default"/>
-        <setEntry value="biz.isphere.base@default:default"/>
-        <setEntry value="biz.isphere.common.libraries@default:default"/>
-        <setEntry value="biz.isphere.core@default:default"/>
-        <setEntry value="biz.isphere.ide@default:default"/>
         <setEntry value="biz.rapidfire.core@default:default"/>
         <setEntry value="biz.rapidfire.help@default:default"/>
         <setEntry value="biz.rapidfire.rse@default:default"/>
         <setEntry value="biz.rapidfire.rsebase@default:default"/>
-        <setEntry value="de.tools400.lpex.irpgformatter.core@default:default"/>
+        <setEntry value="de.tools400.lpex.irpgformatter.core.plugin@default:default"/>
+        <setEntry value="de.tools400.lpex.menuextension.plugin@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
     <booleanAttribute key="tracing" value="false"/>
