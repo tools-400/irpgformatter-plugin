@@ -134,6 +134,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private IDocumentListener previewDocumentListener;
     private Font monoFont;
     private Color overflowColor;
+    private Color cursorLineColor;
+    private int previewCursorLine = -1;
+    private boolean isUpdatingPreview;
 
     private String rawDefaultSource = "";
     private String rawCustomSource = "";
@@ -195,6 +198,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         };
         ibmPreferenceStore.addPropertyChangeListener(ibmPropertyChangeListener);
 
+        // Set focus to 1. line of preview editor
+        previewViewer.getTextWidget().setFocus();
+        previewCursorLine = 0;
+
         return container;
     }
 
@@ -232,6 +239,25 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         IDocument document = new Document(preferences.getDefaultFormatterSource());
         previewViewer.setDocument(document);
         previewViewer.setEditable(false);
+
+        // Highlight cursor line (works regardless of focus)
+        cursorLineColor = getCurrentLineHighlightColor(styledText);
+        styledText.addCaretListener(event -> {
+            if (isUpdatingPreview) {
+                return;
+            }
+            int oldLine = previewCursorLine;
+            previewCursorLine = styledText.getLineAtOffset(event.caretOffset);
+            if (oldLine != previewCursorLine) {
+                styledText.redraw();
+            }
+        });
+        styledText.addLineBackgroundListener(event -> {
+            int line = styledText.getLineAtOffset(event.lineOffset);
+            if (line == previewCursorLine) {
+                event.lineBackground = cursorLineColor;
+            }
+        });
 
         // Document listener (placeholder for future use)
         previewDocumentListener = new IDocumentListener() {
@@ -351,7 +377,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // "Reset preview line width" button
         Button resetLineWidthButton = new Button(buttonBar, SWT.PUSH);
         resetLineWidthButton.setToolTipText(Messages.Tooltip_Reset_preview_line_width);
-        resetLineWidthButton.setImage(IRpgleFormatterPlugin.getImageDescriptor(IRpgleFormatterPlugin.IMAGE_RESET).createImage());
+        resetLineWidthButton.setImage(IRpgleFormatterPlugin.getDefault().getImage(IRpgleFormatterPlugin.IMAGE_RESET));
         Point resetSize = resetLineWidthButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
         GridData resetGridData = new GridData();
         resetGridData.widthHint = reduceButtonSize(resetSize.x);
@@ -360,6 +386,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         resetLineWidthButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                previewVerticalRulerSpinner.setFocus();
                 previewVerticalRulerSpinner.setSelection(preferences.getDefaultFormatterPreviewVerticalRulerColumn());
             }
         });
@@ -402,11 +429,97 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
                 setErrorMessage("Could not format preview source.");
             }
             String formattedSource = String.join("\n", lines);
-            previewViewer.getDocument().set(formattedSource);
+            StyledText styledText = previewViewer.getTextWidget();
+            int topIndex = styledText.getTopIndex();
+
+            int cursorVisualOffset = -1;
+            String cursorLineContent = null;
+            int oldLineCount = styledText.getLineCount();
+            if (previewCursorLine >= 0 && previewCursorLine < oldLineCount) {
+                cursorVisualOffset = previewCursorLine - topIndex;
+                cursorLineContent = styledText.getLine(previewCursorLine).trim();
+            }
+
+            isUpdatingPreview = true;
+            try {
+                previewViewer.getDocument().set(formattedSource);
+
+                if (cursorLineContent != null) {
+                    int matchedLine = findBestMatchingLine(lines, cursorLineContent, previewCursorLine);
+                    if (matchedLine >= 0) {
+                        previewCursorLine = matchedLine;
+                    } else {
+                        // Fallback: proportionale Position
+                        previewCursorLine = Math.round((float)previewCursorLine / oldLineCount * lines.length);
+                        previewCursorLine = Math.min(previewCursorLine, lines.length - 1);
+                    }
+                    int newTopIndex = Math.max(0, previewCursorLine - cursorVisualOffset);
+                    styledText.setTopIndex(newTopIndex);
+                    if (previewCursorLine < styledText.getLineCount()) {
+                        styledText.setCaretOffset(styledText.getOffsetAtLine(previewCursorLine));
+                    }
+                } else {
+                    styledText.setTopIndex(topIndex);
+                }
+            } finally {
+                isUpdatingPreview = false;
+            }
 
         } catch (Exception e) {
             setErrorMessage(e.getLocalizedMessage());
         }
+    }
+
+    private int findBestMatchingLine(String[] lines, String trimmedContent, int previousLine) {
+
+        if (trimmedContent.isEmpty()) {
+            return previousLine;
+        }
+
+        // 1. Exact match
+        int bestMatch = -1;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int i = 0; i < lines.length; i++) {
+            if (lines[i].trim().equals(trimmedContent)) {
+                int distance = Math.abs(i - previousLine);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestMatch = i;
+                }
+            }
+        }
+        if (bestMatch >= 0) {
+            return bestMatch;
+        }
+
+        // 2. Prefix match: line was split (content starts with new line)
+        // or lines were joined (new line starts with content)
+        int bestPrefixLength = 0;
+        for (int i = 0; i < lines.length; i++) {
+            String lineTrimmed = lines[i].trim();
+            if (lineTrimmed.isEmpty()) {
+                continue;
+            }
+            int prefixLength = 0;
+            if (trimmedContent.startsWith(lineTrimmed)) {
+                prefixLength = lineTrimmed.length();
+            } else if (lineTrimmed.startsWith(trimmedContent)) {
+                prefixLength = trimmedContent.length();
+            }
+            if (prefixLength > bestPrefixLength) {
+                bestPrefixLength = prefixLength;
+                bestMatch = i;
+                bestDistance = Math.abs(i - previousLine);
+            } else if (prefixLength == bestPrefixLength && prefixLength > 0) {
+                int distance = Math.abs(i - previousLine);
+                if (distance < bestDistance) {
+                    bestMatch = i;
+                    bestDistance = distance;
+                }
+            }
+        }
+
+        return bestMatch;
     }
 
     private boolean isUIFullyInitialized() {
@@ -492,6 +605,14 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return new Color(styledText.getDisplay(), rgb);
     }
 
+    private Color getCurrentLineHighlightColor(StyledText styledText) {
+
+        IThemeRegistry themeRegistry = WorkbenchPlugin.getDefault().getThemeRegistry();
+        RGB rgb = themeRegistry.findColor("org.eclipse.ui.editors.currentLineColor").getValue();
+
+        return new Color(styledText.getDisplay(), rgb);
+    }
+
     private String getCurrentRawSource() {
         return isCustomContent ? rawCustomSource : rawDefaultSource;
     }
@@ -536,6 +657,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         if (monoFont != null && !monoFont.isDisposed()) {
             monoFont.dispose();
+        }
+
+        if (cursorLineColor != null && !cursorLineColor.isDisposed()) {
+            cursorLineColor.dispose();
         }
 
         super.dispose();
@@ -1115,12 +1240,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
                 int column = previewVerticalRulerSpinner.getSelection();
                 updateMarginColumn(column);
                 if (!isEditMode) {
+                    boolean spinnerHadFocus = previewVerticalRulerSpinner.isFocusControl();
                     fromatPreviewSource();
-                    // Move focus away and back to re-select the spinner text,
-                    // since forceFocus() is a no-op when the spinner already
-                    // has focus.
-                    previewViewer.getControl().forceFocus();
-                    previewVerticalRulerSpinner.forceFocus();
+                    if (spinnerHadFocus) {
+                        // Move focus away and back to re-select the spinner
+                        // text,
+                        // since forceFocus() is a no-op when the spinner
+                        // already
+                        // has focus.
+                        previewViewer.getControl().forceFocus();
+                        previewVerticalRulerSpinner.forceFocus();
+                    }
                 }
             }
 

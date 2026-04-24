@@ -13,6 +13,8 @@ import java.net.URL;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -94,6 +96,16 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
             return;
         }
         plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, message, e));
+    }
+
+    @Override
+    protected void initializeImageRegistry(ImageRegistry reg) {
+        super.initializeImageRegistry(reg);
+        reg.put(IMAGE_RESET, getImageDescriptor(IMAGE_RESET));
+    }
+
+    public Image getImage(String name) {
+        return getImageRegistry().get(name);
     }
 
     public static ImageDescriptor getImageDescriptor(String name) {
