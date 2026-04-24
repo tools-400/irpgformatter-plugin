@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.lpex.irpgformatter.core"
       label="iRPGFormatter Core"
-      version="1.0.0.b001"
+      version="1.0.0.b002"
       provider-name="iRPGFormatter Project Team">
 
    <description url="">
