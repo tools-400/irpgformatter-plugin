@@ -173,6 +173,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     @Override
     protected Control createContents(Composite parent) {
 
+        setTitle(getTitle() + " - " + IRpgleFormatterPlugin.getDefault().getVersion());
+
         Composite container = new Composite(parent, SWT.NONE);
         container.setLayout(new GridLayout(2, false));
         container.setLayoutData(new GridData(GridData.FILL_BOTH));

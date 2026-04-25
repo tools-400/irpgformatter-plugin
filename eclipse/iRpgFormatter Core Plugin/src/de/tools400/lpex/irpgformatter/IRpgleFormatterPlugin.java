@@ -17,6 +17,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 
 import de.tools400.lpex.menuextension.ILpexMenuExtension;
 import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
@@ -79,6 +80,21 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
      */
     public void setLpexMenuExtension(ILpexMenuExtension menuExtension) {
         this.menuExtension = menuExtension;
+    }
+
+    /**
+     * Returns the version of the plug-in, as assigned to "Bundle-Version" in
+     * "MANIFEST.MF".
+     * 
+     * @return Version of the plug-in.
+     */
+    public String getVersion() {
+        String version = (String)getBundle().getHeaders().get(Constants.BUNDLE_VERSION);
+        if (version == null) {
+            version = "0.0.0"; //$NON-NLS-1$
+        }
+
+        return version;
     }
 
     /**
