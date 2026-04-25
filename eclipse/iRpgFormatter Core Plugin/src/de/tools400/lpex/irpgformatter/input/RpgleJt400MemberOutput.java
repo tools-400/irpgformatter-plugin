@@ -49,68 +49,54 @@ public class RpgleJt400MemberOutput implements IRpgleOutput {
 
             int recordLength = IBMiUtils.getRecordLength(system, library, sourceFile);
 
-            if (!ClCommandUtils.ensureTempSourceFile(system, recordLength)) {
+            if (!ClCommandUtils.ensureTempSourceFile(system, recordLength) || !ClCommandUtils.ensureTempMember(system)
+                || !ClCommandUtils.removeTempMember(system)) {
                 return false;
             }
 
-            if (!ClCommandUtils.ensureTempMember(system)) {
-                return false;
-            }
+            MemberDescription memberDescription = new MemberDescription(system, ifsPath);
+            int existingCount = (Integer)memberDescription.getValue(MemberDescription.CURRENT_NUMBER_OF_RECORDS);
 
-            if (!ClCommandUtils.removeTempMember(system)) {
-                return false;
-            }
+            RecordFormat format = IBMiUtils.getRecordFormat(system, library, sourceFile);
 
-            // TODO: remove debug code
-            for (String line : lines) {
-                System.out.println(line);
-            }
+            SequentialFile file = new SequentialFile(system, ifsPath);
+            file.setRecordFormat(format);
+            file.open(AS400File.READ_WRITE, 0, AS400File.COMMIT_LOCK_LEVEL_NONE);
 
-            if (1 == 2) {
-                MemberDescription memberDescription = new MemberDescription(system, ifsPath);
-                int existingCount = (Integer)memberDescription.getValue(MemberDescription.CURRENT_NUMBER_OF_RECORDS);
+            try {
 
-                RecordFormat format = IBMiUtils.getRecordFormat(system, library, sourceFile);
+                int seqNbr = 0;
+                int newCount = lines.length;
+                int updateCount = Math.min(existingCount, newCount);
+                int currentDate = DateUtils.getSourceLineDate();
 
-                SequentialFile file = new SequentialFile(system, ifsPath);
-                file.setRecordFormat(format);
-                file.open(AS400File.READ_WRITE, 0, AS400File.COMMIT_LOCK_LEVEL_NONE);
-
-                try {
-
-                    int seqNbr = 0;
-                    int newCount = lines.length;
-                    int updateCount = Math.min(existingCount, newCount);
-                    int currentDate = DateUtils.getSourceLineDate();
-
-                    // Update records that exist in both old and new content
-                    if (updateCount > 0) {
-                        file.positionCursorToFirst();
-                        for (int i = 0; i < updateCount; i++) {
-                            seqNbr = seqNbr + 1;
-                            Record record = file.readNext();
-                            setRecordFields(record, seqNbr, currentDate, lines[i]);
-                            file.update(record);
-                        }
-                    }
-
-                    // Append records beyond the existing count
-                    file.positionCursorAfterLast();
-                    for (int i = existingCount; i < newCount; i++) {
+                // Update records that exist in both old and new content
+                if (updateCount > 0) {
+                    file.positionCursorToFirst();
+                    for (int i = 0; i < updateCount; i++) {
                         seqNbr = seqNbr + 1;
-                        Record record = format.getNewRecord();
+                        Record record = file.readNext();
                         setRecordFields(record, seqNbr, currentDate, lines[i]);
-                        file.write(record);
+                        file.update(record);
                     }
-
-                    // Delete surplus existing records from the end
-                    for (int i = existingCount; i > newCount; i--) {
-                        file.positionCursorToLast();
-                        file.deleteCurrentRecord();
-                    }
-                } finally {
-                    file.close();
                 }
+
+                // Append records beyond the existing count
+                file.positionCursorAfterLast();
+                for (int i = existingCount; i < newCount; i++) {
+                    seqNbr = seqNbr + 1;
+                    Record record = format.getNewRecord();
+                    setRecordFields(record, seqNbr, currentDate, lines[i]);
+                    file.write(record);
+                }
+
+                // Delete surplus existing records from the end
+                for (int i = existingCount; i > newCount; i--) {
+                    file.positionCursorToLast();
+                    file.deleteCurrentRecord();
+                }
+            } finally {
+                file.close();
             }
 
             return true;
