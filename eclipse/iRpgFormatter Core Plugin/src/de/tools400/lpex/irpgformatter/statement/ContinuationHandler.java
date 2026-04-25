@@ -58,7 +58,7 @@ public final class ContinuationHandler {
      *
      * @param sourceLines the source lines to process
      * @param startLineNumber the 0-based line number of the first source line
-     *            within the overall source member
+     *        within the overall source member
      * @return list of complete statements (may span multiple original lines)
      */
     public static CollectedStatement[] collectStatements(String[] sourceLines, int startLineNumber) throws RpgleFormatterException {
