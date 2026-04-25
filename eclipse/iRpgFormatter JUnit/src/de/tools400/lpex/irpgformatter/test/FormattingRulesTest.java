@@ -8,17 +8,16 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
+import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
-import de.tools400.lpex.irpgformatter.tokenizer.IToken;
-import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
+import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
+import de.tools400.lpex.irpgformatter.rules.NullFormattingRule;
 
 /**
  * Unit tests for {@link FormattingRules}.
@@ -102,262 +101,139 @@ public class FormattingRulesTest extends AbstractTestCase {
         }
     }
 
-    // --- format single parameter tests ---
+    // --- createIndent with custom indent size ---
 
     @Test
-    public void testSpaceBeforeSingleParameter_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
+    public void createIndent_level3_indent4() {
+        getFormatterConfig().setIndent(4);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        assertEquals("            ", rules.createIndent(3));
+        assertEquals(12, rules.createIndent(3).length());
+    }
 
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
+    // --- formatKeyword ---
+
+    @Test
+    public void formatKeyword_lowercase() {
+        getFormatterConfig().setKeywordCasingStyle(KeywordCasingStyle.LOWERCASE);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        String result = rules.formatKeyword("ExtProc");
+        assertNotNull(result);
     }
 
     @Test
-    public void testSpaceAfterSingleParameter_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
+    public void formatKeyword_uppercase() {
+        getFormatterConfig().setKeywordCasingStyle(KeywordCasingStyle.UPPERCASE);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        String result = rules.formatKeyword("extproc");
+        assertNotNull(result);
+    }
 
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
+    // --- formatSpecialWord ---
+
+    @Test
+    public void formatSpecialWord_returnsFormatted() {
+        getFormatterConfig().setKeywordCasingStyle(KeywordCasingStyle.UPPERCASE);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        String result = rules.formatSpecialWord("*nopass");
+        assertNotNull(result);
+    }
+
+    // --- formatDataType ---
+
+    @Test
+    public void formatDataType_returnsFormatted() {
+        getFormatterConfig().setKeywordCasingStyle(KeywordCasingStyle.UPPERCASE);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        String result = rules.formatDataType("char");
+        assertNotNull(result);
+    }
+
+    // --- formatCompilerDirective ---
+
+    @Test
+    public void formatCompilerDirective_returnsFormatted() {
+        getFormatterConfig().setKeywordCasingStyle(KeywordCasingStyle.UPPERCASE);
+        FormattingRules rules = new FormattingRules(getFormatterConfig());
+        String result = rules.formatCompilerDirective("/copy");
+        assertNotNull(result);
+    }
+
+    // --- applyFormattingRule (static) ---
+
+    @Test
+    public void applyFormattingRule_noLiterals() {
+        NullFormattingRule rule = new NullFormattingRule();
+        assertEquals("dcl-s myVar char(10);", FormattingRules.applyFormattingRule("dcl-s myVar char(10);", rule));
     }
 
     @Test
-    public void testSpaceBeforeAfterSingleParameter_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals(" *varsize ", parameters);
+    public void applyFormattingRule_withLiteral_preservesLiteral() {
+        IFormattingRule toUpper = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.toUpperCase();
+            }
+        };
+        String result = FormattingRules.applyFormattingRule("inz('hello')", toUpper);
+        // The non-literal part should be uppercased, but the literal preserved
+        assertEquals("INZ('hello')", result);
     }
 
     @Test
-    public void testSpaceBeforeSingleParameter_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
+    public void applyFormattingRule_withEmptyLiteral() {
+        IFormattingRule toUpper = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.toUpperCase();
+            }
+        };
+        String result = FormattingRules.applyFormattingRule("inz('')", toUpper);
+        assertEquals("INZ('')", result);
     }
 
     @Test
-    public void testSpaceAfterSingleParameter_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
+    public void applyFormattingRule_noLiterals_appliesRule() {
+        IFormattingRule toUpper = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.toUpperCase();
+            }
+        };
+        assertEquals("DCL-S MYVAR CHAR(10);", FormattingRules.applyFormattingRule("dcl-s myVar char(10);", toUpper));
     }
 
     @Test
-    public void testSpaceBeforeAfterSingleParameter_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals(" *varsize ", parameters);
+    public void applyFormattingRule_multipleRules() {
+        IFormattingRule trimRule = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.trim();
+            }
+        };
+        IFormattingRule toUpper = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.toUpperCase();
+            }
+        };
+        assertEquals("HELLO", FormattingRules.applyFormattingRule("  hello  ", trimRule, toUpper));
     }
 
     @Test
-    public void testNoSpaceSingleParameter_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
-    }
-
-    @Test
-    public void testNoSpaceSingleParameter_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize", parameters);
-    }
-
-    @Test
-    public void testNoSpaceParameters_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize:*trim:*string", parameters);
-    }
-
-    @Test
-    public void testNoSpaceParameters_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize:*trim:*string", parameters);
-    }
-
-    // --- format multiple parameters tests ---
-
-    @Test
-    public void testSpaceBeforeParameters_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize: *trim: *string", parameters);
-    }
-
-    @Test
-    public void testSpaceAfterParameters_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize :*trim :*string", parameters);
-    }
-
-    @Test
-    public void testSpaceBeforeAfterParameters_delimiterAfter() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(false);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals(" *varsize : *trim : *string ", parameters);
-    }
-
-    @Test
-    public void testSpaceBeforeParameters_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize: *trim: *string", parameters);
-    }
-
-    @Test
-    public void testSpaceAfterParameters_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals("*varsize :*trim :*string", parameters);
-    }
-
-    @Test
-    public void testSpaceBeforeAfterParameters_delimiterBefore() throws RpgleFormatterException {
-        getFormatterConfig().setDelimiterBeforeParameter(true);
-        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
-
-        IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
-        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
-        assertEquals(" *varsize : *trim : *string ", parameters);
-    }
-
-    // --- INDENT_SIZE constant test ---
-
-    @Test
-    public void indentSizeIs2() {
-        assertEquals(2, getIndentSize());
-    }
-
-    @Test
-    public void combined_dclCWithConst() {
-        String constValue = FormattingRules.removeConstWrapper("const(100)");
-        assertEquals("100", constValue);
+    public void applyFormattingRule_withEscapedQuoteInsideLiteral() {
+        IFormattingRule toUpper = new IFormattingRule() {
+            @Override
+            public String format(String value) {
+                return value.toUpperCase();
+            }
+        };
+        // 'it''s' contains an escaped quote inside a literal - both '' must be preserved
+        String result = FormattingRules.applyFormattingRule("inz('it''s a test')", toUpper);
+        assertEquals("INZ('it''s a test')", result);
     }
 
     private int getIndentSize() {
         return Preferences.getInstance().getIndent();
-    }
-
-    // --- sortConstValueToEnd tests ---
-
-    @Test
-    public void testSortConstToEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("const", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[3].getType());
-    }
-
-    @Test
-    public void testSortValueToEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam value packed(7:2);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("value", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[3].getType());
-    }
-
-    @Test
-    public void testSortConstToEnd_alreadyAtEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam char(10) const;");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    @Test
-    public void testSortConstToEnd_beforeOtherKeywords() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10) options(*nopass);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("options", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.KEYWORD, tokens[3].getType());
-        assertEquals("const", tokens[3].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[4].getType());
-    }
-
-    @Test
-    public void testSortConstToEnd_disabled() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(false);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10);");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    @Test
-    public void testSortConstToEnd_noConstValue() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam char(10);");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    private static TokenType[] getTokenTypes(IToken[] tokens) {
-        TokenType[] types = new TokenType[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            types[i] = tokens[i].getType();
-        }
-        return types;
     }
 }

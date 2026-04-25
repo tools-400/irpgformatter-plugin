@@ -10,6 +10,7 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -110,5 +111,111 @@ public class KeywordCasingStyleTest extends AbstractTestCase {
     public void toStringFormat_includesDisplayNameAndExample() {
         String result = KeywordCasingStyle.UPPERCASE.toString();
         assertEquals("All Uppercase (DCL-DS)", result);
+    }
+
+    @Test
+    public void toString_upperCamel_containsExample() {
+        String str = KeywordCasingStyle.UPPER_CAMEL.toString();
+        assertTrue(str.contains("Upper Camel Case"));
+        assertTrue(str.contains("Dcl-Ds"));
+    }
+
+    @Test
+    public void toString_lowercase_containsExample() {
+        String str = KeywordCasingStyle.LOWERCASE.toString();
+        assertTrue(str.contains("All Lowercase"));
+        assertTrue(str.contains("dcl-ds"));
+    }
+
+    // --- values ---
+
+    @Test
+    public void values_hasFiveStyles() {
+        assertEquals(5, KeywordCasingStyle.values().length);
+    }
+
+    // --- getDisplayName ---
+
+    @Test
+    public void getDisplayName_uppercase() {
+        assertEquals("All Uppercase", KeywordCasingStyle.UPPERCASE.getDisplayName());
+    }
+
+    @Test
+    public void getDisplayName_upperCamel() {
+        assertEquals("Upper Camel Case", KeywordCasingStyle.UPPER_CAMEL.getDisplayName());
+    }
+
+    @Test
+    public void getDisplayName_firstUpper() {
+        assertEquals("First Char Uppercase", KeywordCasingStyle.FIRST_UPPER.getDisplayName());
+    }
+
+    @Test
+    public void getDisplayName_lowerCamel() {
+        assertEquals("Lower Camel Case", KeywordCasingStyle.LOWER_CAMEL.getDisplayName());
+    }
+
+    @Test
+    public void getDisplayName_lowercase() {
+        assertEquals("All Lowercase", KeywordCasingStyle.LOWERCASE.getDisplayName());
+    }
+
+    // --- fromLabel ---
+
+    @Test
+    public void fromLabel_uppercase() {
+        assertEquals(KeywordCasingStyle.UPPERCASE, KeywordCasingStyle.fromLabel("All Uppercase"));
+    }
+
+    @Test
+    public void fromLabel_upperCamel() {
+        assertEquals(KeywordCasingStyle.UPPER_CAMEL, KeywordCasingStyle.fromLabel("Upper Camel Case"));
+    }
+
+    @Test
+    public void fromLabel_firstUpper() {
+        assertEquals(KeywordCasingStyle.FIRST_UPPER, KeywordCasingStyle.fromLabel("First Char Uppercase"));
+    }
+
+    @Test
+    public void fromLabel_lowerCamel() {
+        assertEquals(KeywordCasingStyle.LOWER_CAMEL, KeywordCasingStyle.fromLabel("Lower Camel Case"));
+    }
+
+    @Test
+    public void fromLabel_lowercase() {
+        assertEquals(KeywordCasingStyle.LOWERCASE, KeywordCasingStyle.fromLabel("All Lowercase"));
+    }
+
+    @Test
+    public void fromLabel_null_returnsDefault() {
+        KeywordCasingStyle style = KeywordCasingStyle.fromLabel(null);
+        assertNotNull(style);
+        assertEquals(KeywordCasingStyle.LOWERCASE, style);
+    }
+
+    @Test
+    public void fromLabel_unknown_returnsDefault() {
+        KeywordCasingStyle style = KeywordCasingStyle.fromLabel("NonExistentStyle");
+        assertNotNull(style);
+        assertEquals(KeywordCasingStyle.LOWERCASE, style);
+    }
+
+    // --- valueOf ---
+
+    @Test
+    public void valueOf_uppercase() {
+        assertEquals(KeywordCasingStyle.UPPERCASE, KeywordCasingStyle.valueOf("UPPERCASE"));
+    }
+
+    @Test
+    public void valueOf_lowercase() {
+        assertEquals(KeywordCasingStyle.LOWERCASE, KeywordCasingStyle.valueOf("LOWERCASE"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void valueOf_invalid_throws() {
+        KeywordCasingStyle.valueOf("INVALID");
     }
 }

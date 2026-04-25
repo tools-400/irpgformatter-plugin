@@ -19,7 +19,7 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 
 /**
- * Unit tests for {@link KeywordCasingStyle}.
+ * Unit tests for {@link StatementIdentifier} and {@link StatementType}.
  */
 public class StatementTypeTest extends AbstractTestCase {
 
