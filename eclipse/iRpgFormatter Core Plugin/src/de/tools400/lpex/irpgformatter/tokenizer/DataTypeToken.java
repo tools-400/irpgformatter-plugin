@@ -14,6 +14,7 @@ public class DataTypeToken extends AbstractToken {
         super(TokenType.DATA_TYPE, value, rawValue, offset);
     }
 
+    @Override
     public boolean hasChildren() {
         return true;
     }

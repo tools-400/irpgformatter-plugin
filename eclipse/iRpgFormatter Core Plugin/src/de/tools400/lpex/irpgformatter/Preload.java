@@ -63,7 +63,7 @@ public class Preload implements LpexPreload {
 
     private void installFormatOnSaveListener() {
 
-        ICommandService commandService = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+        ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
         if (commandService == null) {
             IRpgleFormatterPlugin.logError("ICommandService not available; format-on-save disabled", null);
             return;

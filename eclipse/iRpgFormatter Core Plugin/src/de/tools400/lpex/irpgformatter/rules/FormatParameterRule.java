@@ -8,8 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.rules;
 
-import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
+import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 
 public class FormatParameterRule implements RpgleSourceConstants {
 

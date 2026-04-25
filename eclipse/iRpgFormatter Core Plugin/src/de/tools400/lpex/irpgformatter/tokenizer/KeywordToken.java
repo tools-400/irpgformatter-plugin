@@ -14,6 +14,7 @@ public class KeywordToken extends AbstractToken {
         super(TokenType.KEYWORD, value, rawValue, offset);
     }
 
+    @Override
     public boolean hasChildren() {
         return true;
     }

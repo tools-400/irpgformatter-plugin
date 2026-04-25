@@ -35,7 +35,7 @@ public class RpgleInputFactory {
      * @throws RpgleFormatterException if the input type is not supported
      */
     public static IRpgleInput createFromAll(LpexView view) throws RpgleFormatterException {
-        return new RpgleLpexInput((LpexView)view);
+        return new RpgleLpexInput(view);
     }
 
     /**

@@ -89,7 +89,7 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
      * @return Version of the plug-in.
      */
     public String getVersion() {
-        String version = (String)getBundle().getHeaders().get(Constants.BUNDLE_VERSION);
+        String version = getBundle().getHeaders().get(Constants.BUNDLE_VERSION);
         if (version == null) {
             version = "0.0.0"; //$NON-NLS-1$
         }

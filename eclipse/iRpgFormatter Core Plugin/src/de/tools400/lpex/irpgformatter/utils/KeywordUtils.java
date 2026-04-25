@@ -45,8 +45,7 @@ public final class KeywordUtils {
      * @return map of default data-types
      */
     public static Map<String, String> getDefaultDataTypes() {
-        return ResourceUtils.loadFromPropertiesResource(DATA_TYPES_RESOURCE);// ,
-                                                                   // DATA_TYPES_BUNDLE_RESOURCE);
+        return ResourceUtils.loadFromPropertiesResource(DATA_TYPES_RESOURCE);
     }
 
     /**
@@ -55,8 +54,7 @@ public final class KeywordUtils {
      * @return map of default declaration-types
      */
     public static Map<String, String> getDefaultDeclarationTypes() {
-        return ResourceUtils.loadFromPropertiesResource(DECLARATION_TYPES_RESOURCE);// ,
-                                                                          // DECLARATION_TYPES_BUNDLE_RESOURCE);
+        return ResourceUtils.loadFromPropertiesResource(DECLARATION_TYPES_RESOURCE);
     }
 
     /**
@@ -65,8 +63,7 @@ public final class KeywordUtils {
      * @return map of default keywords
      */
     public static Map<String, String> getDefaultKeywords() {
-        return ResourceUtils.loadFromPropertiesResource(KEYWORDS_RESOURCE);// ,
-                                                                 // KEYWORDS_BUNDLE_RESOURCE);
+        return ResourceUtils.loadFromPropertiesResource(KEYWORDS_RESOURCE);
     }
 
     /**
@@ -75,8 +72,7 @@ public final class KeywordUtils {
      * @return map of default keyword parameters
      */
     public static Map<String, String> getDefaultSpecialWords() {
-        return ResourceUtils.loadFromPropertiesResource(SPECIAL_WORDS_RESOURCE);// ,
-                                                                      // SPECIAL_WORDS_BUNDLE_RESOURCE);
+        return ResourceUtils.loadFromPropertiesResource(SPECIAL_WORDS_RESOURCE);
     }
 
     /**

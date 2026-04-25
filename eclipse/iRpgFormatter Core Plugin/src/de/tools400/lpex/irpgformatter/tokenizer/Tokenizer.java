@@ -47,7 +47,7 @@ public class Tokenizer implements RpgleSourceConstants {
 
     public IToken[] tokenize(String value) throws RpgleFormatterException {
 
-        List<IToken> tokens = new LinkedList<IToken>();
+        List<IToken> tokens = new LinkedList<>();
 
         String remaining = value.trim();
 

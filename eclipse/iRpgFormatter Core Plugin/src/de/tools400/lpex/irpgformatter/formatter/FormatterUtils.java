@@ -71,9 +71,9 @@ public class FormatterUtils implements RpgleSourceConstants {
             return tokens;
         }
 
-        List<IToken> constValueTokens = new LinkedList<IToken>();
-        List<IToken> otherTokens = new LinkedList<IToken>();
-        List<IToken> trailingTokens = new LinkedList<IToken>();
+        List<IToken> constValueTokens = new LinkedList<>();
+        List<IToken> otherTokens = new LinkedList<>();
+        List<IToken> trailingTokens = new LinkedList<>();
 
         for (int i = 0; i < tokens.length; i++) {
             IToken token = tokens[i];
@@ -90,7 +90,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             return tokens;
         }
 
-        List<IToken> result = new LinkedList<IToken>();
+        List<IToken> result = new LinkedList<>();
         result.addAll(otherTokens);
         result.addAll(constValueTokens);
         result.addAll(trailingTokens);
@@ -118,7 +118,7 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         int maxLength = maxLineLength - indent;
 
-        List<String> results = new LinkedList<String>();
+        List<String> results = new LinkedList<>();
 
         String formattedLine = line;
 
@@ -233,7 +233,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     private String[] formatOther(String line, IToken token, int maxLineLength, IFormattingRule formattingRule) throws RpgleFormatterException {
-        List<String> parts = new LinkedList<String>();
+        List<String> parts = new LinkedList<>();
 
         String subIndent = StringUtils.getIndent(line);
         if (subIndent.length() == 0) {
@@ -304,7 +304,7 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         boolean isBreakBeforeKeyword = config.isBreakBeforeKeyword();
 
-        List<String> result = new LinkedList<String>();
+        List<String> result = new LinkedList<>();
 
         String subIndent = formattingRules.createIndent(1);
 
@@ -396,7 +396,7 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         String currentLine = line;
 
-        List<String> result = new LinkedList<String>();
+        List<String> result = new LinkedList<>();
 
         String[] parameterParts;
         for (int i = 0; i < tokens.length; i++) {
@@ -461,7 +461,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             subIndent = formattingRules.createIndent(1);
         }
 
-        List<String> parts = new LinkedList<String>();
+        List<String> parts = new LinkedList<>();
 
         String value = FormattingRules.applyFormattingRule(token.getValue(), rules);
 
@@ -497,7 +497,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             throw new UnexpectedTokenException(token);
         }
 
-        List<String> parts = new LinkedList<String>();
+        List<String> parts = new LinkedList<>();
 
         String subIndent = StringUtils.getIndent(line);
         if (subIndent.length() == 0) {
@@ -531,7 +531,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                     maxLength = maxLineLength - currentLine.length() - prefix.length() - contChar.length();
                     breakPoint = strategy.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength));
                     // Check minimum name length — move to a fresh line when the
-                    // breakpoint is too small.  Recursion is safe because the
+                    // breakpoint is too small. Recursion is safe because the
                     // recursive call uses subIndent, making condition 1 false.
                     if (!currentLine.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint)) {
                         parts.add(currentLine);

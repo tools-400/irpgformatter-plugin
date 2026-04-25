@@ -21,9 +21,9 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.actions.FormatLpexSourceAction;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.menuextension.AbstractLpexMenuExtension;
-import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
 import de.tools400.lpex.menuextension.LpexKey;
 import de.tools400.lpex.menuextension.LpexMenu;
+import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
 import de.tools400.lpex.menuextension.model.UserAction;
 import de.tools400.lpex.menuextension.model.UserKeyAction;
 

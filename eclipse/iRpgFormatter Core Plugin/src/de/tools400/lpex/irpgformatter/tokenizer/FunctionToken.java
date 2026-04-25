@@ -14,6 +14,7 @@ public class FunctionToken extends AbstractToken {
         super(TokenType.FUNCTION, value, rawValue, offset);
     }
 
+    @Override
     public boolean hasChildren() {
         return true;
     }

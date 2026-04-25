@@ -17,8 +17,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
@@ -45,7 +45,7 @@ public class RpgleFormatter {
 
     private static final Set<String> SUPPORTED_SOURCE_TYPES;
     static {
-        Set<String> types = new HashSet<String>();
+        Set<String> types = new HashSet<>();
         types.add(SOURCE_TYPE_RPGLE);
         types.add(SOURCE_TYPE_SQLRPGLE);
         SUPPORTED_SOURCE_TYPES = Collections.unmodifiableSet(types);
@@ -74,12 +74,12 @@ public class RpgleFormatter {
     }
 
     public static String validateInput(IRpgleInput input) throws Exception {
-        
+
         String sourceType = input.getSourceType();
         if (!isSupportedSourceType(sourceType)) {
             return Messages.bind(Messages.Error_Unsupported_source_type_A, sourceType);
         }
-        
+
         if (!input.isFreeFormat()) {
             return Messages.Error_Not_free_format;
         }
@@ -111,7 +111,7 @@ public class RpgleFormatter {
         errorCount = 0;
 
         String[] sourceLines = input.getSourceLines();
-        List<String> formattedLines = new ArrayList<String>();
+        List<String> formattedLines = new ArrayList<>();
 
         // Step 1: Collect multi-line statements
         int startLineNumber = input.getStartLineNumber();
@@ -188,7 +188,7 @@ public class RpgleFormatter {
      * Formats a single line based on its statement type.
      */
     private List<String> formatLine(CollectedStatement statement, StatementType type, int defaultIndent) throws RpgleFormatterException {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
 
         int indent = statement.getIndentLevel() * config.getIndent() + defaultIndent;
 
@@ -270,7 +270,7 @@ public class RpgleFormatter {
      */
     private List<String> formatCompilerDirective(CollectedStatement statement) {
 
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
 
         String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(statement.getStatement());
         result.add(formatted);
