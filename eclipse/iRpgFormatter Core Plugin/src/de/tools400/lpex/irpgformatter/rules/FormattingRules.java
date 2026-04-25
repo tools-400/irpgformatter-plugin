@@ -163,8 +163,9 @@ public class FormattingRules implements RpgleSourceConstants {
             }
 
             if (SINGLE_QUOTE.equals(currentChar)) {
-                if (SINGLE_QUOTE.equals(nextChar)) {
-                    // skip 2 single quotes in a row
+                if (insideLiteral && SINGLE_QUOTE.equals(nextChar)) {
+                    // Escaped quote inside literal (e.g., 'it''s') - preserve both quotes
+                    formatted.append(currentChar);
                     i++;
                 } else {
                     if (!insideLiteral) {
