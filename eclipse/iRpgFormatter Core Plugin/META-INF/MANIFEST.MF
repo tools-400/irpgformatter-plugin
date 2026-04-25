@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: iRPGFormatter
+Bundle-Name: iRpgFormatter
 Bundle-SymbolicName: de.tools400.lpex.irpgformatter.core.plugin;singleton:=true
 Bundle-Version: 1.0.0.b002
 Bundle-Activator: de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin

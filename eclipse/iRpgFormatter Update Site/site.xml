@@ -3,9 +3,9 @@
    <feature url="features/de.tools400.lpex.irpgformatter.core_1.0.0.b002.jar" id="de.tools400.lpex.irpgformatter.core" version="1.0.0.b002">
       <category name="de.tools400.irpgformatter"/>
    </feature>
-   <category-def name="de.tools400.irpgformatter" label="iRPGFormatter">
+   <category-def name="de.tools400.irpgformatter" label="iRpgFormatter">
       <description>
-         iRPGFormatter for 9.6.0.13+.
+         iRpgFormatter for 9.6.0.13+.
       </description>
    </category-def>
 </site>
