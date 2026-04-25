@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="de.tools400.lpex.irpgformatter.core"
+      id="de.tools400.lpex.irpgformatter.core.feature"
       label="iRpgFormatter"
-      version="1.0.0.b003"
+      version="1.0.0.b004"
       provider-name="iRPGFormatter Project Team">
 
    <description url="">
