@@ -26,11 +26,6 @@ public final class LpexViewUtils {
         return rpgleParser;
     }
 
-    // query line
-    // query position
-    // locate line n
-    // set position
-
     public static void addLine(LpexView view) {
         view.doCommand("add");
     }
