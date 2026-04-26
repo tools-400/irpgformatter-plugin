@@ -76,6 +76,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.AddKeywordDialog;
@@ -146,6 +147,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Color cursorLineColor;
     private int previewCursorLine = -1;
     private boolean isUpdatingPreview;
+    private FormattedResult previousFormattedResult;
 
     private String rawDefaultSource = "";
     private String rawCustomSource = "";
@@ -432,7 +434,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
 
             String[] unformatted = rawSource.split("\n");
-            String[] lines = previewFormatter.format(new TextLinesInput(unformatted), 0).toLines();
+            FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), 0);
+            String[] lines = newResult.toLines();
 
             if (previewFormatter.getErrorCount() == 0) {
                 setErrorMessage(null);
@@ -444,26 +447,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             int topIndex = styledText.getTopIndex();
 
             int cursorVisualOffset = -1;
-            String cursorLineContent = null;
-            int oldLineCount = styledText.getLineCount();
-            if (previewCursorLine >= 0 && previewCursorLine < oldLineCount) {
+            if (previewCursorLine >= 0 && previewCursorLine < styledText.getLineCount()) {
                 cursorVisualOffset = previewCursorLine - topIndex;
-                cursorLineContent = styledText.getLine(previewCursorLine).trim();
             }
 
             isUpdatingPreview = true;
             try {
                 previewViewer.getDocument().set(formattedSource);
 
-                if (cursorLineContent != null) {
-                    int matchedLine = findBestMatchingLine(lines, cursorLineContent, previewCursorLine);
-                    if (matchedLine >= 0) {
-                        previewCursorLine = matchedLine;
-                    } else {
-                        // Fallback: proportionale Position
-                        previewCursorLine = Math.round((float)previewCursorLine / oldLineCount * lines.length);
-                        previewCursorLine = Math.min(previewCursorLine, lines.length - 1);
-                    }
+                if (previousFormattedResult != null && previewCursorLine >= 0) {
+                    previewCursorLine = previousFormattedResult.mapLineTo(previewCursorLine, newResult);
                     int newTopIndex = Math.max(0, previewCursorLine - cursorVisualOffset);
                     styledText.setTopIndex(newTopIndex);
                     if (previewCursorLine < styledText.getLineCount()) {
@@ -476,61 +469,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
                 isUpdatingPreview = false;
             }
 
+            previousFormattedResult = newResult;
+
         } catch (Exception e) {
             setErrorMessage(e.getLocalizedMessage());
         }
-    }
-
-    private int findBestMatchingLine(String[] lines, String trimmedContent, int previousLine) {
-
-        if (trimmedContent.isEmpty()) {
-            return previousLine;
-        }
-
-        // 1. Exact match
-        int bestMatch = -1;
-        int bestDistance = Integer.MAX_VALUE;
-        for (int i = 0; i < lines.length; i++) {
-            if (lines[i].trim().equals(trimmedContent)) {
-                int distance = Math.abs(i - previousLine);
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    bestMatch = i;
-                }
-            }
-        }
-        if (bestMatch >= 0) {
-            return bestMatch;
-        }
-
-        // 2. Prefix match: line was split (content starts with new line)
-        // or lines were joined (new line starts with content)
-        int bestPrefixLength = 0;
-        for (int i = 0; i < lines.length; i++) {
-            String lineTrimmed = lines[i].trim();
-            if (lineTrimmed.isEmpty()) {
-                continue;
-            }
-            int prefixLength = 0;
-            if (trimmedContent.startsWith(lineTrimmed)) {
-                prefixLength = lineTrimmed.length();
-            } else if (lineTrimmed.startsWith(trimmedContent)) {
-                prefixLength = trimmedContent.length();
-            }
-            if (prefixLength > bestPrefixLength) {
-                bestPrefixLength = prefixLength;
-                bestMatch = i;
-                bestDistance = Math.abs(i - previousLine);
-            } else if (prefixLength == bestPrefixLength && prefixLength > 0) {
-                int distance = Math.abs(i - previousLine);
-                if (distance < bestDistance) {
-                    bestMatch = i;
-                    bestDistance = distance;
-                }
-            }
-        }
-
-        return bestMatch;
     }
 
     private boolean isUIFullyInitialized() {

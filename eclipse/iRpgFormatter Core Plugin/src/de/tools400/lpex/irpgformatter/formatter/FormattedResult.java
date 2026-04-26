@@ -40,6 +40,47 @@ public class FormattedResult {
     }
 
     /**
+     * Maps a 0-based line index in this result's formatted output
+     * to the corresponding 0-based line index in the target result.
+     * <p>
+     * Both results must originate from the same raw source so that
+     * statements correspond 1:1 by index.
+     * </p>
+     */
+    public int mapLineTo(int formattedLine, FormattedResult target) {
+
+        // 1. Find statement index + offset in this result
+        int linesSoFar = 0;
+        int stmtIndex = -1;
+        int offsetInStmt = 0;
+        for (int i = 0; i < statements.length; i++) {
+            int stmtLines = statements[i].getFormattedLines().length;
+            if (formattedLine < linesSoFar + stmtLines) {
+                stmtIndex = i;
+                offsetInStmt = formattedLine - linesSoFar;
+                break;
+            }
+            linesSoFar += stmtLines;
+        }
+        if (stmtIndex < 0) {
+            return Math.max(0, target.getLineCount() - 1);
+        }
+
+        // 2. Map to same statement in target, clamp offset
+        FormattedStatement[] targetStmts = target.getStatements();
+        if (stmtIndex >= targetStmts.length) {
+            return Math.max(0, target.getLineCount() - 1);
+        }
+        int targetLinesSoFar = 0;
+        for (int i = 0; i < stmtIndex; i++) {
+            targetLinesSoFar += targetStmts[i].getFormattedLines().length;
+        }
+        int targetStmtLines = targetStmts[stmtIndex].getFormattedLines().length;
+        int clampedOffset = Math.min(offsetInStmt, targetStmtLines - 1);
+        return targetLinesSoFar + clampedOffset;
+    }
+
+    /**
      * Returns the total number of formatted lines across all statements.
      */
     public int getLineCount() {
