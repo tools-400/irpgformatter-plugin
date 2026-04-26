@@ -120,6 +120,6 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
 
     @Override
     public IRpgleOutput getOutput() {
-        return new RpgleLpexOutput(view, startLine, endLine);
+        return new RpgleLpexOutput(new LpexLineEditor(view));
     }
 }

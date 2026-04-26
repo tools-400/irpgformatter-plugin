@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
@@ -98,10 +99,10 @@ public class FormatStreamFilesJob extends Job {
 
         formatter.setSourceLength(Preferences.getInstance().getEndColumn(100));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
-        String[] sourceLines = formatter.format(input, defaultIndent);
+        FormattedResult result = formatter.format(input, defaultIndent);
 
         IRpgleOutput output = input.getOutput();
-        if (output.writeSourceLines(sourceLines)) {
+        if (output.writeSourceLines(result)) {
             formatted.add(file);
         } else {
             errors.add(new FileError(file, Messages.Error_Could_not_format_member));

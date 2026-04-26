@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
@@ -59,7 +60,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             " Dcl-Ds myStructure LikeDs( refStruct_t );",
             " Return *Null;",
             "End-Proc;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertEquals("ctl-opt option(*srcstmt: *nodebugio);", line[0]);
@@ -82,14 +83,14 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_emptyInput() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput(), 0);
+        String[] result = formatter.format(new TextLinesInput(), 0).toLines();
         assertNotNull(result);
         assertEquals(0, result.length);
     }
 
     @Test
     public void format_blankLines() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("", "", ""), 0);
+        String[] result = formatter.format(new TextLinesInput("", "", ""), 0).toLines();
         assertEquals(3, result.length);
         assertEquals("", result[0]);
         assertEquals("", result[1]);
@@ -98,14 +99,14 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_freeDirective() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("**FREE"), 0);
+        String[] result = formatter.format(new TextLinesInput("**FREE"), 0).toLines();
         assertEquals(1, result.length);
         assertEquals("**free", result[0]);
     }
 
     @Test
     public void format_line_comment() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("dcl-s aField char(10); // This is a char field"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-s aField char(10); // This is a char field"), 0).toLines();
         assertEquals(1, result.length);
         assertEquals("dcl-s aField char(10); // This is a char field", result[0]);
     }
@@ -121,7 +122,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  FileName",
             "    Char(10); // comment",
             "end-pr;"
-        ),0);
+        ),0).toLines();
       // @formatter:on
         assertEquals(5, result.length);
         assertEquals("// first", result[0]);
@@ -137,7 +138,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             "dcl-s aField",
             "  char(10); // This is a char field"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertEquals(1, result.length);
@@ -148,7 +149,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_dclS() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("dcl-s   myVar   char( 10 );"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-s   myVar   char( 10 );"), 0).toLines();
         assertEquals(1, result.length);
         // Should normalize whitespace and trim bracket spaces
         assertTrue(result[0].contains("myVar"));
@@ -157,7 +158,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_dclC() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0).toLines();
         assertEquals(1, result.length);
         // Should remove const() wrapper (default behavior)
         assertTrue(result[0].contains("MY_CONST"));
@@ -174,13 +175,13 @@ public class RpgleFormatterTest extends AbstractTestCase {
         formatter.getConfig().setUseConstKeyword(true);
 
         // Test with const() already present - should keep it
-        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].contains("MY_CONST"));
         assertTrue(result[0].toLowerCase().contains("const(100)"));
 
         // Test without const() - should add it
-        result = formatter.format(new TextLinesInput("dcl-c MY_CONST 100;"), 0);
+        result = formatter.format(new TextLinesInput("dcl-c MY_CONST 100;"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].contains("MY_CONST"));
         assertTrue(result[0].toLowerCase().contains("const(100)"));
@@ -192,14 +193,14 @@ public class RpgleFormatterTest extends AbstractTestCase {
         formatter.getConfig().setUseConstKeyword(false);
 
         // Test with const() present - should remove it
-        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST const(100);"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].contains("MY_CONST"));
         assertTrue(result[0].contains("100"));
         assertTrue(!result[0].toLowerCase().contains("const("));
 
         // Test without const() - should stay without
-        result = formatter.format(new TextLinesInput("dcl-c MY_CONST 'Hello';"), 0);
+        result = formatter.format(new TextLinesInput("dcl-c MY_CONST 'Hello';"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].contains("MY_CONST"));
         assertTrue(result[0].contains("'Hello'"));
@@ -219,7 +220,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-c MESSAGE 'This is a very long literal, exceeding the maximum line +",
             "  length of 90 characters. Lines inside the literal must end with the +",
             "  plus character.';"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertEquals(2, result.length);
@@ -239,7 +240,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-c MESSAGE 'This_is_a_very_long_literal,_exceeding_the_maximu+",
             "  m_line_length_of_90_characters._Lines_inside_the_literal_must_+",
             "  end_with_the_plus_character.';"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertEquals(3, result.length);
@@ -254,7 +255,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             "dcl-c LONG_CONSTANT_NAME_ENFORCING_THE_VALUE_TO_START_ON_THE_NEXT_LINE 'Literal+",
             "  StartingOnTheNextLine.';"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         // Name (64 chars) > MAX_NAME_LENGTH (60), so name is split with
@@ -273,7 +274,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
         String longName = "ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ_ABCDEFGHIJ";
         String line = "dcl-c " + longName + " 100;";
-        String[] result = formatter.format(new TextLinesInput(line), 0);
+        String[] result = formatter.format(new TextLinesInput(line), 0).toLines();
         assertEquals(3, result.length);
 
         assertTrue("First line should start with dcl-c", result[0].startsWith("dcl-c"));
@@ -293,7 +294,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
     public void format_dclC_longLiteral_plus() throws RpgleFormatterException {
         String literal = "'This is a very long literal value that definitely exceeds the maximum allowed line width of ninety chars'";
         String line = "dcl-c MESSAGE " + literal + ";";
-        String[] result = formatter.format(new TextLinesInput(line), 0);
+        String[] result = formatter.format(new TextLinesInput(line), 0).toLines();
 
         assertTrue("Should produce multiple lines", result.length >= 2);
         assertTrue("First line should contain plus continuation", result[0].endsWith("+"));
@@ -310,7 +311,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String longName = "A_VERY_LONG_CONSTANT_NAME_THAT_EXCEEDS_THE_MAXIMUM_NAME_LENGTH_LIMIT_IN_FACT_IST_MUST_BE_SPLITTED_MORE_THAN_ONCE_TO_GET_A_VALID_RESULT";
         String literal = "'This is a literal value that combined with the long name exceeds the line width. Even the literal must be splitted three time for producing a valid result.'";
         String line = "dcl-c " + longName + " " + literal + ";";
-        String[] result = formatter.format(new TextLinesInput(line), 0);
+        String[] result = formatter.format(new TextLinesInput(line), 0).toLines();
 
         assertTrue("Should produce 5 lines", result.length == 5);
 
@@ -335,7 +336,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String longName = "A_VERY_LONG_NUMERIC_CONSTANT_NAME_THAT_EXCEEDS_MAX_LINE_WIDTH_WITH_VALUE_APPENDED";
         String value = "12345";
         String line = "dcl-c " + longName + " " + value + ";";
-        String[] result = formatter.format(new TextLinesInput(line), 0);
+        String[] result = formatter.format(new TextLinesInput(line), 0).toLines();
         assertTrue("Should produce multiple lines", result.length == 2);
 
         assertTrue("First line should end with ellipsis", result[0].endsWith("..."));
@@ -352,7 +353,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String longName = "LONG_CONSTANT_NAME_FORCING_THE_VALUE_TO_BE_WRITTEN_TO_THE_NEXT_LINE";
         String value = "12345678901234567890";
         String line = "dcl-c " + longName + " " + value + ";";
-        String[] result = formatter.format(new TextLinesInput(line), 0);
+        String[] result = formatter.format(new TextLinesInput(line), 0).toLines();
         assertTrue("Should produce multiple lines", result.length == 2);
 
         assertTrue("First line should end with ellipsis", result[0].endsWith("..."));
@@ -373,7 +374,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
         // Literal of 76 chars to exceed line width (6+8+1+76+1 = 92 > 90)
         String literal = "'This literal value is long enough to force a line break when on the same line'";
-        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST " + literal + ";"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-c MY_CONST " + literal + ";"), 0).toLines();
 
         assertEquals(3, result.length);
         assertTrue("First line starts with dcl-c", result[0].startsWith("dcl-c MY_CONST"));
@@ -399,7 +400,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             "dcl-pr myProcedureWithReturnValue char(10) ExtProc('MODULE_NAME_myProcedureWithReturnValue');",
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertEquals("dcl-pr myProcedureWithReturnValue char(10)", result[0]);
@@ -420,7 +421,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             "dcl-pi myProcedureForExternalProgram char(10) ExtPgm('MODULE_myProcedureForExternalProgram');",
             "end-pi;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertEquals("dcl-pi myProcedureForExternalProgram char(10)", result[0]);
@@ -440,7 +441,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             inputLine,
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertTrue("First line should starts with 'dcl-pr'", result[0].startsWith("dcl-pr"));
@@ -463,7 +464,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             inputLine,
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertTrue("First line should end with ellipsis", result[0].endsWith("..."));
@@ -488,7 +489,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             inputLine,
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         assertEquals("dcl-pr myProc", result[0]);
@@ -512,7 +513,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             "dcl-pr sortProcedureWithAVeryLongName char(10) ExtProc(pSortProcedureWithAVeryLongNamePtr);",
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertEquals("dcl-pr sortProcedureWithAVeryLongName char(10)", result[0]);
@@ -530,7 +531,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         // @formatter:off
         String[] result = formatter.format(new TextLinesInput(
             "CTL-OPT DATFMT(*ISO) TIMFMT(*ISO) DECEDIT('0,') OPTION(*SRCSTMT : *NODEBUGIO) COPYRIGHT('Donald Duck');"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertTrue("First line must end before the literal",
             "ctl-opt datfmt(*iso) timfmt(*iso) decedit('0,') option(*srcstmt: *nodebugio)".equals(result[0]));
@@ -549,7 +550,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         // @formatter:off
         result = formatter.format(new TextLinesInput(
             "CTL-OPT DATFMT(*ISO) TIMFMT(*ISO) DECEDIT('0,') OPTION(*SRCSTMT : *NODEBUGIO) COPYRIGHT('Donald Duck');"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertTrue("First line must end before the literal", "ctl-opt datfmt(*iso) timfmt(*iso) decedit('0,')".equals(result[0]));
@@ -571,7 +572,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             String inputLine = "CTL-OPT DATFMT(*ISO) TIMFMT(*ISO) DECEDIT('0,') OPTION(*SRCSTMT:*NODEBUGIO) COPYRIGHT('*** Donald Duck greets the world! ***');";
             result = formatter.format(new TextLinesInput(
                 inputLine
-            ),0);
+            ),0).toLines();
             // @formatter:on
         // } finally {
         // formatter.setSourceLength(MAX_LINE_LENGTH);
@@ -607,7 +608,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             inputLine,
             "  field1 char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         assertTrue("First line should end with ellipsis", result[0].endsWith("..."));
@@ -634,7 +635,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             inputLine,
             "  field1 char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         assertTrue("First line should end with ellipsis", result[0].endsWith("..."));
@@ -668,7 +669,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         String[] result = formatter.format(new TextLinesInput(
             inputLine,
             "end-pr;"
-        ),0);
+        ),0).toLines();
             
         for (String line : result) {
             System.out.println(line);
@@ -704,7 +705,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         // move to next line
         String literal = "'This is a long literal value that is long enough to exceed the maximum line width of ninety'";
         String inputLine = "dcl-s myVar char(100) inz(" + literal + ");";
-        String[] result = formatter.format(new TextLinesInput(inputLine), 0);
+        String[] result = formatter.format(new TextLinesInput(inputLine), 0).toLines();
 
         assertTrue("Should produce multiple lines", result.length >= 2);
         // The literal should NOT be split on the first line, but moved to
@@ -725,7 +726,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-ds myDs;",
             "  field1 char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertTrue(result[0].contains("myDs"));
@@ -739,7 +740,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-pr myProc;",
             "  parm1 char(10);",
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertTrue(result[0].contains("myProc"));
@@ -753,7 +754,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-pi myProc;",
             "  parm1 int;",
             "end-pi;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         assertTrue(result[0].contains("myProc"));
@@ -767,7 +768,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-ds myDs;",
             "field1 char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         // Subfield should be indented
@@ -778,14 +779,14 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_includeDirective() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("/include myfile"), 0);
+        String[] result = formatter.format(new TextLinesInput("/include myfile"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].toLowerCase().startsWith("/include"));
     }
 
     @Test
     public void format_ifDirective() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("/if defined(DEBUG)"), 0);
+        String[] result = formatter.format(new TextLinesInput("/if defined(DEBUG)"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].toLowerCase().startsWith("/if"));
     }
@@ -805,7 +806,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  file char(10);",
             "  lib char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(11, result.length);
 
@@ -836,7 +837,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "Proc",
             "  char(10);",
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         // Should join the continued lines
         assertEquals(2, result.length);
@@ -854,7 +855,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "             'Message data must not be *BLANKS in case that -",
             "               message ID is specified as cMsg_ID_NONE.'           );",
             "  endif;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         // Should not join the lines
         assertEquals(result[0], "  if   (ID = cMSG_ID_NONE) and (data = '');");
@@ -868,7 +869,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_normalizeSpaces() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("dcl-s    isWhat    Ind;"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-s    isWhat    Ind;"), 0).toLines();
         assertEquals(1, result.length);
         // Should not have multiple consecutive spaces
         assertEquals("dcl-s isWhat ind;", result[0]);
@@ -876,7 +877,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_trimBracketSpaces() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("dcl-s isWhat char( 10 );"), 0);
+        String[] result = formatter.format(new TextLinesInput("dcl-s isWhat char( 10 );"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue("Should trim spaces inside brackets", result[0].contains("char(10)"));
     }
@@ -903,7 +904,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  field1 char(10);",
             "  field2 int;",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         assertNotNull(result);
@@ -925,7 +926,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  longFieldName char(50);",
             "  y int(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
 
         // @formatter:on
         assertEquals(5, result.length);
@@ -943,7 +944,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  longFieldName char(50);",
             "  y int(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         // Longest name: "longFieldName" = 13 chars, alignColumn = 14
@@ -967,7 +968,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  " + longName + " char(10);",
             "  shortName char(5) inz('1   5');",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
 
         for (String line : result) {
@@ -988,7 +989,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  pName char(50);",
             "  pID int(10);",
             "end-pi;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         // Longest name: "pName" = 5 chars, alignColumn = 6
@@ -1004,7 +1005,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  pName char(50);",
             "  pID int(10);",
             "end-pr;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         // Longest name: "pName" = 5 chars, alignColumn = 6
@@ -1025,7 +1026,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "/endif",
             "  x int(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         // Longest name: "longFieldName" = 13 chars, alignColumn = 14
         assertEquals("  longFieldName varchar(200);", result[2]);
@@ -1041,7 +1042,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-ds myDs;",
             "  field1 char(10);",
             "end-ds;"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(3, result.length);
         // "field1" = 6 chars, alignColumn = 7, so 1 space after name
@@ -1059,7 +1060,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-s   myVar2   char( 10 );",
             "// @formatter:on",
             "dcl-s   myVar3   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         assertEquals("dcl-s myVar1 char(10);", result[0]);
@@ -1077,7 +1078,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "// @formatter:off",
             "dcl-s   myVar2   char( 10 );",
             "dcl-s   myVar3   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         assertEquals("dcl-s myVar1 char(10);", result[0]);
@@ -1099,7 +1100,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-s   myVar4   char( 10 );",
             "// @formatter:on",
             "dcl-s   myVar5   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(9, result.length);
         assertEquals("dcl-s myVar1 char(10);", result[0]);
@@ -1117,7 +1118,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-s   myVar1   char( 10 );",
             "// @Formatter:On",
             "dcl-s   myVar2   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         assertEquals("// @FORMATTER:OFF", result[0]);
@@ -1134,7 +1135,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-s   myVar1   char( 10 );",
             "//     @formatter:on",
             "dcl-s   myVar2   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         assertEquals("//   @formatter:off", result[0]);
@@ -1152,7 +1153,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "// a regular comment",
             "dcl-s   myVar1   char( 10 );",
             "// @formatter:on"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         assertEquals("// @formatter:off", result[0]);
@@ -1171,7 +1172,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  field1   char( 10 ) ;",
             "end-ds ;",
             "// @formatter:on"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(5, result.length);
         assertEquals("// @formatter:off", result[0]);
@@ -1191,7 +1192,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "// @formatter:on",
             "// @formatter:on",
             "dcl-s   myVar2   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(6, result.length);
         assertEquals("dcl-s   myVar1   char( 10 );", result[2]);
@@ -1206,7 +1207,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "dcl-s   myVar1   char( 10 );",
             "// @formatter:on  trailing",
             "dcl-s   myVar2   char( 10 );"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(4, result.length);
         // Both lines should be formatted because the directives have extra text
@@ -1224,7 +1225,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  char(10);",
             "end-pr;",
             "// @formatter:on"
-        ),0);
+        ),0).toLines();
         // @formatter:on
         assertEquals(6, result.length);
         assertEquals("// @formatter:off", result[0]);

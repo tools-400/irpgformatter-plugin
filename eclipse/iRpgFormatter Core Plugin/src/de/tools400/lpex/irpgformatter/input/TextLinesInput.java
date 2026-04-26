@@ -47,7 +47,7 @@ public class TextLinesInput extends AbstractRpgleInput implements IRpgleInput {
     @Override
     public IRpgleOutput getOutput() {
         // Not needed for formatter tests - return no-op implementation
-        return lines -> {
+        return result -> {
             return false;
         };
     }

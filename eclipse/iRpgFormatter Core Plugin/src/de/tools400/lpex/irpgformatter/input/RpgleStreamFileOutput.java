@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import org.eclipse.core.resources.IFile;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
@@ -29,10 +30,11 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(String[] lines) throws RpgleFormatterException {
+    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
         try {
 
+            String[] lines = result.toLines();
             String content = String.join(System.lineSeparator(), lines);
             Charset charset = Charset.forName(file.getCharset());
             InputStream stream = new ByteArrayInputStream(content.getBytes(charset));

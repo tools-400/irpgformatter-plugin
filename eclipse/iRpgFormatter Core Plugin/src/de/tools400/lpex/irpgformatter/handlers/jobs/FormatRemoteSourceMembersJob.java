@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
@@ -108,10 +109,10 @@ public class FormatRemoteSourceMembersJob extends Job {
 
         formatter.setSourceLength(sourceMember.getRecordLength());
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
-        String[] sourceLines = formatter.format(input, defaultIndent);
+        FormattedResult result = formatter.format(input, defaultIndent);
 
         IRpgleOutput output = input.getOutput();
-        if (output.writeSourceLines(sourceLines)) {
+        if (output.writeSourceLines(result)) {
             formatted.add(sourceMember);
         } else {
             errors.add(new MemberError(sourceMember, Messages.Error_Could_not_format_member));

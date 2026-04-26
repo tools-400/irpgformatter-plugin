@@ -15,6 +15,7 @@ import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFileOutputStream;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
@@ -31,10 +32,11 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(String[] lines) throws RpgleFormatterException {
+    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
         try {
 
+            String[] lines = result.toLines();
             String content = String.join("\n", lines);
             IFSFileOutputStream outputStream = new IFSFileOutputStream(system, path);
 

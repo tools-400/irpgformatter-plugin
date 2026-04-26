@@ -11,6 +11,7 @@ package de.tools400.lpex.irpgformatter.actions;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
@@ -77,9 +78,9 @@ public final class FormatOnSaveListener {
         }
 
         if (Preferences.getInstance().isExecuteIrpgFormatter()) {
-            String[] formattedSourceLines = formatter.format(input, defaultIndent);
+            FormattedResult result = formatter.format(input, defaultIndent);
             IRpgleOutput output = input.getOutput();
-            output.writeSourceLines(formattedSourceLines);
+            output.writeSourceLines(result);
         }
     }
 }

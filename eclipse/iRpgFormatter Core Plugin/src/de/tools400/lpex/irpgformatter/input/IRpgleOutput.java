@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
@@ -18,8 +19,8 @@ public interface IRpgleOutput {
     /**
      * Writes the formatted source lines to the output.
      *
-     * @param lines the formatted source lines
+     * @param result the formatted result containing statement-level mapping
      * @throws RpgleFormatterException if writing fails
      */
-    public boolean writeSourceLines(String[] lines) throws RpgleFormatterException;
+    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException;
 }

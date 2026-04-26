@@ -14,6 +14,7 @@ import com.ibm.lpex.core.LpexAction;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
@@ -108,14 +109,14 @@ public class FormatLpexSourceAction implements LpexAction {
         }
 
         if (executeIrpgFormatter) {
-            String[] formattedSourceLines = formatter.format(input, defaultIndent);
+            FormattedResult result = formatter.format(input, defaultIndent);
 
             // Write formatted source back to view
             IRpgleOutput output = input.getOutput();
-            output.writeSourceLines(formattedSourceLines);
+            output.writeSourceLines(result);
 
-            if (haveSelection && formattedSourceLines.length > 0) {
-                endLine = startLine + formattedSourceLines.length - 1;
+            if (haveSelection && result.getLineCount() > 0) {
+                endLine = startLine + result.getLineCount() - 1;
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
             } else {

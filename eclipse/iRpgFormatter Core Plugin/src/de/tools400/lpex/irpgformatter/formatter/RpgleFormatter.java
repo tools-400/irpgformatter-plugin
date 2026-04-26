@@ -98,20 +98,23 @@ public class RpgleFormatter {
      * Formats the RPGLE source from the given input.
      *
      * @param input - the input source
-     * @return array of formatted source lines
+     * @return formatted result containing statement-level mapping
      * @throws RpgleFormatterException if formatting fails
      */
-    public String[] format(IRpgleInput input, int indent) throws RpgleFormatterException {
+    public FormattedResult format(IRpgleInput input, int indent) throws RpgleFormatterException {
 
         if (!input.isFreeFormat()) {
             IRpgleFormatterPlugin.logError(Messages.Error_Not_free_format, null);
-            return input.getSourceLines();
+            String[] sourceLines = input.getSourceLines();
+            return new FormattedResult(new FormattedStatement[] {
+                new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines)
+            });
         }
 
         errorCount = 0;
 
         String[] sourceLines = input.getSourceLines();
-        List<String> formattedLines = new ArrayList<>();
+        List<FormattedStatement> results = new ArrayList<>();
 
         // Step 1: Collect multi-line statements
         int startLineNumber = input.getStartLineNumber();
@@ -127,40 +130,52 @@ public class RpgleFormatter {
             // Check for formatter directive
             int directive = getFormatterDirective(statement, type);
             if (directive != 0) {
-                formattedLines.addAll(statement.getOriginalStatements());
+                results.add(new FormattedStatement(
+                    statement.getStartLineNumber(),
+                    statement.numLines(),
+                    statement.getOriginalStatements().toArray(new String[0])
+                ));
                 formatterDisabled = (directive == -1);
                 continue;
             }
 
             // If formatter is disabled, output original lines unchanged
             if (formatterDisabled) {
-                formattedLines.addAll(statement.getOriginalStatements());
+                results.add(new FormattedStatement(
+                    statement.getStartLineNumber(),
+                    statement.numLines(),
+                    statement.getOriginalStatements().toArray(new String[0])
+                ));
                 continue;
             }
 
-            List<String> formatted;
+            List<String> stmtOutput = new ArrayList<>();
             if (type == StatementType.OTHER) {
-                formatted = statement.getOriginalStatements();
+                stmtOutput.addAll(statement.getOriginalStatements());
             } else {
                 for (String embeddedComment : statement.getEmbeddedComments()) {
-                    formattedLines.add(embeddedComment);
+                    stmtOutput.add(embeddedComment);
                 }
                 try {
-                    formatted = formatLine(statement, type, indent);
+                    stmtOutput.addAll(formatLine(statement, type, indent));
                 } catch (Exception e) {
                     if (e instanceof LineOverflowException) {
                         ((LineOverflowException)e).setLineNumbers(statement.getStartLineNumber(), statement.getEndLineNumber());
                     } else {
                         IRpgleFormatterPlugin.logError("Unexpected formatting error.", e);
                     }
-                    formatted = statement.getOriginalStatements();
+                    stmtOutput.addAll(statement.getOriginalStatements());
                     errorCount++;
                 }
             }
-            formattedLines.addAll(formatted);
+            results.add(new FormattedStatement(
+                statement.getStartLineNumber(),
+                statement.numLines(),
+                stmtOutput.toArray(new String[0])
+            ));
         }
 
-        return formattedLines.toArray(new String[0]);
+        return new FormattedResult(results.toArray(new FormattedStatement[0]));
     }
 
     public int getErrorCount() {

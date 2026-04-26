@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2026 Thomas Raddatz
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
@@ -16,56 +16,59 @@ import de.tools400.lpex.irpgformatter.Messages;
 public enum KeywordCasingStyle {
 
     /** All uppercase: DCL-DS, *NOPASS */
-    UPPERCASE (Messages.Label_All_Uppercase, "DCL-DS"),
+    UPPERCASE ("DCL-DS"),
 
     /** UpperCamelCase: Dcl-Ds, *NoPass */
-    UPPER_CAMEL (Messages.Label_UpperCamelCase, "Dcl-Ds"),
+    UPPER_CAMEL ("Dcl-Ds"),
 
     /** First char uppercase: Dcl-ds, *Nopass */
-    FIRST_UPPER (Messages.Label_First_Char_Uppercase, "Dcl-ds"),
+    FIRST_UPPER ("Dcl-ds"),
 
     /** lowerCamelCase: dcl-Ds, *noPass */
-    LOWER_CAMEL (Messages.Label_lowerCamelCase, "dcl-Ds"),
+    LOWER_CAMEL ("dcl-Ds"),
 
     /** All lowercase: dcl-ds, *nopass */
-    LOWERCASE (Messages.Label_All_lowercase, "dcl-ds");
+    LOWERCASE ("dcl-ds");
 
-    private final String displayName;
     private final String example;
 
-    KeywordCasingStyle(String displayName, String example) {
-        this.displayName = displayName;
+    KeywordCasingStyle(String example) {
         this.example = example;
     }
 
     /**
-     * Gets the display name for this casing style.
+     * Gets the display name for this casing style. The name is resolved
+     * dynamically from NLS messages so it always reflects the active locale.
      *
      * @return the display name
      */
     public String getDisplayName() {
-        return displayName;
+        switch (this) {
+        case UPPERCASE:
+            return Messages.Label_All_Uppercase;
+        case UPPER_CAMEL:
+            return Messages.Label_UpperCamelCase;
+        case FIRST_UPPER:
+            return Messages.Label_First_Char_Uppercase;
+        case LOWER_CAMEL:
+            return Messages.Label_lowerCamelCase;
+        case LOWERCASE:
+            return Messages.Label_All_lowercase;
+        default:
+            return name();
+        }
     }
-
-    /**
-     * Gets an example keyword formatted in this style.
-     *
-     * @return example formatted keyword
-     */
-    // public String getExample() {
-    // return example;
-    // }
 
     @Override
     public String toString() {
-        return displayName + " (" + example + ")";
+        return getDisplayName() + " (" + example + ")";
     }
 
     /**
-     * Gets a casing style by its name.
+     * Gets a casing style by its display name.
      *
-     * @param name the enum UI label
-     * @return the casing style, or LOWERCASE if not found
+     * @param label the UI label
+     * @return the casing style, or the default if not found
      */
     public static KeywordCasingStyle fromLabel(String label) {
         if (label != null) {

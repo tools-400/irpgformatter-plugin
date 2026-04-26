@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2026 Thomas Raddatz
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
@@ -16,53 +16,54 @@ import de.tools400.lpex.irpgformatter.Messages;
 public enum ParameterSpacingStyle {
 
     /** No space around colon delimiter */
-    NONE (Messages.Label_No_space_parameter, ":*omit:"),
+    NONE (":*omit:"),
 
     /** Space before parameter (after colon) */
-    BEFORE (Messages.Label_Before_parameter, ": *omit:"),
+    BEFORE (": *omit:"),
 
     /** Space after parameter (before colon) */
-    AFTER (Messages.Label_After_parameter, ":*omit :"),
+    AFTER (":*omit :"),
 
     /** Space before and after parameter */
-    BOTH (Messages.Label_Before_after_parameter, ": *omit :");
+    BOTH (": *omit :");
 
-    private final String displayName;
     private final String example;
 
-    ParameterSpacingStyle(String displayName, String example) {
-        this.displayName = displayName;
+    ParameterSpacingStyle(String example) {
         this.example = example;
     }
 
     /**
-     * Gets the display name for this casing style.
+     * Gets the display name for this spacing style. The name is resolved
+     * dynamically from NLS messages so it always reflects the active locale.
      *
      * @return the display name
      */
     public String getDisplayName() {
-        return displayName;
+        switch (this) {
+        case NONE:
+            return Messages.Label_No_space_parameter;
+        case BEFORE:
+            return Messages.Label_Before_parameter;
+        case AFTER:
+            return Messages.Label_After_parameter;
+        case BOTH:
+            return Messages.Label_Before_after_parameter;
+        default:
+            return name();
+        }
     }
-
-    /**
-     * Gets an example keyword formatted in this style.
-     *
-     * @return example formatted keyword
-     */
-    // public String getExample() {
-    // return example;
-    // }
 
     @Override
     public String toString() {
-        return displayName + " (" + example + ")";
+        return getDisplayName() + " (" + example + ")";
     }
 
     /**
-     * Gets a casing style by its name.
+     * Gets a spacing style by its display name.
      *
-     * @param label the enum UI label
-     * @return the casing style, or LOWERCASE if not found
+     * @param label the UI label
+     * @return the spacing style, or the default if not found
      */
     public static ParameterSpacingStyle fromLabel(String label) {
         if (label != null) {

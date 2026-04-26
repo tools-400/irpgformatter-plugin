@@ -432,7 +432,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
 
             String[] unformatted = rawSource.split("\n");
-            String[] lines = previewFormatter.format(new TextLinesInput(unformatted), 0);
+            String[] lines = previewFormatter.format(new TextLinesInput(unformatted), 0).toLines();
 
             if (previewFormatter.getErrorCount() == 0) {
                 setErrorMessage(null);
