@@ -129,6 +129,10 @@ public class Messages extends NLS {
     public static String Error_Import_failed_A;
     public static String Error_Invalid_profile_format_A;
 
+    public static String Info_Finished_formatting_stream_files_A;
+    public static String Error_A_formatted_B_errors;
+    public static String Error_Not_all_files_formatted_A;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -8,12 +8,10 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
-import org.eclipse.rse.core.model.IHost;
+import org.eclipse.core.resources.IFile;
 
 import com.ibm.as400.access.AS400;
-import com.ibm.etools.iseries.services.qsys.api.IQSYSSourceMember;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
-import com.ibm.etools.iseries.subsystems.qsys.objects.IRemoteObjectContextProvider;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -61,21 +59,24 @@ public class RpgleInputFactory {
     }
 
     /**
-     * Creates an {@link IRpgleInput} from a remote IBM i source member.
+     * Creates an {@link IRpgleInput} from a local workspace stream file.
      *
-     * @param sourceMember the remote source member
-     * @return an IRpgleInput for the remote member
-     * @throws RpgleFormatterException if the connection cannot be established
+     * @param file the Eclipse workspace file
+     * @return an IRpgleInput for the stream file
      */
-    private static IRpgleInput createFromQSYSRemoteMember(IQSYSSourceMember sourceMember) throws RpgleFormatterException {
-        try {
-            IHost host = ((IRemoteObjectContextProvider)sourceMember).getRemoteObjectContext().getObjectSubsystem().getHost();
-            IBMiConnection connection = IBMiConnection.getConnection(host);
-            return createFromJT400RemoteMember(connection, sourceMember.getLibrary(), sourceMember.getFile(), sourceMember.getName());
-        } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A,
-                sourceMember.getLibrary() + "/" + sourceMember.getFile() + "(" + sourceMember.getName() + ")"), e);
-        }
+    public static IRpgleInput createFromStreamFile(IFile file) {
+        return new RpgleStreamFileInput(file);
+    }
+
+    /**
+     * Creates an {@link IRpgleInput} from a remote IFS stream file.
+     *
+     * @param system the AS400 connection
+     * @param path the absolute IFS path
+     * @return an IRpgleInput for the remote stream file
+     */
+    public static IRpgleInput createFromRemoteStreamFile(AS400 system, String path) {
+        return new RpgleRemoteStreamFileInput(system, path);
     }
 
     /**

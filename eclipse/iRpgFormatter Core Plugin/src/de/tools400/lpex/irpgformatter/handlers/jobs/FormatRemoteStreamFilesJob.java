@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2026 Thomas Raddatz
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
@@ -15,34 +15,34 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
+import com.ibm.as400.access.AS400;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
-public class FormatRemoteSourceMembersJob extends Job {
+public class FormatRemoteStreamFilesJob extends Job {
 
-    private SourceMember[] sourceMembers;
+    private IRemoteFile[] files;
     private RpgleFormatter formatter;
-    private IFormatRemoteSourceMembersPostRun postRun;
+    private IFormatRemoteStreamFilesPostRun postRun;
 
-    private List<MemberError> errors;
-    private List<SourceMember> formatted;
+    private List<FileError> errors;
+    private List<IRemoteFile> formatted;
 
-    public FormatRemoteSourceMembersJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
-        super("Formatting remote source members...");
+    public FormatRemoteStreamFilesJob(IRemoteFile[] files, IFormatRemoteStreamFilesPostRun postRun) {
+        super("Formatting remote stream files...");
 
-        this.sourceMembers = sourceMembers;
+        this.files = files;
         this.formatter = new RpgleFormatter();
-        this.formatter.setSourceLength(80);
         this.postRun = postRun;
 
         this.errors = new LinkedList<>();
@@ -54,18 +54,18 @@ public class FormatRemoteSourceMembersJob extends Job {
 
         try {
 
-            int totalNumberOfMembers = sourceMembers.length;
+            int totalNumberOfFiles = files.length;
 
-            monitor.beginTask("Formatting...", totalNumberOfMembers); //$NON-NLS-1$
+            monitor.beginTask("Formatting...", totalNumberOfFiles); //$NON-NLS-1$
 
             int count = 0;
 
-            while (count < totalNumberOfMembers) {
+            while (count < totalNumberOfFiles) {
 
-                SourceMember sourceMember = sourceMembers[count];
+                IRemoteFile file = files[count];
 
-                monitor.setTaskName(sourceMember.toString());
-                executeFormatter(sourceMember);
+                monitor.setTaskName(file.getAbsolutePath());
+                executeFormatter(file);
 
                 monitor.worked(1);
 
@@ -79,57 +79,54 @@ public class FormatRemoteSourceMembersJob extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.run(formatted.toArray(new SourceMember[formatted.size()]), errors.toArray(new MemberError[errors.size()]));
+            postRun.run(formatted.toArray(new IRemoteFile[formatted.size()]), errors.toArray(new FileError[errors.size()]));
         }
 
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(SourceMember sourceMember) throws RpgleFormatterException, Exception {
+    private void executeFormatter(IRemoteFile file) throws RpgleFormatterException, Exception {
 
-        String profileName = sourceMember.getProfileName();
-        String connectionName = sourceMember.getConnectionName();
-        IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
+        IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
+        AS400 system = connection.getAS400ToolboxObject();
+        String path = file.getAbsolutePath();
 
-        String library = sourceMember.getLibraryName();
-        String file = sourceMember.getFileName();
-        String member = sourceMember.getMemberName();
-        IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
+        IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
 
         String validationError = RpgleFormatter.validateInput(input);
         if (validationError != null) {
-            errors.add(new MemberError(sourceMember, validationError));
+            errors.add(new FileError(file, validationError));
         } else {
-            executeFormatter(sourceMember, input);
+            executeFormatter(file, input);
         }
     }
 
-    private void executeFormatter(SourceMember sourceMember, IRpgleInput input) throws Exception, RpgleFormatterException {
+    private void executeFormatter(IRemoteFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
 
-        formatter.setSourceLength(sourceMember.getRecordLength());
+        formatter.setSourceLength(Preferences.getInstance().getEndColumn(100));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
         String[] sourceLines = formatter.format(input, defaultIndent);
 
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(sourceLines)) {
-            formatted.add(sourceMember);
+            formatted.add(file);
         } else {
-            errors.add(new MemberError(sourceMember, Messages.Error_Could_not_format_member));
+            errors.add(new FileError(file, Messages.Error_Could_not_format_member));
         }
     }
 
-    public class MemberError {
+    public class FileError {
 
-        private SourceMember sourceMember;
+        private IRemoteFile file;
         private String errorMessage;
 
-        public MemberError(SourceMember sourceMember, String errorMessage) {
-            this.sourceMember = sourceMember;
+        public FileError(IRemoteFile file, String errorMessage) {
+            this.file = file;
             this.errorMessage = errorMessage;
         }
 
-        public SourceMember getSourceMember() {
-            return sourceMember;
+        public IRemoteFile getFile() {
+            return file;
         }
 
         public String getErrorMessage() {
