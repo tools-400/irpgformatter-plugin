@@ -36,7 +36,7 @@ public class FormatStreamFilesJob extends Job {
     private List<IFile> formatted;
 
     public FormatStreamFilesJob(IFile[] files, IFormatStreamFilesPostRun postRun) {
-        super("Formatting stream files...");
+        super(Messages.Job_Formatting_stream_files);
 
         this.files = files;
         this.formatter = new RpgleFormatter();
@@ -53,7 +53,7 @@ public class FormatStreamFilesJob extends Job {
 
             int totalNumberOfFiles = files.length;
 
-            monitor.beginTask("Formatting...", totalNumberOfFiles); //$NON-NLS-1$
+            monitor.beginTask(Messages.Job_Formatting, totalNumberOfFiles);
 
             int count = 0;
 

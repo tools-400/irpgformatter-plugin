@@ -63,9 +63,7 @@ public class FormatRemoteStreamFileHandler extends AbstractHandler implements IF
     @Override
     public void run(IRemoteFile[] formatted, FileError[] errors) {
 
-        if (errors.length > 0 && formatted.length > 0) {
-            displayErrorDialog(formatted, errors);
-        } else if (errors.length > 0) {
+        if (errors.length > 0) {
             displayErrorDialog(formatted, errors);
         } else {
             displaySuccessDialog(formatted);
@@ -85,26 +83,23 @@ public class FormatRemoteStreamFileHandler extends AbstractHandler implements IF
     }
 
     private void displayErrorDialog(IRemoteFile[] formatted, FileError[] errors) {
-        UIJob job;
-        if (errors.length > 0 && formatted.length > 0) {
-            job = new UIJob(UIUtils.getDisplay(), "") {
-                @Override
-                public IStatus runInUIThread(IProgressMonitor arg0) {
-                    MessageDialog.openError(UIUtils.getShell(), Messages.E_R_R_O_R,
-                        Messages.bind(Messages.Error_A_formatted_B_errors, formatted.length, errors.length));
-                    return Status.OK_STATUS;
-                }
-            };
-        } else {
-            job = new UIJob(UIUtils.getDisplay(), "") {
-                @Override
-                public IStatus runInUIThread(IProgressMonitor arg0) {
-                    MessageDialog.openError(UIUtils.getShell(), Messages.E_R_R_O_R,
-                        Messages.bind(Messages.Error_Not_all_files_formatted_A, errors.length));
-                    return Status.OK_STATUS;
-                }
-            };
+        String[] errorDetails = new String[errors.length];
+        for (int i = 0; i < errors.length; i++) {
+            errorDetails[i] = errors[i].getFile().getAbsolutePath() + ": " + errors[i].getErrorMessage();
         }
+        String message;
+        if (formatted.length > 0) {
+            message = Messages.bind(Messages.Error_A_formatted_B_errors, formatted.length, errors.length);
+        } else {
+            message = Messages.bind(Messages.Error_Not_all_files_formatted_A, errors.length);
+        }
+        UIJob job = new UIJob(UIUtils.getDisplay(), "") {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor arg0) {
+                UIUtils.displayErrorDetailsTitleAreaDialog(message, errorDetails);
+                return Status.OK_STATUS;
+            }
+        };
         job.schedule();
     }
 }

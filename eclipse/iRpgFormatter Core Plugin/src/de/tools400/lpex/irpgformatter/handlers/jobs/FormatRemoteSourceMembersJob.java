@@ -38,7 +38,7 @@ public class FormatRemoteSourceMembersJob extends Job {
     private List<SourceMember> formatted;
 
     public FormatRemoteSourceMembersJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
-        super("Formatting remote source members...");
+        super(Messages.Job_Formatting_remote_source_members);
 
         this.sourceMembers = sourceMembers;
         this.formatter = new RpgleFormatter();
@@ -56,7 +56,7 @@ public class FormatRemoteSourceMembersJob extends Job {
 
             int totalNumberOfMembers = sourceMembers.length;
 
-            monitor.beginTask("Formatting...", totalNumberOfMembers); //$NON-NLS-1$
+            monitor.beginTask(Messages.Job_Formatting, totalNumberOfMembers);
 
             int count = 0;
 

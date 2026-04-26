@@ -39,7 +39,7 @@ public class FormatRemoteStreamFilesJob extends Job {
     private List<IRemoteFile> formatted;
 
     public FormatRemoteStreamFilesJob(IRemoteFile[] files, IFormatRemoteStreamFilesPostRun postRun) {
-        super("Formatting remote stream files...");
+        super(Messages.Job_Formatting_remote_stream_files);
 
         this.files = files;
         this.formatter = new RpgleFormatter();
@@ -56,7 +56,7 @@ public class FormatRemoteStreamFilesJob extends Job {
 
             int totalNumberOfFiles = files.length;
 
-            monitor.beginTask("Formatting...", totalNumberOfFiles); //$NON-NLS-1$
+            monitor.beginTask(Messages.Job_Formatting, totalNumberOfFiles);
 
             int count = 0;
 

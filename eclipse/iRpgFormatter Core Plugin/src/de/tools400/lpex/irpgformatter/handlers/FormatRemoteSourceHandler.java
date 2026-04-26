@@ -64,9 +64,7 @@ public class FormatRemoteSourceHandler extends AbstractHandler implements IForma
     @Override
     public void run(SourceMember[] formatted, MemberError[] errors) {
 
-        if (errors.length > 0 && formatted.length > 0) {
-            displayErrorDialog(formatted, errors);
-        } else if (errors.length > 0) {
+        if (errors.length > 0) {
             displayErrorDialog(formatted, errors);
         } else {
             displaySuccessDialog(formatted);
@@ -86,25 +84,23 @@ public class FormatRemoteSourceHandler extends AbstractHandler implements IForma
     }
 
     private void displayErrorDialog(SourceMember[] formatted, MemberError[] errors) {
-        UIJob job;
-        if (errors.length > 0 && formatted.length > 0) {
-            job = new UIJob(UIUtils.getDisplay(), "") {
-                @Override
-                public IStatus runInUIThread(IProgressMonitor arg0) {
-                    MessageDialog.openError(UIUtils.getShell(), Messages.E_R_R_O_R,
-                        Messages.bind("{0} members formatted. {1} members not formatted.", formatted.length, errors.length));
-                    return Status.OK_STATUS;
-                }
-            };
-        } else {
-            job = new UIJob(UIUtils.getDisplay(), "") {
-                @Override
-                public IStatus runInUIThread(IProgressMonitor arg0) {
-                    MessageDialog.openError(UIUtils.getShell(), Messages.E_R_R_O_R, "Not all members formatted: " + errors.length);
-                    return Status.OK_STATUS;
-                }
-            };
+        String[] errorDetails = new String[errors.length];
+        for (int i = 0; i < errors.length; i++) {
+            errorDetails[i] = errors[i].getSourceMember().toString() + ": " + errors[i].getErrorMessage();
         }
+        String message;
+        if (formatted.length > 0) {
+            message = Messages.bind("{0} members formatted. {1} members not formatted.", formatted.length, errors.length);
+        } else {
+            message = "Not all members formatted: " + errors.length;
+        }
+        UIJob job = new UIJob(UIUtils.getDisplay(), "") {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor arg0) {
+                UIUtils.displayErrorDetailsTitleAreaDialog(message, errorDetails);
+                return Status.OK_STATUS;
+            }
+        };
         job.schedule();
     }
 }

@@ -129,6 +129,11 @@ public class Messages extends NLS {
     public static String Error_Import_failed_A;
     public static String Error_Invalid_profile_format_A;
 
+    public static String Job_Formatting_stream_files;
+    public static String Job_Formatting_remote_stream_files;
+    public static String Job_Formatting_remote_source_members;
+    public static String Job_Formatting;
+
     public static String Info_Finished_formatting_stream_files_A;
     public static String Error_A_formatted_B_errors;
     public static String Error_Not_all_files_formatted_A;
