@@ -87,8 +87,8 @@ public class RpgleLpexOutput implements IRpgleOutput {
         int insertPosition = endLine;
 
         for (int i = existingCount; i < lines.length; i++) {
-            view.doCommand("locate element " + insertPosition);
-            view.doCommand("add");
+            LpexViewUtils.locateElement(view, insertPosition);
+            LpexViewUtils.addLine(view);
             insertPosition++;
             LpexViewUtils.setElementText(view, insertPosition, lines[i]);
         }
@@ -104,8 +104,8 @@ public class RpgleLpexOutput implements IRpgleOutput {
 
         while (removed < countToRemove && currentLine >= startLine) {
             if (LpexViewUtils.isSourceLine(view, currentLine)) {
-                view.doCommand("locate element " + currentLine);
-                view.doCommand("delete");
+                LpexViewUtils.locateElement(view, currentLine);
+                LpexViewUtils.deleteLine(view);
                 removed++;
             }
             currentLine--;

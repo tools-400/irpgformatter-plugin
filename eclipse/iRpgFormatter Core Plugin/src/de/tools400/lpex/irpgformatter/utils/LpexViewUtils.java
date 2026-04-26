@@ -31,6 +31,14 @@ public final class LpexViewUtils {
     // locate line n
     // set position
 
+    public static void addLine(LpexView view) {
+        view.doCommand("add");
+    }
+
+    public static void deleteLine(LpexView view) {
+        view.doCommand("delete");
+    }
+
     public static int queryLine(LpexView view) {
         return view.queryInt("line");
     }
