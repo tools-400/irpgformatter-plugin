@@ -37,35 +37,38 @@ The formatter requires **\*\*free** format. Fixed-format sources are not support
 
 Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPGFormatter**
 
-#### IBM Settings
+### IBM Settings
 
-| Setting                         | Default          | Description                                                              |
-| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| **Keyword casing style**        | All Lowercase    | How keywords are formatted (see Keyword Casing above)                    |
-| **Execute IBM formatter**       | On               | Run the IBM formatter before iRPGFormatter                               |
+| Setting                   | Preferences                            | Description                                                   |
+| ------------------------- | -------------------------------------- | ------------------------------------------------------------- |
+| **Start column**          | IBM i Parsers > ILE RPG > Formatter    | The leftmost column for reformatted free-form source          |
+| **End column**            | IBM i Parsers > ILE RPG > Formatter    | The rightmost column for reformatted free-form source         |
+| **Indentation**           | IBM i Parsers > ILE RPG > Formatter    | The number of blanks to indent nested levels                  |
+| **Keyword casing style**  | IBM i Parsers > ILE RPG > Key Behavior | Specifies the style of keywords, special words and data types |
+| **Execute IBM formatter** | Default: On                            | Run the IBM formatter before iRPGFormatter                    |
 
-#### General Settings
+### General Settings
 
-| Setting                         | Default          | Description                                                              |
-| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| **Use const() keyword**         | Off              | Wrap constant values in `const()` for DCL-C statements                   |
-| **Delimiter before parameter**  | Off              | Place colon delimiter before parameter instead of after                  |
-| **Parameter spacing**           | Before parameter | Spacing around colon between keyword parameters                          |
-| **Align sub-fields**            | On               | Align keywords within blocks at a common column                          |
-| **Break between case change**   | Off              | Break long names at camelCase boundaries                                 |
-| **Break before keyword**        | Off              | Break line before keyword when parameters don't fit                      |
-| **Sort const value to end**     | Off              | Move `const()`/`value()` keyword to the end of the statement             |
-| **Maximum name length**         | 60               | Max characters for a name or literal before it is split with `...`       |
-| **Minimum name length**         | 20               | Min characters that must remain on a line when splitting long names       |
-| **Execute iRPG formatter**      | On               | Run the iRPGFormatter to apply iRPG formatting rules                     |
+| Setting                        | Default          | Description                                                         |
+| ------------------------------ | ---------------- | ------------------------------------------------------------------- |
+| **Use const() keyword**        | Off              | Wrap constant values in `const()` for DCL-C statements              |
+| **Delimiter before parameter** | Off              | Place colon delimiter before parameter instead of after             |
+| **Parameter spacing**          | Before parameter | Spacing around colon between keyword parameters                     |
+| **Align sub-fields**           | On               | Align keywords within blocks at a common column                     |
+| **Break between case change**  | Off              | Break long names at camelCase boundaries                            |
+| **Break before keyword**       | Off              | Break line before keyword when parameters don't fit                 |
+| **Sort const value to end**    | Off              | Move `const()`/`value()` keyword to the end of the statement        |
+| **Maximum name length**        | 60               | Max characters for a name or literal before it is split with `...`  |
+| **Minimum name length**        | 20               | Min characters that must remain on a line when splitting long names |
+| **Execute iRPG formatter**     | On               | Run the iRPGFormatter to apply iRPG formatting rules                |
 
-#### Save Actions
+### Save Actions
 
 | Setting                         | Default          | Description                                                              |
 | ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
 | **Format on save**              | Off              | Automatically format when saving the source member                       |
 
-#### Settings
+### Settings
 
 | Setting                         | Default          | Description                                                              |
 | ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
@@ -74,15 +77,14 @@ Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPG
 | **Keywords**                    | (built-in list)  | Custom keyword casing mappings                                           |
 | **Special Words**               | (built-in list)  | Custom keyword parameter casing mappings (e.g., \*NOPASS, \*OMIT)        |
 
-### Advanced Settings (RDi)
+### Import / Export
 
-The following settings are read from the RDi preferences, not from the iRPGFormatter preferences:
+Formatter settings can be exported to and imported from XML files. This allows sharing a common formatting profile across a team or backing up settings between workspaces.
 
-| RDi Setting                            | Path                                                         | Default |
-| -------------------------------------- | ------------------------------------------------------------ | ------- |
-| **Indentation**                        | IBM i > Parsers > ILE RPG > Content assist > Indentation     | 2       |
-| **Right margin (max line width)**      | IBM i > Parsers > ILE RPG > Content assist > Right margin    | \*MAX   |
-| **Auto-close (keyword casing source)** | IBM i > Parsers > ILE RPG > Content assist > Auto-close      | endxx   |
+- **Export...** -- Saves all current settings (general settings, save actions, data types, declaration types, keywords, special words and custom preview source) to an XML file.
+- **Import...** -- Loads settings from an XML file and applies them to the preference page. The imported values are shown in the UI but not persisted until you click **Apply** or **OK**.
+
+Partial profiles are supported: if the XML file does not contain all settings, only the included settings are applied; the remaining settings keep their current values.
 
 ---
 
