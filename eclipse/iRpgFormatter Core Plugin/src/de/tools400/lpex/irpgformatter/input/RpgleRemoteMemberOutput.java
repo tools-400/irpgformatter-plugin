@@ -26,7 +26,7 @@ import de.tools400.lpex.irpgformatter.utils.IBMiUtils;
 /**
  * {@link IRpgleOutput} implementation for IBM i source members via JT400.
  */
-public class RpgleMemberOutput implements IRpgleOutput {
+public class RpgleRemoteMemberOutput implements IRpgleOutput {
 
     private final AS400 system;
     private final String library;
@@ -34,7 +34,7 @@ public class RpgleMemberOutput implements IRpgleOutput {
     private final String sourceMember;
     private final String ifsPath;
 
-    RpgleMemberOutput(AS400 system, String library, String sourceFile, String sourceMember) {
+    RpgleRemoteMemberOutput(AS400 system, String library, String sourceFile, String sourceMember) {
         this.system = system;
         this.library = library;
         this.sourceFile = sourceFile;

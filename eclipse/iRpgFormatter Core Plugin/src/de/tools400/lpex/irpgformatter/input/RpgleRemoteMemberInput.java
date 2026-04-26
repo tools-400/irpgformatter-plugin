@@ -126,6 +126,6 @@ public class RpgleRemoteMemberInput extends AbstractRpgleInput implements IRpgle
 
     @Override
     public IRpgleOutput getOutput() {
-        return new RpgleMemberOutput(system, library, sourceFile, sourceMember);
+        return new RpgleRemoteMemberOutput(system, library, sourceFile, sourceMember);
     }
 }
