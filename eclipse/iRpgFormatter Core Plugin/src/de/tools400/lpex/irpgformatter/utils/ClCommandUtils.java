@@ -19,7 +19,7 @@ import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 
 public class ClCommandUtils {
 
-    public static final String TEMP_LIBRARY_NAME = "RADDATZ"; // QTEMP
+    public static final String TEMP_LIBRARY_NAME = "QTEMP";
     public static final String TEMP_FILE_NAME = "$TOOLS400";
     public static final String TEMP_MEMBER_NAME = "$TLS400$$$";
 
