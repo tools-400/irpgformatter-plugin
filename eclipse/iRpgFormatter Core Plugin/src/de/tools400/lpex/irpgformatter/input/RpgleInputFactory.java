@@ -93,7 +93,7 @@ public class RpgleInputFactory {
         throws RpgleFormatterException {
         try {
             AS400 system = connection.getAS400ToolboxObject();
-            return new RpgleJt400MemberInput(system, library, file, member);
+            return new RpgleRemoteMemberInput(system, library, file, member);
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, library + "/" + file + "(" + member + ")"), e);
         }
