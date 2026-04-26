@@ -19,7 +19,6 @@ import com.ibm.as400.access.SequentialFile;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.utils.ClCommandUtils;
 import de.tools400.lpex.irpgformatter.utils.DateUtils;
 import de.tools400.lpex.irpgformatter.utils.IBMiUtils;
 
@@ -46,13 +45,6 @@ public class RpgleRemoteMemberOutput implements IRpgleOutput {
     public boolean writeSourceLines(String[] lines) throws RpgleFormatterException {
 
         try {
-
-            int recordLength = IBMiUtils.getRecordLength(system, library, sourceFile);
-
-            if (!ClCommandUtils.ensureTempSourceFile(system, recordLength) || !ClCommandUtils.ensureTempMember(system)
-                || !ClCommandUtils.removeTempMember(system)) {
-                return false;
-            }
 
             MemberDescription memberDescription = new MemberDescription(system, ifsPath);
             int existingCount = (Integer)memberDescription.getValue(MemberDescription.CURRENT_NUMBER_OF_RECORDS);
