@@ -118,6 +118,17 @@ public class Messages extends NLS {
     public static String Error_A_keyword_with_key_A_already_exists;
     public static String Error_A_special_word_with_key_A_already_exists;
 
+    public static String Label_Export;
+    public static String Label_Import;
+    public static String Label_XML_Files;
+    public static String Title_Export_Profile;
+    public static String Title_Import_Profile;
+    public static String Tooltip_Export;
+    public static String Tooltip_Import;
+    public static String Error_Export_failed_A;
+    public static String Error_Import_failed_A;
+    public static String Error_Invalid_profile_format_A;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

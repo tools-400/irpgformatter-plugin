@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.preferencepages;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -55,6 +56,12 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Spinner;
+import java.io.File;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
@@ -80,6 +87,8 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
+import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
 
 /**
@@ -803,6 +812,212 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOnSaveCheckbox = createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save, null);
     }
 
+    private void createImportExportButtons(Composite parent) {
+
+        Composite buttonComposite = new Composite(parent, SWT.NONE);
+        buttonComposite.setLayout(new GridLayout(2, false));
+        buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        PixelConverter pixelConverter = new PixelConverter(buttonComposite);
+        int buttonWidth = pixelConverter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+
+        Button exportButton = new Button(buttonComposite, SWT.PUSH);
+        exportButton.setText(Messages.Label_Export);
+        exportButton.setToolTipText(Messages.Tooltip_Export);
+        GridData exportGridData = new GridData();
+        exportGridData.widthHint = Math.max(buttonWidth, exportButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+        exportButton.setLayoutData(exportGridData);
+        exportButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                handleExport();
+            }
+        });
+
+        Button importButton = new Button(buttonComposite, SWT.PUSH);
+        importButton.setText(Messages.Label_Import);
+        importButton.setToolTipText(Messages.Tooltip_Import);
+        GridData importGridData = new GridData();
+        importGridData.widthHint = Math.max(buttonWidth, importButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+        importButton.setLayoutData(importGridData);
+        importButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                handleImport();
+            }
+        });
+    }
+
+    private static final String DIALOG_SETTINGS_SECTION = "IRPGFormatterPreferencePage";
+    private static final String DIALOG_SETTINGS_PROFILE_PATH = "profileFilePath";
+
+    private void handleExport() {
+
+        FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
+        dialog.setText(Messages.Title_Export_Profile);
+        dialog.setFilterExtensions(new String[] { "*.xml" });
+        dialog.setFilterNames(new String[] { Messages.Label_XML_Files });
+        dialog.setFileName("iRPGFormatter.xml");
+        dialog.setOverwrite(true);
+
+        String lastPath = getProfileFilePath();
+        if (lastPath != null) {
+            File lastFile = new File(lastPath);
+            dialog.setFilterPath(lastFile.getParent());
+            dialog.setFileName(lastFile.getName());
+        }
+
+        String filePath = dialog.open();
+        if (filePath == null) {
+            return;
+        }
+
+        saveProfileFilePath(filePath);
+
+        try {
+            ProfileData data = collectProfileDataFromUI();
+            PreferencesProfileManager.exportProfile(filePath, data);
+        } catch (Exception e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Export_failed_A, e.getLocalizedMessage()));
+        }
+    }
+
+    private void handleImport() {
+
+        FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
+        dialog.setText(Messages.Title_Import_Profile);
+        dialog.setFilterExtensions(new String[] { "*.xml" });
+        dialog.setFilterNames(new String[] { Messages.Label_XML_Files });
+
+        String lastPath = getProfileFilePath();
+        if (lastPath != null) {
+            File lastFile = new File(lastPath);
+            dialog.setFilterPath(lastFile.getParent());
+            dialog.setFileName(lastFile.getName());
+        }
+
+        String filePath = dialog.open();
+        if (filePath == null) {
+            return;
+        }
+
+        saveProfileFilePath(filePath);
+
+        try {
+            ProfileData data = PreferencesProfileManager.importProfile(filePath);
+            applyProfileDataToUI(data);
+        } catch (IllegalArgumentException e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_Invalid_profile_format_A, e.getLocalizedMessage()));
+        } catch (Exception e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Import_failed_A, e.getLocalizedMessage()));
+        }
+    }
+
+    private String getProfileFilePath() {
+        IDialogSettings settings = getDialogSettingsSection();
+        return settings.get(DIALOG_SETTINGS_PROFILE_PATH);
+    }
+
+    private void saveProfileFilePath(String filePath) {
+        IDialogSettings settings = getDialogSettingsSection();
+        settings.put(DIALOG_SETTINGS_PROFILE_PATH, filePath);
+    }
+
+    private IDialogSettings getDialogSettingsSection() {
+        IDialogSettings root = IRpgleFormatterPlugin.getDefault().getDialogSettings();
+        IDialogSettings section = root.getSection(DIALOG_SETTINGS_SECTION);
+        if (section == null) {
+            section = root.addNewSection(DIALOG_SETTINGS_SECTION);
+        }
+        return section;
+    }
+
+    private ProfileData collectProfileDataFromUI() {
+
+        ProfileData data = new ProfileData();
+
+        data.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()).name());
+        data.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
+        data.setDelimiterBeforeParameter(putDelemiterBeforeParameterCheckbox.getSelection());
+        data.setAlignSubFields(alignSubFieldsCheckbox.getSelection());
+        data.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
+        data.setBreakBeforeKeyword(breakBeforeKeywordCheckbox.getSelection());
+        data.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
+        data.setMaxNameLength(maxNameLengthSpinner.getSelection());
+        data.setMinNameLength(minNameLengthSpinner.getSelection());
+        data.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
+        data.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
+        data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
+        data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.entries));
+        data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.entries));
+        data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.entries));
+        data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.entries));
+
+        // Custom preview source
+        if (isEditMode) {
+            setCurrentRawSource(previewViewer.getDocument().get());
+        }
+        data.setCustomPreviewSource(rawCustomSource);
+
+        return data;
+    }
+
+    private void applyProfileDataToUI(ProfileData data) {
+
+        // Scalar settings
+        try {
+            ParameterSpacingStyle style = ParameterSpacingStyle.valueOf(data.getParameterSpacingStyle());
+            parameterSpacingStyleCombo.select(style.ordinal());
+        } catch (IllegalArgumentException e) {
+            // Keep current selection if the value is invalid
+        }
+
+        useConstKeywordCheckbox.setSelection(data.isUseConstKeyword());
+        putDelemiterBeforeParameterCheckbox.setSelection(data.isDelimiterBeforeParameter());
+        alignSubFieldsCheckbox.setSelection(data.isAlignSubFields());
+        breakNameOnCaseChangeCheckbox.setSelection(data.isBreakBetweenCaseChange());
+        breakBeforeKeywordCheckbox.setSelection(data.isBreakBeforeKeyword());
+        sortConstValueToEndCheckbox.setSelection(data.isSortConstValueToEnd());
+        maxNameLengthSpinner.setSelection(data.getMaxNameLength());
+        minNameLengthSpinner.setSelection(data.getMinNameLength());
+        executeIbmFormatterCheckbox.setSelection(data.isExecuteIbmFormatter());
+        executeIrpgFormatterCheckbox.setSelection(data.isExecuteIrpgFormatter());
+        formatOnSaveCheckbox.setSelection(data.isFormatOnSave());
+
+        // Map settings (only apply if present in profile)
+        Map<String, String> dataTypes = data.getDataTypes();
+        if (dataTypes != null) {
+            dataTypesEditor.load(KeywordUtils.mapToEntries(dataTypes));
+        }
+
+        Map<String, String> declarationTypes = data.getDeclarationTypes();
+        if (declarationTypes != null) {
+            declarationTypesEditor.load(KeywordUtils.mapToEntries(declarationTypes));
+        }
+
+        Map<String, String> keywords = data.getKeywords();
+        if (keywords != null) {
+            keywordsEditor.load(KeywordUtils.mapToEntries(keywords));
+        }
+
+        Map<String, String> specialWords = data.getSpecialWords();
+        if (specialWords != null) {
+            specialWordsEditor.load(KeywordUtils.mapToEntries(specialWords));
+        }
+
+        // Custom preview source
+        String customSource = data.getCustomPreviewSource();
+        if (customSource != null) {
+            rawCustomSource = customSource;
+        }
+
+        // Refresh preview
+        if (!isEditMode) {
+            fromatPreviewSource();
+        }
+    }
+
     private GridData createStyleData() {
         GridData styleData = new GridData();
         styleData.widthHint = 120;
@@ -867,6 +1082,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         // Save actions group
         createSaveActionsGroup(container);
+
+        // Import / Export buttons
+        createImportExportButtons(container);
 
         scrolled.setContent(container);
         scrolled.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
