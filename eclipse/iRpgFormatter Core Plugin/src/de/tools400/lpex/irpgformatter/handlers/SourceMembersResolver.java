@@ -31,6 +31,8 @@ import com.ibm.etools.iseries.subsystems.qsys.objects.IRemoteObjectContextProvid
 import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSObjectSubSystem;
 import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember;
 
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+
 public class SourceMembersResolver {
 
     private List<Object> sourceMembers;
@@ -161,7 +163,7 @@ public class SourceMembersResolver {
         String member = getMemberName(element);
         String type = getMemberType(element).toUpperCase();
 
-        if ("RPGLE".equals(type) || "SQLRPGLE".equals(type)) {
+        if (RpgleFormatter.isSupportedSourceType(type)) {
             SourceMember sourceMember = new SourceMember(profileName, connectionName, library, file, member, type);
             sourceMembers.add(sourceMember);
         }
