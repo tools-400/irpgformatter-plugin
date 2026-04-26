@@ -247,3 +247,7 @@ The plug-in interface is available in:
 - English
 - Dutch
 - Italian
+
+# See Also
+
+* [iRpgFormatter Update Site](https://github.com/tools-400/irpgformatter)
