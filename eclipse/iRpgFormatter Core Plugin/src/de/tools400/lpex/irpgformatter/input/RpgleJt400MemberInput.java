@@ -21,6 +21,7 @@ import com.ibm.as400.access.SequentialFile;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.IBMiUtils;
+import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
  * {@link IRpgleInput} implementation for IBM i source members via JT400.
@@ -58,7 +59,7 @@ public class RpgleJt400MemberInput extends AbstractRpgleInput implements IRpgleI
 
                 Record record = file.readFirst();
                 if (record != null) {
-                    line = ((String)record.getField("SRCDTA")).stripTrailing();
+                    line = StringUtils.trimR(((String)record.getField("SRCDTA")));
                 } else {
                     line = "";
                 }
@@ -94,7 +95,7 @@ public class RpgleJt400MemberInput extends AbstractRpgleInput implements IRpgleI
 
                 Record record = file.readFirst();
                 while (record != null) {
-                    line = ((String)record.getField("SRCDTA")).stripTrailing();
+                    line = StringUtils.trimR(((String)record.getField("SRCDTA")));
                     lines.add(line);
                     record = file.readNext();
                 }
