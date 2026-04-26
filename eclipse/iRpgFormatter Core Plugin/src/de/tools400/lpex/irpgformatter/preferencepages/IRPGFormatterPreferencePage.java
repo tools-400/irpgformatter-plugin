@@ -102,6 +102,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private IPropertyChangeListener ibmPropertyChangeListener;
     private SelectionAdapter previewUpdater;
 
+    private static final String PREVIEW_COMMENT_KEY = "previewComment";
+
     /* IBM preferences */
     private Text startColumnText;
     private Text endColumnText;
@@ -165,7 +167,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (!isEditMode) {
-                    fromatPreviewSource();
+                    String comment = (String) e.widget.getData(PREVIEW_COMMENT_KEY);
+                    fromatPreviewSource(comment);
                 }
             }
         };
@@ -411,6 +414,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     }
 
     private void fromatPreviewSource() {
+        fromatPreviewSource(null);
+    }
+
+    private void fromatPreviewSource(String scrollToComment) {
 
         if (isDisposed()) {
             return;
@@ -455,7 +462,18 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             try {
                 previewViewer.getDocument().set(formattedSource);
 
-                if (previousFormattedResult != null && previewCursorLine >= 0) {
+                if (scrollToComment != null) {
+                    int commentLine = findCommentLine(lines, scrollToComment);
+                    if (commentLine >= 0) {
+                        previewCursorLine = commentLine;
+                        int visibleLines = styledText.getClientArea().height / styledText.getLineHeight();
+                        int newTopIndex = Math.max(0, commentLine - visibleLines / 3);
+                        styledText.setTopIndex(newTopIndex);
+                        if (commentLine < styledText.getLineCount()) {
+                            styledText.setCaretOffset(styledText.getOffsetAtLine(commentLine));
+                        }
+                    }
+                } else if (previousFormattedResult != null && previewCursorLine >= 0) {
                     previewCursorLine = previousFormattedResult.mapLineTo(previewCursorLine, newResult);
                     int newTopIndex = Math.max(0, previewCursorLine - cursorVisualOffset);
                     styledText.setTopIndex(newTopIndex);
@@ -474,6 +492,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         } catch (Exception e) {
             setErrorMessage(e.getLocalizedMessage());
         }
+    }
+
+    private int findCommentLine(String[] lines, String comment) {
+        for (int i = 0; i < lines.length; i++) {
+            if (lines[i].trim().equals(comment)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private boolean isUIFullyInitialized() {
@@ -730,7 +757,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             @Override
             public void modifyText(ModifyEvent e) {
                 if (!isEditMode) {
-                    fromatPreviewSource();
+                    String comment = (String) e.widget.getData(PREVIEW_COMMENT_KEY);
+                    fromatPreviewSource(comment);
                 }
             }
         };
@@ -742,6 +770,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Minimum name length
         minNameLengthSpinner = createLabeledSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50, 30,
             spinnerPreviewUpdater);
+
+        // Set preview comment tags on controls
+        useConstKeywordCheckbox.setData(PREVIEW_COMMENT_KEY, "// Use const() in dcl-c statements.");
+        putDelemiterBeforeParameterCheckbox.setData(PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
+        parameterSpacingStyleCombo.setData(PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
+        alignSubFieldsCheckbox.setData(PREVIEW_COMMENT_KEY, "// Align sub-fields/parameters.");
+        breakNameOnCaseChangeCheckbox.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        breakBeforeKeywordCheckbox.setData(PREVIEW_COMMENT_KEY, "// Break before keyword.");
+        sortConstValueToEndCheckbox.setData(PREVIEW_COMMENT_KEY, "// Sort const/value to end.");
+        maxNameLengthSpinner.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        minNameLengthSpinner.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
 
         // Execute iRPG formatter
         executeIrpgFormatterCheckbox = createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter, null);

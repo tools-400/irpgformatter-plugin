@@ -1,6 +1,6 @@
 **free
 DCL-PROC myProc export;
-  DCL-PI *n Pointer ExtProc('externalProcedureName');
+  DCL-PI *n Pointer ExtProc('myProc');
     // Put delimiter before parameter.
     procedureName VARCHAR(256) OPTIONS(*VARSIZE: *Nopass : *Omit);
 
