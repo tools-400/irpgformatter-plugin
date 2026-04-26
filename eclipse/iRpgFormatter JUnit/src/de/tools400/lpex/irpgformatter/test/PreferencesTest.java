@@ -91,8 +91,8 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void getDefaultMinLiteralLength_is20() {
-        assertEquals(20, Preferences.getInstance().getDefaultMinLiteralLength());
+    public void getDefaultMinLiteralLength_is10() {
+        assertEquals(10, Preferences.getInstance().getDefaultMinLiteralLength());
     }
 
     @Test
@@ -111,8 +111,8 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void getDefaultFormatterPreviewVerticalRulerColumn_is45() {
-        assertEquals(45, Preferences.getInstance().getDefaultFormatterPreviewVerticalRulerColumn());
+    public void getDefaultFormatterPreviewVerticalRulerColumn_is35() {
+        assertEquals(35, Preferences.getInstance().getDefaultFormatterPreviewVerticalRulerColumn());
     }
 
     // --- Getters / Setters ---

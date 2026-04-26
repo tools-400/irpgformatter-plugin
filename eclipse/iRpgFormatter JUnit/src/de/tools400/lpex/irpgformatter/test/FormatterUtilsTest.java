@@ -105,6 +105,7 @@ public class FormatterUtilsTest extends AbstractTestCase {
     public void format_literal_long_with_line() throws RpgleFormatterException {
 
         getFormatterUtils().getConfig().setUseConstKeyword(true);
+        getFormatterUtils().getConfig().setMinLiteralLength(45);
 
         String startingLine = "";
         int defaultIndent = 0;
