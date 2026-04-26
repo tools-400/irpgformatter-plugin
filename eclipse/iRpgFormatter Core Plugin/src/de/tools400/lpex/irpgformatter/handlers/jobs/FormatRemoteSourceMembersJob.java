@@ -64,22 +64,9 @@ public class FormatRemoteSourceMembersJob extends Job {
 
                 SourceMember sourceMember = sourceMembers[count];
 
-                monitor.setTaskName(sourceMember.toString());
-
-                String profileName = sourceMember.getProfileName();
-                String connectionName = sourceMember.getConnectionName();
-                IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
-
-                String library = sourceMember.getLibraryName();
-                String file = sourceMember.getFileName();
-                String member = sourceMember.getMemberName();
-                IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
-
-                String validationError = RpgleFormatter.validateInput(input);
-                if (validationError != null) {
-                    errors.add(new MemberError(sourceMember, validationError));
-                } else {
-                    executeFormatter(sourceMember, input);
+                if (RpgleFormatter.isSupportedSourceType(sourceMember.getSourceType())) {
+                    monitor.setTaskName(sourceMember.toString());
+                    executeFormatter(sourceMember);
                 }
 
                 monitor.worked(1);
@@ -98,6 +85,25 @@ public class FormatRemoteSourceMembersJob extends Job {
         }
 
         return Status.OK_STATUS;
+    }
+
+    private void executeFormatter(SourceMember sourceMember) throws RpgleFormatterException, Exception {
+
+        String profileName = sourceMember.getProfileName();
+        String connectionName = sourceMember.getConnectionName();
+        IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
+
+        String library = sourceMember.getLibraryName();
+        String file = sourceMember.getFileName();
+        String member = sourceMember.getMemberName();
+        IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
+
+        String validationError = RpgleFormatter.validateInput(input);
+        if (validationError != null) {
+            errors.add(new MemberError(sourceMember, validationError));
+        } else {
+            executeFormatter(sourceMember, input);
+        }
     }
 
     private void executeFormatter(SourceMember sourceMember, IRpgleInput input) throws Exception, RpgleFormatterException {
