@@ -118,7 +118,7 @@ public class FormatRemoteSourceMembersJob extends Job {
         }
     }
 
-    public class MemberError {
+    public class MemberError implements IErrorObject {
 
         private SourceMember sourceMember;
         private String errorMessage;
@@ -134,6 +134,11 @@ public class FormatRemoteSourceMembersJob extends Job {
 
         public String getErrorMessage() {
             return errorMessage;
+        }
+
+        @Override
+        public String getFullPath() {
+            return sourceMember.toString();
         }
     }
 }

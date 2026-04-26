@@ -108,7 +108,7 @@ public class FormatStreamFilesJob extends Job {
         }
     }
 
-    public class FileError {
+    public class FileError implements IErrorObject {
 
         private IFile file;
         private String errorMessage;
@@ -124,6 +124,11 @@ public class FormatStreamFilesJob extends Job {
 
         public String getErrorMessage() {
             return errorMessage;
+        }
+
+        @Override
+        public String getFullPath() {
+            return file.getFullPath().toOSString();
         }
     }
 }

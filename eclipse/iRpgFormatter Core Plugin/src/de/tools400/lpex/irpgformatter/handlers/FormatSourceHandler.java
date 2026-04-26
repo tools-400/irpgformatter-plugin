@@ -20,9 +20,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public class FormatSourceHandler extends AbstractHandler {
 
-    private FormatRemoteSourceHandler remoteSourceHandler = new FormatRemoteSourceHandler();
-    private FormatStreamFileHandler streamFileHandler = new FormatStreamFileHandler();
-    private FormatRemoteStreamFileHandler remoteStreamFileHandler = new FormatRemoteStreamFileHandler();
+    private FormatRemoteSourceMembersHandler remoteSourceHandler = new FormatRemoteSourceMembersHandler();
+    private FormatStreamFilesHandler streamFileHandler = new FormatStreamFilesHandler();
+    private FormatRemoteStreamsFileHandler remoteStreamFileHandler = new FormatRemoteStreamsFileHandler();
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {

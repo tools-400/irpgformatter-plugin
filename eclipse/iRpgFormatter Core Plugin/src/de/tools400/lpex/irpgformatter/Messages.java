@@ -134,9 +134,14 @@ public class Messages extends NLS {
     public static String Job_Formatting_remote_source_members;
     public static String Job_Formatting;
 
+    public static String I_N_F_O_R_M_A_T_I_O_N;
+
     public static String Info_Finished_formatting_stream_files_A;
+    public static String Info_Finished_formatting_source_members_A;
     public static String Error_A_formatted_B_errors;
     public static String Error_Not_all_files_formatted_A;
+    public static String Error_A_members_formatted_B_errors;
+    public static String Error_Not_all_members_formatted_A;
 
     static {
         // initialize resource bundle

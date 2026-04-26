@@ -115,7 +115,7 @@ public class FormatRemoteStreamFilesJob extends Job {
         }
     }
 
-    public class FileError {
+    public class FileError implements IErrorObject {
 
         private IRemoteFile file;
         private String errorMessage;
@@ -131,6 +131,11 @@ public class FormatRemoteStreamFilesJob extends Job {
 
         public String getErrorMessage() {
             return errorMessage;
+        }
+
+        @Override
+        public String getFullPath() {
+            return file.getAbsolutePath();
         }
     }
 }
