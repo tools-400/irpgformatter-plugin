@@ -75,8 +75,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_BREAK_BEFORE_KEYWORD = false;
     private static final boolean DEFAULT_SORT_CONST_VALUE_TO_END = false;
     private static final int DEFAULT_MAX_NAME_LENGTH = 60;
-    private static final int DEFAULT_MIN_NAME_LENGTH = 20;
-    private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 45;
+    private static final int DEFAULT_MIN_NAME_LENGTH = 10;
+    private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 35;
     private static final String DEFAULT_PLUGIN_FORMATTER_SOURCE = "/default_preview_source.rpgle";
     private static final String DEFAULT_CUSTOM_FORMATTER_SOURCE = "";
     private static final boolean DEFAULT_CUSTOM_PREVIEW_CONTENT = false;

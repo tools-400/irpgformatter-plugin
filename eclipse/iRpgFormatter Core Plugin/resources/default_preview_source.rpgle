@@ -1,19 +1,30 @@
 **free
-DCL-PROC myProc VARCHAR(10);
-  DCL-PI *n ExtProc('externalProcedureName');
-    marker VARCHAR(10) Const OPTIONS(*VARSIZE: *TRIM : *Omit);
+DCL-PROC myProc export;
+  DCL-PI *n Pointer ExtProc('externalProcedureName');
+    // Put delimiter before parameter.
+    procedureName VARCHAR(256) OPTIONS(*VARSIZE: *Nopass : *Omit);
+
+    // Sort const/value to end.
+    message const Options(*nopass) like(message_t);
   END-PI;
 
+  // Break before keyword.
   DCL-PR myPrototype EXTPROC('MODULE_myPrototype');
     mySubField1 VARCHAR(10);
     mySubField2 VARCHAR(10);
   END-PR;
 
-  DCL-S myPointer POINTER;
-  DCL-C MY_CONSTANT 1;
-  DCL-DS myStructure LIKEDS(refStruct_t);
+  // Break name on case change.
+  DCL-S longCamelCaseNameExceedingMaxLineLength VarCHAR(100) Template;
 
-  dcl-enum myEnum Char(10) QUALIFIED;
+  // Casing style.
+  DCL-S message_t VarCHAR(100) Template;
+
+  // Use const() in dcl-c statements.
+  DCL-C MY_CONSTANT 1;
+
+  // Align sub-fields/parameters.
+  dcl-enum myEnum QUALIFIED;
     RED   'red';
     YELLOW 'yellow';
     GREEN 'green' Dft;
@@ -22,3 +33,4 @@ DCL-PROC myProc VARCHAR(10);
   Return *Null;
 
 END-PROC;
+
