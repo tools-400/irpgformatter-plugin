@@ -16,7 +16,6 @@ import org.junit.Test;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
-import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 
 /**
  * Unit tests for {@link StatementIdentifier} and {@link StatementType}.
