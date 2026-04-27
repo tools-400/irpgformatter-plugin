@@ -86,13 +86,18 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
         list.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.stateMask == SWT.CTRL && e.keyCode == 'c') {
+                if (e.stateMask == SWT.CTRL && e.keyCode == 'a') {
+                    list.selectAll();
+                } else if (e.stateMask == SWT.CTRL && e.keyCode == 'c') {
                     copySelection(list);
                 }
             }
         });
 
         Menu menu = new Menu(list);
+        MenuItem selectAllItem = new MenuItem(menu, SWT.PUSH);
+        selectAllItem.setText("Select All\tCtrl+A");
+        selectAllItem.addListener(SWT.Selection, event -> list.selectAll());
         MenuItem copyItem = new MenuItem(menu, SWT.PUSH);
         copyItem.setText("Copy\tCtrl+C");
         copyItem.addListener(SWT.Selection, event -> copySelection(list));
