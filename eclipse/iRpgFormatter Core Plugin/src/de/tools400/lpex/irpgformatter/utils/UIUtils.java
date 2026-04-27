@@ -65,13 +65,15 @@ public class UIUtils {
         dialog.open();
     }
 
-    public static Text createReadOnlyText(Composite parent, String label) {
+    public static Text createReadOnlyText(Composite parent, String label, String tooltipText) {
 
         Label textLabel = new Label(parent, SWT.NONE);
         textLabel.setText(label);
+        textLabel.setToolTipText(tooltipText);
 
         Text text = new Text(parent, SWT.NONE);
         text.setEditable(false);
+        text.setToolTipText(tooltipText);
 
         return text;
     }

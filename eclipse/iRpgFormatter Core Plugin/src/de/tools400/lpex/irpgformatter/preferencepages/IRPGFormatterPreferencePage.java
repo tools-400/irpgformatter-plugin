@@ -247,15 +247,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Start column
-        startColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column);
+        startColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column, Messages.Tooltip_IBM_Settings_Start_column);
         startColumnText.setLayoutData(createTextGridData(60));
 
         // End column
-        endColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column);
+        endColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column, Messages.Tooltip_IBM_Settings_End_column);
         endColumnText.setLayoutData(createTextGridData(60));
 
         // Indent length
-        spacesToIndentText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent);
+        spacesToIndentText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent, Messages.Tooltip_IBM_Settings_Indent);
         spacesToIndentText.setLayoutData(createTextGridData(60));
     }
 
@@ -276,7 +276,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Keyword casing style
-        casingStyleText = UIUtils.createReadOnlyText(parent, Messages.Label_Keyword_casing_style);
+        casingStyleText = UIUtils.createReadOnlyText(parent, Messages.Label_Keyword_casing_style, Messages.Tooltip_Keyword_casing_style);
         casingStyleText.setLayoutData(createTextGridData(120));
 
         // Execute IBM formatter before iRPGFormatter

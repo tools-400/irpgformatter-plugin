@@ -83,6 +83,11 @@ public class Messages extends NLS {
     public static String Label_Show_whitespaces;
     public static String Label_Preview_line_width;
 
+    public static String Tooltip_IBM_Settings_Start_column;
+    public static String Tooltip_IBM_Settings_End_column;
+    public static String Tooltip_IBM_Settings_Indent;
+    public static String Tooltip_Keyword_casing_style;
+
     public static String Tooltip_Use_const_keyword;
     public static String Tooltip_Put_delimiter_before_parameter;
     public static String Tooltip_Parameter_spacing_style;
