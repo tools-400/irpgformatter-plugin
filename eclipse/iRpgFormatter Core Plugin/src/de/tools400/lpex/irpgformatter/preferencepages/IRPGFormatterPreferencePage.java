@@ -1019,29 +1019,29 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         settingsTab.setControl(createSettingsTab(tabFolder));
 
         // Data Types tab
-        dataTypesEditor = new KeywordEditor(Messages.Title_Add_Data_Type, Messages.Title_Duplicate_Data_Type,
-            Messages.Error_A_data_type_with_key_A_already_exists, false);
+        dataTypesEditor = new KeywordEditor(Messages.Title_Add_Data_Type, Messages.Title_Change_Data_Type,
+            Messages.Title_Duplicate_Data_Type, Messages.Error_A_data_type_with_key_A_already_exists, false);
         TabItem dataTypesTab = new TabItem(tabFolder, SWT.NONE);
         dataTypesTab.setText(Messages.Label_Data_Types);
         dataTypesTab.setControl(createEditorTab(tabFolder, dataTypesEditor));
 
         // Declaration Types tab
-        declarationTypesEditor = new KeywordEditor(Messages.Title_Add_Declaration_Type, Messages.Title_Duplicate_Declaration_Type,
-            Messages.Error_A_declaration_type_with_key_A_already_exists, false);
+        declarationTypesEditor = new KeywordEditor(Messages.Title_Add_Declaration_Type, Messages.Title_Change_Declaration_Type,
+            Messages.Title_Duplicate_Declaration_Type, Messages.Error_A_declaration_type_with_key_A_already_exists, false);
         TabItem declarationTypesTab = new TabItem(tabFolder, SWT.NONE);
         declarationTypesTab.setText(Messages.Label_Declaration_Types);
         declarationTypesTab.setControl(createEditorTab(tabFolder, declarationTypesEditor));
 
         // Keywords tab
-        keywordsEditor = new KeywordEditor(Messages.Title_Add_Keyword, Messages.Title_Duplicate_Keyword,
-            Messages.Error_A_keyword_with_key_A_already_exists, false);
+        keywordsEditor = new KeywordEditor(Messages.Title_Add_Keyword, Messages.Title_Change_Keyword,
+            Messages.Title_Duplicate_Keyword, Messages.Error_A_keyword_with_key_A_already_exists, false);
         TabItem keywordsTab = new TabItem(tabFolder, SWT.NONE);
         keywordsTab.setText(Messages.Label_Keywords);
         keywordsTab.setControl(createEditorTab(tabFolder, keywordsEditor));
 
         // Keyword Parameters tab
-        specialWordsEditor = new KeywordEditor(Messages.Title_Add_Special_Word, Messages.Title_Duplicate_Special_Word,
-            Messages.Error_A_special_word_with_key_A_already_exists, true);
+        specialWordsEditor = new KeywordEditor(Messages.Title_Add_Special_Word, Messages.Title_Change_Special_Word,
+            Messages.Title_Duplicate_Special_Word, Messages.Error_A_special_word_with_key_A_already_exists, true);
         TabItem paramsTab = new TabItem(tabFolder, SWT.NONE);
         paramsTab.setText(Messages.Label_Special_Words);
         paramsTab.setControl(createEditorTab(tabFolder, specialWordsEditor));
@@ -1101,6 +1101,18 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             }
         });
 
+        // Change button
+        editor.changeButton = new Button(buttonPanel, SWT.PUSH);
+        editor.changeButton.setText(Messages.Label_Change);
+        editor.changeButton.setLayoutData(new GridData());
+        editor.changeButton.setEnabled(false);
+        editor.changeButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                changeSelectedEntry(editor);
+            }
+        });
+
         // Remove button
         editor.removeButton = new Button(buttonPanel, SWT.PUSH);
         editor.removeButton.setText(Messages.Label_Remove);
@@ -1113,9 +1125,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             }
         });
 
-        // Enable/disable remove button based on selection
+        // Enable/disable change and remove buttons based on selection
         editor.tableViewer.addSelectionChangedListener(event -> {
-            editor.removeButton.setEnabled(!event.getSelection().isEmpty());
+            boolean hasSelection = !event.getSelection().isEmpty();
+            editor.changeButton.setEnabled(hasSelection);
+            editor.removeButton.setEnabled(hasSelection);
         });
 
         return composite;
@@ -1155,6 +1169,37 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
             editor.entries.remove(entry);
             editor.tableViewer.refresh();
+        }
+    }
+
+    /**
+     * Changes the selected entry in the given editor via dialog.
+     */
+    private void changeSelectedEntry(KeywordEditor editor) {
+        IStructuredSelection selection = editor.tableViewer.getStructuredSelection();
+        if (!selection.isEmpty()) {
+            KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
+            AddKeywordDialog dialog = new AddKeywordDialog(getShell(), editor.changeDialogTitle, editor.isSpecialWord, entry.getKey(), entry.getValue());
+            if (dialog.open() == Window.OK) {
+                String newKey = dialog.getKey();
+                String newValue = dialog.getValue();
+
+                // Check for duplicate (only if key changed)
+                if (!newKey.equalsIgnoreCase(entry.getKey())) {
+                    for (KeywordEntry existing : editor.entries) {
+                        if (existing.getKey().equalsIgnoreCase(newKey)) {
+                            MessageDialog.openWarning(getShell(), editor.duplicateDialogTitle, Messages.bind(editor.duplicateErrorMessage, newKey));
+                            return;
+                        }
+                    }
+                }
+
+                // Replace entry
+                int index = editor.entries.indexOf(entry);
+                editor.entries.set(index, new KeywordEntry(newKey, newValue));
+                editor.entries.sort((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()));
+                editor.tableViewer.refresh();
+            }
         }
     }
 
@@ -1410,14 +1455,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         TableViewer tableViewer;
         List<KeywordEntry> entries;
+        Button changeButton;
         Button removeButton;
         final String addDialogTitle;
+        final String changeDialogTitle;
         final String duplicateDialogTitle;
         final String duplicateErrorMessage;
         final boolean isSpecialWord;
 
-        KeywordEditor(String addDialogTitle, String duplicateDialogTitle, String duplicateErrorMessage, boolean isSpecialWord) {
+        KeywordEditor(String addDialogTitle, String changeDialogTitle, String duplicateDialogTitle, String duplicateErrorMessage, boolean isSpecialWord) {
             this.addDialogTitle = addDialogTitle;
+            this.changeDialogTitle = changeDialogTitle;
             this.duplicateDialogTitle = duplicateDialogTitle;
             this.duplicateErrorMessage = duplicateErrorMessage;
             this.isSpecialWord = isSpecialWord;

@@ -44,6 +44,7 @@ public class Messages extends NLS {
     public static String Label_Keywords;
     public static String Label_Special_Words;
     public static String Label_Add;
+    public static String Label_Change;
     public static String Label_Remove;
     public static String Label_Key;
     public static String Label_Value;
@@ -60,12 +61,16 @@ public class Messages extends NLS {
     public static String Label_Before_after_parameter;
 
     public static String Title_Add_Data_Type;
+    public static String Title_Change_Data_Type;
     public static String Title_Duplicate_Data_Type;
     public static String Title_Add_Declaration_Type;
+    public static String Title_Change_Declaration_Type;
     public static String Title_Duplicate_Declaration_Type;
     public static String Title_Add_Keyword;
+    public static String Title_Change_Keyword;
     public static String Title_Duplicate_Keyword;
     public static String Title_Add_Special_Word;
+    public static String Title_Change_Special_Word;
     public static String Title_Duplicate_Special_Word;
 
     public static String ColumnLabel_Key_read_only;

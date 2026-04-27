@@ -50,7 +50,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-         name="iRPGFormatter"
+         name="%Label_preferences"
          category="com.ibm.etools.iseries.edit.ui.preferences.ParserPreferenceRPGILE"
          class="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage"
          id="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage">

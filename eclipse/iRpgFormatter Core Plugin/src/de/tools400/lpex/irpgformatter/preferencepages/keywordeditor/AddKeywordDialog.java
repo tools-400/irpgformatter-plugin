@@ -37,6 +37,9 @@ public class AddKeywordDialog extends TitleAreaDialog {
     private String key;
     private String value;
 
+    private String initialKey;
+    private String initialValue;
+
     /**
      * Creates a new add keyword dialog.
      *
@@ -48,6 +51,22 @@ public class AddKeywordDialog extends TitleAreaDialog {
         super(parentShell);
         this.dialogTitle = title;
         this.isSpecialWord = isSpecialWord;
+    }
+
+    /**
+     * Creates a new keyword dialog pre-filled with initial values (for
+     * changing an existing entry).
+     *
+     * @param parentShell the parent shell
+     * @param title the dialog title
+     * @param isSpecialWord true if editing a keyword parameter (starts with *)
+     * @param initialKey the initial key to display
+     * @param initialValue the initial value to display
+     */
+    public AddKeywordDialog(Shell parentShell, String title, boolean isSpecialWord, String initialKey, String initialValue) {
+        this(parentShell, title, isSpecialWord);
+        this.initialKey = initialKey;
+        this.initialValue = initialValue;
     }
 
     @Override
@@ -109,6 +128,16 @@ public class AddKeywordDialog extends TitleAreaDialog {
         } else {
             keyText.setMessage("e.g., DCL-DS");
             valueText.setMessage("e.g., Dcl-Ds");
+        }
+
+        // Pre-fill with initial values (for change mode)
+        if (initialKey != null) {
+            key = initialKey.toUpperCase();
+            keyText.setText(initialKey);
+        }
+        if (initialValue != null) {
+            value = initialValue;
+            valueText.setText(initialValue);
         }
 
         return area;
