@@ -9,42 +9,20 @@
 package de.tools400.lpex.irpgformatter.preferencepages;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
-import org.eclipse.jface.text.MarginPainter;
-import org.eclipse.jface.text.TextViewer;
-import org.eclipse.jface.text.WhitespaceCharacterPainter;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.LineStyleEvent;
-import org.eclipse.swt.custom.LineStyleListener;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -62,17 +40,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.dialogs.PreferencesUtil;
-import org.eclipse.ui.internal.WorkbenchPlugin;
-import org.eclipse.ui.internal.themes.IThemeRegistry;
-import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
-import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEditor;
-import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEntry;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -80,6 +51,7 @@ import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
+import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 /**
  * Preference page for RPGLE Formatter settings.
@@ -89,9 +61,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Preferences preferences;
     private IPreferenceStore ibmPreferenceStore;
     private IPropertyChangeListener ibmPropertyChangeListener;
-    private SelectionAdapter previewUpdater;
 
-    private static final String PREVIEW_COMMENT_KEY = "previewComment";
+    private PreviewPanel previewPanel;
 
     /* IBM preferences */
     private Text startColumnText;
@@ -118,49 +89,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private KeywordEditor keywordsEditor;
     private KeywordEditor specialWordsEditor;
 
-    /* Preview panel */
-    private Group previewGroup;
-    private TextViewer previewViewer;
-    private Button viewEditButton;
-    private Button customPreviewButton;
-    private Button showWhitespacesCheckbox;
-    private Spinner previewVerticalRulerSpinner;
-
-    private WhitespaceCharacterPainter whitespacePainter;
-    private MarginPainter marginPainter;
-
-    private Color marginColor;
-    private boolean isEditMode;
-    private boolean isCustomContent;
-    private IDocumentListener previewDocumentListener;
-    private Font monoFont;
-    private Color overflowColor;
-    private Color cursorLineColor;
-    private int previewCursorLine = -1;
-    private boolean isUpdatingPreview;
-    private FormattedResult previousFormattedResult;
-
-    private String rawDefaultSource = "";
-    private String rawCustomSource = "";
-
-    private VerticalRulerUpdaterJob rulerUpdateJob;
-
     /**
      * Creates the preference page.
      */
     public IRPGFormatterPreferencePage() {
         super();
         preferences = Preferences.getInstance();
-
-        previewUpdater = new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                if (!isEditMode) {
-                    String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
-                    fromatPreviewSource(comment);
-                }
-            }
-        };
     }
 
     @Override
@@ -182,9 +116,19 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         container.setLayout(new GridLayout(2, false));
         container.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        createSettingsPanel(container);
+        // Create settings container first (left column in grid)
+        Composite settingsContainer = new Composite(container, SWT.NONE);
+        settingsContainer.setLayout(new GridLayout(1, false));
+        settingsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        createPreviewPanel(container);
+        // Create preview panel second (right column in grid)
+        previewPanel = new PreviewPanel(container, () -> {
+            if (!isUIFullyInitialized()) return null;
+            return createConfigFromUI();
+        }, error -> setErrorMessage(error), preferences);
+
+        // Populate settings panel (needs previewPanel for getPreviewUpdater)
+        createKeywordsTabs(settingsContainer);
 
         // Load current values
         loadPreferences();
@@ -197,299 +141,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
                 if (event.getProperty().startsWith("RPGLE.FORMATTING.")
                     || event.getProperty().startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
                     loadIbmPreferences();
-                    fromatPreviewSource();
+                    previewPanel.formatPreview();
                 }
             }
         };
         ibmPreferenceStore.addPropertyChangeListener(ibmPropertyChangeListener);
 
         // Set focus to 1. line of preview editor
-        previewViewer.getTextWidget().setFocus();
-        previewCursorLine = 0;
+        previewPanel.setFocus();
 
         return container;
-    }
-
-    private void createSettingsPanel(Composite parent) {
-
-        Composite container = new Composite(parent, SWT.NONE);
-        container.setLayout(new GridLayout(1, false));
-        container.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-        // Tab folder for keywords
-        createKeywordsTabs(container);
-    }
-
-    private void createPreviewPanel(Composite parent) {
-
-        previewGroup = new Group(parent, SWT.NONE);
-        previewGroup.setText(Messages.Label_Preview);
-        previewGroup.setLayout(new GridLayout(1, false));
-        previewGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-        // TextViewer for source preview
-        previewViewer = new TextViewer(previewGroup, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-        StyledText styledText = previewViewer.getTextWidget();
-        GridData viewerData = new GridData(GridData.FILL_BOTH);
-        viewerData.widthHint = 400;
-        viewerData.heightHint = 300;
-        styledText.setLayoutData(viewerData);
-
-        // Set monospace font
-        FontData[] fontData = styledText.getFont().getFontData();
-        monoFont = new Font(styledText.getDisplay(), "Courier New", fontData[0].getHeight(), SWT.NORMAL);
-        styledText.setFont(monoFont);
-
-        // Set initial content
-        IDocument document = new Document(preferences.getDefaultFormatterSource());
-        previewViewer.setDocument(document);
-        previewViewer.setEditable(false);
-
-        // Highlight cursor line (works regardless of focus)
-        cursorLineColor = getCurrentLineHighlightColor(styledText);
-        styledText.addCaretListener(event -> {
-            if (isUpdatingPreview) {
-                return;
-            }
-            int oldLine = previewCursorLine;
-            previewCursorLine = styledText.getLineAtOffset(event.caretOffset);
-            if (oldLine != previewCursorLine) {
-                styledText.redraw();
-            }
-        });
-        styledText.addLineBackgroundListener(event -> {
-            int line = styledText.getLineAtOffset(event.lineOffset);
-            if (line == previewCursorLine) {
-                event.lineBackground = cursorLineColor;
-            }
-        });
-
-        // Document listener (placeholder for future use)
-        previewDocumentListener = new IDocumentListener() {
-            @Override
-            public void documentAboutToBeChanged(DocumentEvent event) {
-                // placeholder
-            }
-
-            @Override
-            public void documentChanged(DocumentEvent event) {
-                // placeholder
-            }
-        };
-        document.addDocumentListener(previewDocumentListener);
-
-        // Highlight lines exceeding the configured line width
-        overflowColor = getErrorTextColor(styledText);
-        styledText.addLineStyleListener(new LineStyleListener() {
-            @Override
-            public void lineGetStyle(LineStyleEvent event) {
-                if (previewVerticalRulerSpinner == null) {
-                    return;
-                }
-                int maxWidth = previewVerticalRulerSpinner.getSelection();
-                if (maxWidth > 0 && event.lineText.length() > maxWidth) {
-                    StyleRange range = new StyleRange();
-                    range.start = event.lineOffset;
-                    range.length = event.lineText.length();
-                    range.foreground = overflowColor;
-                    event.styles = new StyleRange[] { range };
-                }
-            }
-        });
-
-        // Margin painter (vertical ruler at line width column)
-        marginColor = new Color(styledText.getDisplay(), 192, 192, 192);
-        marginPainter = new MarginPainter(previewViewer);
-        marginPainter.setMarginRulerColor(marginColor);
-        marginPainter.setMarginRulerColumn(60);
-        previewViewer.addPainter(marginPainter);
-
-        // Button bar
-        Composite buttonBar = new Composite(previewGroup, SWT.NONE);
-        buttonBar.setLayout(new GridLayout(6, false));
-        buttonBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        // "View/Edit raw code" toggle button
-        viewEditButton = new Button(buttonBar, SWT.TOGGLE);
-        viewEditButton.setText(Messages.Label_View_Edit_raw_code);
-        viewEditButton.setToolTipText(Messages.Tooltip_View_Edit_raw_code);
-        viewEditButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                isEditMode = viewEditButton.getSelection();
-                previewViewer.setEditable(isEditMode);
-                if (isEditMode) {
-                    // Entering edit mode: show raw/unformatted source
-                    previewGroup.setText(Messages.Label_Preview_Edit);
-                    previewViewer.getDocument().set(getCurrentRawSource());
-                } else {
-                    // Leaving edit mode: capture raw source, then format
-                    setCurrentRawSource(previewViewer.getDocument().get());
-                    fromatPreviewSource();
-                    previewGroup.setText(Messages.Label_Preview);
-                }
-            }
-        });
-
-        // "Custom preview contents" toggle button
-        customPreviewButton = new Button(buttonBar, SWT.TOGGLE);
-        customPreviewButton.setText(Messages.Label_Custom_preview_contents);
-        customPreviewButton.setToolTipText(Messages.Tooltip_Custom_preview_contents);
-        customPreviewButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                switchPreviewContent();
-            }
-        });
-        customPreviewButton.addSelectionListener(previewUpdater);
-
-        // "Show whitespaces" checkbox
-        showWhitespacesCheckbox = new Button(buttonBar, SWT.CHECK);
-        showWhitespacesCheckbox.setText(Messages.Label_Show_whitespaces);
-        showWhitespacesCheckbox.setToolTipText(Messages.Tooltip_Show_whitespaces);
-        showWhitespacesCheckbox.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                toggleWhitespaceDisplay();
-            }
-        });
-
-        // "Preview line width:" label + spinner
-        Label lineWidthLabel = new Label(buttonBar, SWT.NONE);
-        lineWidthLabel.setText(Messages.Label_Preview_line_width);
-
-        previewVerticalRulerSpinner = new Spinner(buttonBar, SWT.BORDER);
-        previewVerticalRulerSpinner.setToolTipText(Messages.Tooltip_Preview_line_width);
-
-        // GridData previewVerticalRulerGridData = new
-        // GridData(GridData.BEGINNING);
-        // previewVerticalRulerGridData.widthHint = 40;
-        // minNameLengthSpinner.setLayoutData(previewVerticalRulerGridData);
-
-        previewVerticalRulerSpinner.setMinimum(0);
-        previewVerticalRulerSpinner.setMaximum(500);
-        previewVerticalRulerSpinner.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                if (rulerUpdateJob != null) {
-                    rulerUpdateJob.cancel();
-                }
-                rulerUpdateJob = new VerticalRulerUpdaterJob();
-                rulerUpdateJob.schedule(200);
-            }
-        });
-
-        // "Reset preview line width" button
-        Button resetLineWidthButton = new Button(buttonBar, SWT.PUSH);
-        resetLineWidthButton.setToolTipText(Messages.Tooltip_Reset_preview_line_width);
-        resetLineWidthButton.setImage(IRpgleFormatterPlugin.getDefault().getImage(IRpgleFormatterPlugin.IMAGE_RESET));
-        Point resetSize = resetLineWidthButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-        GridData resetGridData = new GridData();
-        resetGridData.widthHint = reduceButtonSize(resetSize.x);
-        resetGridData.heightHint = reduceButtonSize(resetSize.y);
-        resetLineWidthButton.setLayoutData(resetGridData);
-        resetLineWidthButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                previewVerticalRulerSpinner.setFocus();
-                previewVerticalRulerSpinner.setSelection(preferences.getDefaultFormatterPreviewVerticalRulerColumn());
-            }
-        });
-    }
-
-    private int reduceButtonSize(int size) {
-        size = size * 4 / 5;
-        return size;
-    }
-
-    private void fromatPreviewSource() {
-        fromatPreviewSource(null);
-    }
-
-    private void fromatPreviewSource(String scrollToComment) {
-
-        if (isDisposed()) {
-            return;
-        }
-
-        if (!isUIFullyInitialized()) {
-            return;
-        }
-
-        try {
-
-            String rawSource = getCurrentRawSource();
-            if (rawSource == null || rawSource.isEmpty()) {
-                previewViewer.getDocument().set("");
-                setErrorMessage(null);
-                return;
-            }
-
-            FormatterConfig config = createConfigFromUI();
-            RpgleFormatter previewFormatter = new RpgleFormatter(config);
-            previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
-
-            String[] unformatted = rawSource.split("\n");
-            FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), 0);
-            String[] lines = newResult.toLines();
-
-            if (previewFormatter.getErrorCount() == 0) {
-                setErrorMessage(null);
-            } else {
-                setErrorMessage("Could not format preview source.");
-            }
-            String formattedSource = String.join("\n", lines);
-            StyledText styledText = previewViewer.getTextWidget();
-            int topIndex = styledText.getTopIndex();
-
-            int cursorVisualOffset = -1;
-            if (previewCursorLine >= 0 && previewCursorLine < styledText.getLineCount()) {
-                cursorVisualOffset = previewCursorLine - topIndex;
-            }
-
-            isUpdatingPreview = true;
-            try {
-                previewViewer.getDocument().set(formattedSource);
-
-                if (scrollToComment != null) {
-                    int commentLine = findCommentLine(lines, scrollToComment);
-                    if (commentLine >= 0) {
-                        previewCursorLine = commentLine;
-                        int visibleLines = styledText.getClientArea().height / styledText.getLineHeight();
-                        int newTopIndex = Math.max(0, commentLine - visibleLines / 3);
-                        styledText.setTopIndex(newTopIndex);
-                        if (commentLine < styledText.getLineCount()) {
-                            styledText.setCaretOffset(styledText.getOffsetAtLine(commentLine));
-                        }
-                    }
-                } else if (previousFormattedResult != null && previewCursorLine >= 0) {
-                    previewCursorLine = previousFormattedResult.mapLineTo(previewCursorLine, newResult);
-                    int newTopIndex = Math.max(0, previewCursorLine - cursorVisualOffset);
-                    styledText.setTopIndex(newTopIndex);
-                    if (previewCursorLine < styledText.getLineCount()) {
-                        styledText.setCaretOffset(styledText.getOffsetAtLine(previewCursorLine));
-                    }
-                } else {
-                    styledText.setTopIndex(topIndex);
-                }
-            } finally {
-                isUpdatingPreview = false;
-            }
-
-            previousFormattedResult = newResult;
-
-        } catch (Exception e) {
-            setErrorMessage(e.getLocalizedMessage());
-        }
-    }
-
-    private int findCommentLine(String[] lines, String comment) {
-        for (int i = 0; i < lines.length; i++) {
-            if (lines[i].trim().equals(comment)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     private boolean isUIFullyInitialized() {
@@ -531,70 +192,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return config;
     }
 
-    private void switchPreviewContent() {
-
-        // If in edit mode, save current document text before switching
-        if (isEditMode) {
-            setCurrentRawSource(previewViewer.getDocument().get());
-        }
-
-        // Save status of "customPreviewButton"
-        isCustomContent = customPreviewButton.getSelection();
-        preferences.setCustomPreviewContent(isCustomContent);
-
-        // Show the appropriate raw source in the document.
-        // previewUpdater (attached separately) will format if not in edit mode.
-        previewViewer.getDocument().set(getCurrentRawSource());
-    }
-
-    private void toggleWhitespaceDisplay() {
-        if (showWhitespacesCheckbox.getSelection()) {
-            whitespacePainter = new WhitespaceCharacterPainter(previewViewer);
-            previewViewer.addPainter(whitespacePainter);
-        } else {
-            if (whitespacePainter != null) {
-                whitespacePainter.deactivate(true);
-                whitespacePainter = null;
-            }
-        }
-    }
-
-    private void updateMarginColumn(int column) {
-        if (marginPainter != null) {
-            marginPainter.setMarginRulerColumn(column);
-            previewViewer.getTextWidget().redraw();
-        }
-    }
-
-    private Color getErrorTextColor(StyledText styledText) {
-
-        // Returns "RGB {255, 0, 0}" if set to its default value.
-        IThemeRegistry themeRegistry = WorkbenchPlugin.getDefault().getThemeRegistry();
-        RGB rgb = themeRegistry.findColor("ERROR_COLOR").getValue();
-
-        return new Color(styledText.getDisplay(), rgb);
-    }
-
-    private Color getCurrentLineHighlightColor(StyledText styledText) {
-
-        IThemeRegistry themeRegistry = WorkbenchPlugin.getDefault().getThemeRegistry();
-        RGB rgb = themeRegistry.findColor("org.eclipse.ui.editors.currentLineColor").getValue();
-
-        return new Color(styledText.getDisplay(), rgb);
-    }
-
-    private String getCurrentRawSource() {
-        return isCustomContent ? rawCustomSource : rawDefaultSource;
-    }
-
-    private void setCurrentRawSource(String source) {
-        if (isCustomContent) {
-            rawCustomSource = source;
-        } else {
-            rawDefaultSource = source;
-        }
-    }
-
     private boolean isDisposed() {
 
         if (startColumnText == null || startColumnText.isDisposed()) {
@@ -607,31 +204,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     @Override
     public void dispose() {
 
-        if (whitespacePainter != null) {
-            whitespacePainter.deactivate(true);
-            whitespacePainter = null;
-        }
-
-        if (marginPainter != null) {
-            marginPainter.deactivate(true);
-            marginPainter = null;
-        }
-
-        if (marginColor != null && !marginColor.isDisposed()) {
-            marginColor.dispose();
-        }
-
-        if (overflowColor != null && !overflowColor.isDisposed()) {
-            overflowColor.dispose();
-        }
-
-        if (monoFont != null && !monoFont.isDisposed()) {
-            monoFont.dispose();
-        }
-
-        if (cursorLineColor != null && !cursorLineColor.isDisposed()) {
-            cursorLineColor.dispose();
-        }
+        previewPanel.dispose();
 
         super.dispose();
     }
@@ -652,7 +225,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         createIBMFormatterSettingsSubGroup(group);
 
-        createSeparator(group);
+        UIUtils.createLineSeparator(group);
 
         createIBMKeyBehaviorSettingsSubGroup(group);
     }
@@ -674,13 +247,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Start column
-        startColumnText = createReadOnlyLabeledText(parent, Messages.Label_IBM_Settings_Start_column, 60);
+        startColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column);
+        startColumnText.setLayoutData(createTextGridData(60));
 
         // End column
-        endColumnText = createReadOnlyLabeledText(parent, Messages.Label_IBM_Settings_End_column, 60);
+        endColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column);
+        endColumnText.setLayoutData(createTextGridData(60));
 
         // Indent length
-        spacesToIndentText = createReadOnlyLabeledText(parent, Messages.Label_IBM_Settings_Indent, 60);
+        spacesToIndentText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent);
+        spacesToIndentText.setLayoutData(createTextGridData(60));
     }
 
     private void createIBMKeyBehaviorSettingsSubGroup(Composite parent) {
@@ -700,22 +276,30 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Keyword casing style
-        casingStyleText = createReadOnlyLabeledText(parent, Messages.Label_Keyword_casing_style, 120);
+        casingStyleText = UIUtils.createReadOnlyText(parent, Messages.Label_Keyword_casing_style);
+        casingStyleText.setLayoutData(createTextGridData(120));
 
         // Execute IBM formatter before iRPGFormatter
-        executeIbmFormatterCheckbox = createCheckbox(parent, Messages.Label_Execute_IBM_formatter, Messages.Tooltip_Execute_IBM_formatter, null);
+        executeIbmFormatterCheckbox = UIUtils.createCheckbox(parent, Messages.Label_Execute_IBM_formatter, Messages.Tooltip_Execute_IBM_formatter);
+        executeIbmFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
     private void createGeneralSettingsGroup(Composite parent) {
 
         Group group = createSubGroup(parent, Messages.Label_General_Settings);
 
+        SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
+
         // Use const() keyword in dcl-c statements
-        useConstKeywordCheckbox = createCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword, previewUpdater);
+        useConstKeywordCheckbox = UIUtils.createCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword);
+        useConstKeywordCheckbox.setLayoutData(createCheckboxGridData());
+        useConstKeywordCheckbox.addSelectionListener(previewUpdater);
 
         // Place delimiter before parameter
-        putDelemiterBeforeParameterCheckbox = createCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
-            Messages.Tooltip_Put_delimiter_before_parameter, previewUpdater);
+        putDelemiterBeforeParameterCheckbox = UIUtils.createCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
+            Messages.Tooltip_Put_delimiter_before_parameter);
+        putDelemiterBeforeParameterCheckbox.setLayoutData(createCheckboxGridData());
+        putDelemiterBeforeParameterCheckbox.addSelectionListener(previewUpdater);
 
         // Parameter spacing style
         Label parameterSpacingLabel = new Label(group, SWT.NONE);
@@ -728,51 +312,59 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         parameterSpacingStyleCombo.addSelectionListener(previewUpdater);
 
         // Align sub-fields/parameters
-        alignSubFieldsCheckbox = createCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields, previewUpdater);
+        alignSubFieldsCheckbox = UIUtils.createCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields);
+        alignSubFieldsCheckbox.setLayoutData(createCheckboxGridData());
+        alignSubFieldsCheckbox.addSelectionListener(previewUpdater);
 
         // Break literal between case change
-        breakNameOnCaseChangeCheckbox = createCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change,
-            previewUpdater);
+        breakNameOnCaseChangeCheckbox = UIUtils.createCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change);
+        breakNameOnCaseChangeCheckbox.setLayoutData(createCheckboxGridData());
+        breakNameOnCaseChangeCheckbox.addSelectionListener(previewUpdater);
 
         // Break line before keyword
-        breakBeforeKeywordCheckbox = createCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword,
-            previewUpdater);
+        breakBeforeKeywordCheckbox = UIUtils.createCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword);
+        breakBeforeKeywordCheckbox.setLayoutData(createCheckboxGridData());
+        breakBeforeKeywordCheckbox.addSelectionListener(previewUpdater);
 
         // Sort const/value to end of sub-field declarations
-        sortConstValueToEndCheckbox = createCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end,
-            previewUpdater);
+        sortConstValueToEndCheckbox = UIUtils.createCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end);
+        sortConstValueToEndCheckbox.setLayoutData(createCheckboxGridData());
+        sortConstValueToEndCheckbox.addSelectionListener(previewUpdater);
 
         ModifyListener spinnerPreviewUpdater = new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-                if (!isEditMode) {
-                    String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
-                    fromatPreviewSource(comment);
+                if (!previewPanel.isEditMode()) {
+                    String comment = (String)e.widget.getData(PreviewPanel.PREVIEW_COMMENT_KEY);
+                    previewPanel.formatPreview(comment);
                 }
             }
         };
 
         // Maximum name length
-        maxNameLengthSpinner = createLabeledSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100, 30,
-            spinnerPreviewUpdater);
+        maxNameLengthSpinner = UIUtils.createSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100);
+        maxNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
+        maxNameLengthSpinner.setLayoutData(createSpinnerGridData());
 
         // Minimum name length
-        minNameLengthSpinner = createLabeledSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50, 30,
-            spinnerPreviewUpdater);
+        minNameLengthSpinner = UIUtils.createSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50);
+        minNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
+        minNameLengthSpinner.setLayoutData(createSpinnerGridData());
 
         // Set preview comment tags on controls
-        useConstKeywordCheckbox.setData(PREVIEW_COMMENT_KEY, "// Use const() in dcl-c statements.");
-        putDelemiterBeforeParameterCheckbox.setData(PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
-        parameterSpacingStyleCombo.setData(PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
-        alignSubFieldsCheckbox.setData(PREVIEW_COMMENT_KEY, "// Align sub-fields/parameters.");
-        breakNameOnCaseChangeCheckbox.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
-        breakBeforeKeywordCheckbox.setData(PREVIEW_COMMENT_KEY, "// Break before keyword.");
-        sortConstValueToEndCheckbox.setData(PREVIEW_COMMENT_KEY, "// Sort const/value to end.");
-        maxNameLengthSpinner.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
-        minNameLengthSpinner.setData(PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        useConstKeywordCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Use const() in dcl-c statements.");
+        putDelemiterBeforeParameterCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
+        parameterSpacingStyleCombo.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
+        alignSubFieldsCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Align sub-fields/parameters.");
+        breakNameOnCaseChangeCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        breakBeforeKeywordCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break before keyword.");
+        sortConstValueToEndCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Sort const/value to end.");
+        maxNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        minNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
 
         // Execute iRPG formatter
-        executeIrpgFormatterCheckbox = createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter, null);
+        executeIrpgFormatterCheckbox = UIUtils.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
+        executeIrpgFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
     private void createSaveActionsGroup(Composite parent) {
@@ -780,7 +372,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         Group group = createSubGroup(parent, Messages.Label_Save_Actions);
 
         // Format on save
-        formatOnSaveCheckbox = createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save, null);
+        formatOnSaveCheckbox = UIUtils.createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save);
+        formatOnSaveCheckbox.setLayoutData(createCheckboxGridData());
     }
 
     private void createImportExportButtons(Composite parent) {
@@ -789,15 +382,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         buttonComposite.setLayout(new GridLayout(2, false));
         buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        PixelConverter pixelConverter = new PixelConverter(buttonComposite);
-        int buttonWidth = pixelConverter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-
-        Button exportButton = new Button(buttonComposite, SWT.PUSH);
-        exportButton.setText(Messages.Label_Export);
-        exportButton.setToolTipText(Messages.Tooltip_Export);
-        GridData exportGridData = new GridData();
-        exportGridData.widthHint = Math.max(buttonWidth, exportButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-        exportButton.setLayoutData(exportGridData);
+        Button exportButton = UIUtils.createStandardButton(buttonComposite, Messages.Label_Export, Messages.Tooltip_Export);
         exportButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -805,12 +390,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             }
         });
 
-        Button importButton = new Button(buttonComposite, SWT.PUSH);
-        importButton.setText(Messages.Label_Import);
-        importButton.setToolTipText(Messages.Tooltip_Import);
-        GridData importGridData = new GridData();
-        importGridData.widthHint = Math.max(buttonWidth, importButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-        importButton.setLayoutData(importGridData);
+        Button importButton = UIUtils.createStandardButton(buttonComposite, Messages.Label_Import, Messages.Tooltip_Import);
         importButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -925,10 +505,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
 
         // Custom preview source
-        if (isEditMode) {
-            setCurrentRawSource(previewViewer.getDocument().get());
-        }
-        data.setCustomPreviewSource(rawCustomSource);
+        data.setCustomPreviewSource(previewPanel.getCustomSource());
 
         return data;
     }
@@ -979,12 +556,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Custom preview source
         String customSource = data.getCustomPreviewSource();
         if (customSource != null) {
-            rawCustomSource = customSource;
+            previewPanel.setCustomSource(customSource);
         }
 
         // Refresh preview
-        if (!isEditMode) {
-            fromatPreviewSource();
+        if (!previewPanel.isEditMode()) {
+            previewPanel.formatPreview();
         }
     }
 
@@ -1060,9 +637,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private void loadPreferences() {
 
-        rawDefaultSource = preferences.getDefaultPluginFormatterSource();
-        rawCustomSource = preferences.getCustomFormatterSource();
-
         loadIbmPreferences();
 
         formatOnSaveCheckbox.setSelection(preferences.isFormatOnSave());
@@ -1084,30 +658,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         keywordsEditor.load(KeywordUtils.mapToEntries(preferences.getKeywords()));
         specialWordsEditor.load(KeywordUtils.mapToEntries(preferences.getSpecialWords()));
 
-        previewVerticalRulerSpinner.setSelection(preferences.getFormatterPreviewVerticalRulerColumn());
-
-        setupPreview(preferences.isCustomPreviewContent());
-    }
-
-    private void resetPreviewToDefault() {
-        setupPreview(false);
-    }
-
-    private void setupPreview(boolean customContent) {
-        if (previewViewer != null) {
-            isCustomContent = customContent;
-            isEditMode = false;
-            previewViewer.getDocument().set(getCurrentRawSource());
-            if (customPreviewButton != null) {
-                customPreviewButton.setSelection(isCustomContent);
-            }
-            if (viewEditButton != null) {
-                viewEditButton.setSelection(false);
-            }
-            previewViewer.setEditable(false);
-            previewGroup.setText(Messages.Label_Preview);
-            fromatPreviewSource();
-        }
+        previewPanel.loadSources(preferences.getDefaultPluginFormatterSource(), preferences.getCustomFormatterSource(),
+            preferences.isCustomPreviewContent(), preferences.getFormatterPreviewVerticalRulerColumn());
     }
 
     private void loadIbmPreferences() {
@@ -1144,24 +696,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
 
-        preferences.setFormatterPreviewVerticalRulerColumn(previewVerticalRulerSpinner.getSelection());
-
-        // Save custom preview source as raw/unformatted; never save default
-        // source
-        if (previewViewer != null) {
-            if (isEditMode) {
-                setCurrentRawSource(previewViewer.getDocument().get());
-            }
-            preferences.setCustomFormatterSource(rawCustomSource);
-        }
+        previewPanel.storeState(preferences);
     }
 
     @Override
     protected void performDefaults() {
         super.performDefaults();
-
-        rawDefaultSource = preferences.getDefaultPluginFormatterSource();
-        rawCustomSource = preferences.getDefaultCustomFormatterSource();
 
         // Reset format on save
         formatOnSaveCheckbox.setSelection(preferences.getDefaultFormatOnSave());
@@ -1187,9 +727,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         keywordsEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultKeywords()));
         specialWordsEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultSpecialWords()));
 
-        previewVerticalRulerSpinner.setSelection(preferences.getDefaultFormatterPreviewVerticalRulerColumn());
-
-        resetPreviewToDefault();
+        previewPanel.resetToDefaults(preferences.getDefaultPluginFormatterSource(), preferences.getDefaultCustomFormatterSource(),
+            preferences.getDefaultFormatterPreviewVerticalRulerColumn());
     }
 
     @Override
@@ -1200,100 +739,27 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return super.performOk();
     }
 
-    /**
-     * Creates a checkbox that spans 2 columns with label, tooltip, and an
-     * optional selection listener.
-     */
-    public static Button createCheckbox(Composite parent, String label, String tooltip, SelectionListener listener) {
+    private GridData createCheckboxGridData() {
 
-        Button button = new Button(parent, SWT.CHECK);
-        button.setText(label);
         GridData gridData = new GridData();
         gridData.horizontalSpan = 2;
-        button.setLayoutData(gridData);
-        button.setToolTipText(tooltip);
-        if (listener != null) {
-            button.addSelectionListener(listener);
-        }
-        return button;
+
+        return gridData;
     }
 
-    /**
-     * Creates a labeled spinner (label + spinner side by side) with min/max
-     * bounds, tooltip, and an optional modify listener.
-     */
-    private Spinner createLabeledSpinner(Composite parent, String label, String tooltip, int min, int max, int widthHint, ModifyListener listener) {
+    private GridData createSpinnerGridData() {
 
-        Label spinnerLabel = new Label(parent, SWT.NONE);
-        spinnerLabel.setText(label);
+        GridData gridData = new GridData();
+        gridData.widthHint = 30;
 
-        Spinner spinner = new Spinner(parent, SWT.BORDER);
-        spinner.setMinimum(min);
-        spinner.setMaximum(max);
+        return gridData;
+    }
+
+    private GridData createTextGridData(int widthHint) {
+
         GridData gridData = new GridData();
         gridData.widthHint = widthHint;
-        spinner.setLayoutData(gridData);
-        spinner.setToolTipText(tooltip);
-        if (listener != null) {
-            spinner.addModifyListener(listener);
-        }
-        return spinner;
-    }
 
-    /**
-     * Creates a read-only text field with a label (label + text side by side).
-     */
-    private Text createReadOnlyLabeledText(Composite parent, String label, int widthHint) {
-
-        Label textLabel = new Label(parent, SWT.NONE);
-        textLabel.setText(label);
-
-        Text text = new Text(parent, SWT.NONE);
-        GridData gridData = new GridData();
-        gridData.widthHint = widthHint;
-        text.setLayoutData(gridData);
-        text.setEditable(false);
-        return text;
-    }
-
-    private class VerticalRulerUpdaterJob extends UIJob {
-
-        public VerticalRulerUpdaterJob() {
-            super("");
-        }
-
-        @Override
-        public IStatus runInUIThread(IProgressMonitor arg0) {
-
-            if (!isDisposed()) {
-                int column = previewVerticalRulerSpinner.getSelection();
-                updateMarginColumn(column);
-                if (!isEditMode) {
-                    boolean spinnerHadFocus = previewVerticalRulerSpinner.isFocusControl();
-                    fromatPreviewSource();
-                    if (spinnerHadFocus) {
-                        // Move focus away and back to re-select the spinner
-                        // text,
-                        // since forceFocus() is a no-op when the spinner
-                        // already
-                        // has focus.
-                        previewViewer.getControl().forceFocus();
-                        previewVerticalRulerSpinner.forceFocus();
-                    }
-                }
-            }
-
-            return Status.OK_STATUS;
-        }
-
-    }
-
-    private void createSeparator(Group group) {
-        Label separator = new Label(group, SWT.NONE);
-        GridData gridData = new GridData();
-        gridData.horizontalAlignment = GridData.FILL_HORIZONTAL;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.horizontalSpan = 2;
-        separator.setLayoutData(gridData);
+        return gridData;
     }
 }
