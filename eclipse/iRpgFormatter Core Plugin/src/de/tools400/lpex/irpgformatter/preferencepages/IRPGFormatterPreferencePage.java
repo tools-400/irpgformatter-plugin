@@ -8,13 +8,17 @@
 
 package de.tools400.lpex.irpgformatter.preferencepages;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.text.Document;
@@ -25,11 +29,6 @@ import org.eclipse.jface.text.MarginPainter;
 import org.eclipse.jface.text.TextViewer;
 import org.eclipse.jface.text.WhitespaceCharacterPainter;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.LineStyleEvent;
 import org.eclipse.swt.custom.LineStyleListener;
@@ -52,20 +51,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Spinner;
-import java.io.File;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.layout.PixelConverter;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -79,11 +71,8 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
-import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.AddKeywordDialog;
-import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordContentProvider;
-import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEditingSupport;
+import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEditor;
 import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEntry;
-import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordLabelProvider;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -167,7 +156,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (!isEditMode) {
-                    String comment = (String) e.widget.getData(PREVIEW_COMMENT_KEY);
+                    String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
                     fromatPreviewSource(comment);
                 }
             }
@@ -505,18 +494,18 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private boolean isUIFullyInitialized() {
 
-        if (keywordsEditor == null || keywordsEditor.entries == null) {
+        if (keywordsEditor == null || keywordsEditor.getEntries() == null) {
             return false;
         }
 
-        if (dataTypesEditor == null || dataTypesEditor.entries == null) {
+        if (dataTypesEditor == null || dataTypesEditor.getEntries() == null) {
             return false;
         }
-        if (declarationTypesEditor == null || declarationTypesEditor.entries == null) {
+        if (declarationTypesEditor == null || declarationTypesEditor.getEntries() == null) {
             return false;
         }
 
-        if (specialWordsEditor == null || specialWordsEditor.entries == null) {
+        if (specialWordsEditor == null || specialWordsEditor.getEntries() == null) {
             return false;
         }
 
@@ -535,10 +524,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
         config.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
         config.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()));
-        config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.entries));
-        config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.entries));
-        config.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.entries));
-        config.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.entries));
+        config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+        config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+        config.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+        config.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
         return config;
     }
 
@@ -757,7 +746,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             @Override
             public void modifyText(ModifyEvent e) {
                 if (!isEditMode) {
-                    String comment = (String) e.widget.getData(PREVIEW_COMMENT_KEY);
+                    String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
                     fromatPreviewSource(comment);
                 }
             }
@@ -889,8 +878,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             ProfileData data = PreferencesProfileManager.importProfile(filePath);
             applyProfileDataToUI(data);
         } catch (IllegalArgumentException e) {
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
-                Messages.bind(Messages.Error_Invalid_profile_format_A, e.getLocalizedMessage()));
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Invalid_profile_format_A, e.getLocalizedMessage()));
         } catch (Exception e) {
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Import_failed_A, e.getLocalizedMessage()));
         }
@@ -931,10 +919,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
         data.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
         data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
-        data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.entries));
-        data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.entries));
-        data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.entries));
-        data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.entries));
+        data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+        data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+        data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+        data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
 
         // Custom preview source
         if (isEditMode) {
@@ -1019,32 +1007,28 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         settingsTab.setControl(createSettingsTab(tabFolder));
 
         // Data Types tab
-        dataTypesEditor = new KeywordEditor(Messages.Title_Add_Data_Type, Messages.Title_Change_Data_Type,
-            Messages.Title_Duplicate_Data_Type, Messages.Error_A_data_type_with_key_A_already_exists, false);
+        dataTypesEditor = KeywordEditor.forDataTypes(tabFolder);
         TabItem dataTypesTab = new TabItem(tabFolder, SWT.NONE);
         dataTypesTab.setText(Messages.Label_Data_Types);
-        dataTypesTab.setControl(createEditorTab(tabFolder, dataTypesEditor));
+        dataTypesTab.setControl(dataTypesEditor.getControl());
 
         // Declaration Types tab
-        declarationTypesEditor = new KeywordEditor(Messages.Title_Add_Declaration_Type, Messages.Title_Change_Declaration_Type,
-            Messages.Title_Duplicate_Declaration_Type, Messages.Error_A_declaration_type_with_key_A_already_exists, false);
+        declarationTypesEditor = KeywordEditor.forDeclarationTypes(tabFolder);
         TabItem declarationTypesTab = new TabItem(tabFolder, SWT.NONE);
         declarationTypesTab.setText(Messages.Label_Declaration_Types);
-        declarationTypesTab.setControl(createEditorTab(tabFolder, declarationTypesEditor));
+        declarationTypesTab.setControl(declarationTypesEditor.getControl());
 
         // Keywords tab
-        keywordsEditor = new KeywordEditor(Messages.Title_Add_Keyword, Messages.Title_Change_Keyword,
-            Messages.Title_Duplicate_Keyword, Messages.Error_A_keyword_with_key_A_already_exists, false);
+        keywordsEditor = KeywordEditor.forKeywords(tabFolder);
         TabItem keywordsTab = new TabItem(tabFolder, SWT.NONE);
         keywordsTab.setText(Messages.Label_Keywords);
-        keywordsTab.setControl(createEditorTab(tabFolder, keywordsEditor));
+        keywordsTab.setControl(keywordsEditor.getControl());
 
         // Keyword Parameters tab
-        specialWordsEditor = new KeywordEditor(Messages.Title_Add_Special_Word, Messages.Title_Change_Special_Word,
-            Messages.Title_Duplicate_Special_Word, Messages.Error_A_special_word_with_key_A_already_exists, true);
+        specialWordsEditor = KeywordEditor.forSpecialWords(tabFolder);
         TabItem paramsTab = new TabItem(tabFolder, SWT.NONE);
         paramsTab.setText(Messages.Label_Special_Words);
-        paramsTab.setControl(createEditorTab(tabFolder, specialWordsEditor));
+        paramsTab.setControl(specialWordsEditor.getControl());
     }
 
     private Control createSettingsTab(Composite parent) {
@@ -1072,182 +1056,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         scrolled.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
         return scrolled;
-    }
-
-    private Control createEditorTab(Composite parent, final KeywordEditor editor) {
-
-        Composite composite = new Composite(parent, SWT.NONE);
-        composite.setLayout(new GridLayout(2, false));
-
-        // Create table viewer
-        editor.tableViewer = createKeywordTableViewer(composite);
-        GridData tableData = new GridData(GridData.FILL_BOTH);
-        tableData.heightHint = 200;
-        editor.tableViewer.getTable().setLayoutData(tableData);
-
-        // Button panel
-        Composite buttonPanel = new Composite(composite, SWT.NONE);
-        buttonPanel.setLayout(new GridLayout(1, false));
-        buttonPanel.setLayoutData(new GridData());
-
-        // Add button
-        Button addButton = new Button(buttonPanel, SWT.PUSH);
-        addButton.setText(Messages.Label_Add);
-        addButton.setLayoutData(new GridData());
-        addButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                addEntry(editor);
-            }
-        });
-
-        // Change button
-        editor.changeButton = new Button(buttonPanel, SWT.PUSH);
-        editor.changeButton.setText(Messages.Label_Change);
-        editor.changeButton.setLayoutData(new GridData());
-        editor.changeButton.setEnabled(false);
-        editor.changeButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                changeSelectedEntry(editor);
-            }
-        });
-
-        // Remove button
-        editor.removeButton = new Button(buttonPanel, SWT.PUSH);
-        editor.removeButton.setText(Messages.Label_Remove);
-        editor.removeButton.setLayoutData(new GridData());
-        editor.removeButton.setEnabled(false);
-        editor.removeButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                removeSelectedEntry(editor);
-            }
-        });
-
-        // Enable/disable change and remove buttons based on selection
-        editor.tableViewer.addSelectionChangedListener(event -> {
-            boolean hasSelection = !event.getSelection().isEmpty();
-            editor.changeButton.setEnabled(hasSelection);
-            editor.removeButton.setEnabled(hasSelection);
-        });
-
-        return composite;
-    }
-
-    /**
-     * Adds a new entry to the given editor via dialog.
-     */
-    private void addEntry(KeywordEditor editor) {
-        AddKeywordDialog dialog = new AddKeywordDialog(getShell(), editor.addDialogTitle, editor.isSpecialWord);
-        if (dialog.open() == Window.OK) {
-            String key = dialog.getKey();
-            String value = dialog.getValue();
-
-            // Check for duplicate
-            for (KeywordEntry entry : editor.entries) {
-                if (entry.getKey().equalsIgnoreCase(key)) {
-                    MessageDialog.openWarning(getShell(), editor.duplicateDialogTitle, Messages.bind(editor.duplicateErrorMessage, key));
-                    return;
-                }
-            }
-
-            // Add new entry
-            KeywordEntry newEntry = new KeywordEntry(key, value);
-            editor.entries.add(newEntry);
-            editor.entries.sort((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()));
-            editor.tableViewer.refresh();
-        }
-    }
-
-    /**
-     * Removes the selected entry from the given editor.
-     */
-    private void removeSelectedEntry(KeywordEditor editor) {
-        IStructuredSelection selection = editor.tableViewer.getStructuredSelection();
-        if (!selection.isEmpty()) {
-            KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
-            editor.entries.remove(entry);
-            editor.tableViewer.refresh();
-        }
-    }
-
-    /**
-     * Changes the selected entry in the given editor via dialog.
-     */
-    private void changeSelectedEntry(KeywordEditor editor) {
-        IStructuredSelection selection = editor.tableViewer.getStructuredSelection();
-        if (!selection.isEmpty()) {
-            KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
-            AddKeywordDialog dialog = new AddKeywordDialog(getShell(), editor.changeDialogTitle, editor.isSpecialWord, entry.getKey(), entry.getValue());
-            if (dialog.open() == Window.OK) {
-                String newKey = dialog.getKey();
-                String newValue = dialog.getValue();
-
-                // Check for duplicate (only if key changed)
-                if (!newKey.equalsIgnoreCase(entry.getKey())) {
-                    for (KeywordEntry existing : editor.entries) {
-                        if (existing.getKey().equalsIgnoreCase(newKey)) {
-                            MessageDialog.openWarning(getShell(), editor.duplicateDialogTitle, Messages.bind(editor.duplicateErrorMessage, newKey));
-                            return;
-                        }
-                    }
-                }
-
-                // Replace entry
-                int index = editor.entries.indexOf(entry);
-                editor.entries.set(index, new KeywordEntry(newKey, newValue));
-                editor.entries.sort((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()));
-                editor.tableViewer.refresh();
-            }
-        }
-    }
-
-    /**
-     * Creates a TableViewer for keyword entries.
-     */
-    private TableViewer createKeywordTableViewer(Composite parent) {
-        TableViewer viewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
-
-        Table table = viewer.getTable();
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
-
-        // Key column (read-only)
-        TableViewerColumn keyColumn = new TableViewerColumn(viewer, SWT.NONE);
-        keyColumn.getColumn().setText(Messages.ColumnLabel_Key_read_only);
-        keyColumn.getColumn().setWidth(150);
-        keyColumn.getColumn().setResizable(true);
-        // No editing support - column is read-only
-
-        // Value column (editable)
-        TableViewerColumn valueColumn = new TableViewerColumn(viewer, SWT.NONE);
-        valueColumn.getColumn().setText(Messages.ColumnLabel_Value_editable);
-        valueColumn.getColumn().setWidth(150);
-        valueColumn.getColumn().setResizable(true);
-        valueColumn.setEditingSupport(new KeywordEditingSupport(viewer));
-
-        // Set providers
-        viewer.setContentProvider(new KeywordContentProvider());
-        viewer.setLabelProvider(new KeywordLabelProvider());
-
-        // Enable tooltips
-        ColumnViewerToolTipSupport.enableFor(viewer);
-
-        // Add sorting by key column
-        TableColumn keyCol = keyColumn.getColumn();
-        keyCol.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                // Toggle sort direction
-                int direction = table.getSortDirection() == SWT.UP ? SWT.DOWN : SWT.UP;
-                table.setSortDirection(direction);
-                table.setSortColumn(keyCol);
-                viewer.refresh();
-            }
-        });
-
-        return viewer;
     }
 
     private void loadPreferences() {
@@ -1331,10 +1139,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
         preferences.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
 
-        preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.entries));
-        preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.entries));
-        preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.entries));
-        preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.entries));
+        preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+        preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+        preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+        preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
 
         preferences.setFormatterPreviewVerticalRulerColumn(previewVerticalRulerSpinner.getSelection());
 
@@ -1446,35 +1254,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         text.setLayoutData(gridData);
         text.setEditable(false);
         return text;
-    }
-
-    /**
-     * Groups the per-tab state for a keyword editor tab.
-     */
-    private static class KeywordEditor {
-
-        TableViewer tableViewer;
-        List<KeywordEntry> entries;
-        Button changeButton;
-        Button removeButton;
-        final String addDialogTitle;
-        final String changeDialogTitle;
-        final String duplicateDialogTitle;
-        final String duplicateErrorMessage;
-        final boolean isSpecialWord;
-
-        KeywordEditor(String addDialogTitle, String changeDialogTitle, String duplicateDialogTitle, String duplicateErrorMessage, boolean isSpecialWord) {
-            this.addDialogTitle = addDialogTitle;
-            this.changeDialogTitle = changeDialogTitle;
-            this.duplicateDialogTitle = duplicateDialogTitle;
-            this.duplicateErrorMessage = duplicateErrorMessage;
-            this.isSpecialWord = isSpecialWord;
-        }
-
-        void load(List<KeywordEntry> entries) {
-            this.entries = entries;
-            tableViewer.setInput(entries);
-        }
     }
 
     private class VerticalRulerUpdaterJob extends UIJob {
