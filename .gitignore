@@ -2,4 +2,5 @@
 **/target
 **/*.class
 **/.claude/
+**/.~lock*
 Thumbs.db
