@@ -1399,7 +1399,7 @@
     *     - feature.xml
     *     - site.xml
     * ===================================================================== -->
-    <target name="updateHelpBuilderProperties" >
+    <target name="updateHelpBuilderProperties" unless="ignore.build.help" >
 
         <echo>Updating help builder properties:  helpproject.properties</echo>
 
