@@ -29,11 +29,6 @@ public final class KeywordUtils {
     private static final String DECLARATION_TYPES_RESOURCE = "/declaration_types.properties";
     private static final String KEYWORDS_RESOURCE = "/keywords.properties";
     private static final String SPECIAL_WORDS_RESOURCE = "/special_words.properties";
-    // Bundle resource paths (when running as plugin)
-    private static final String DATA_TYPES_BUNDLE_RESOURCE = "/resources" + DATA_TYPES_RESOURCE;
-    private static final String DECLARATION_TYPES_BUNDLE_RESOURCE = "/resources" + DECLARATION_TYPES_RESOURCE;
-    private static final String KEYWORDS_BUNDLE_RESOURCE = "/resources" + KEYWORDS_RESOURCE;
-    private static final String SPECIAL_WORDS_BUNDLE_RESOURCE = "/resources" + SPECIAL_WORDS_RESOURCE;
 
     private KeywordUtils() {
         // Utility class
