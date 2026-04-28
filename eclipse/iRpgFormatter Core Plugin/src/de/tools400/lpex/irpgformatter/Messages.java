@@ -143,6 +143,8 @@ public class Messages extends NLS {
     public static String Job_Formatting_remote_stream_files;
     public static String Job_Formatting_remote_source_members;
     public static String Job_Formatting;
+
+    public static String SubTask_Checking_availability;
     public static String SubTask_Reading;
     public static String SubTask_Formatting;
     public static String SubTask_Writing;

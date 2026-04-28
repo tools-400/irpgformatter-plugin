@@ -102,6 +102,7 @@ public class FormatRemoteSourceMembersJob extends Job {
             String connectionName = sourceMember.getConnectionName();
             IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
 
+            monitor.subTask(Messages.SubTask_Checking_availability);
             ensureWritable(connection, sourceMember);
 
             monitor.subTask(Messages.SubTask_Reading);

@@ -100,6 +100,7 @@ public class FormatRemoteStreamFilesJob extends Job {
             AS400 system = connection.getAS400ToolboxObject();
             String path = file.getAbsolutePath();
 
+            monitor.subTask(Messages.SubTask_Checking_availability);
             ensureWritable(system, path);
 
             monitor.subTask(Messages.SubTask_Reading);

@@ -91,6 +91,7 @@ public class FormatStreamFilesJob extends Job {
 
         try {
 
+            monitor.subTask(Messages.SubTask_Checking_availability);
             ensureWritable(file);
 
             monitor.subTask(Messages.SubTask_Reading);
