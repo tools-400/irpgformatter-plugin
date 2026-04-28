@@ -88,20 +88,27 @@ public class FormatRemoteSourceMembersJob extends Job {
 
     private void executeFormatter(SourceMember sourceMember) throws RpgleFormatterException, Exception {
 
-        String profileName = sourceMember.getProfileName();
-        String connectionName = sourceMember.getConnectionName();
-        IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
+        try {
 
-        String library = sourceMember.getLibraryName();
-        String file = sourceMember.getFileName();
-        String member = sourceMember.getMemberName();
-        IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
+            String profileName = sourceMember.getProfileName();
+            String connectionName = sourceMember.getConnectionName();
+            IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
 
-        String validationError = RpgleFormatter.validateInput(input);
-        if (validationError != null) {
-            errors.add(new MemberError(sourceMember, validationError));
-        } else {
-            executeFormatter(sourceMember, input);
+            String library = sourceMember.getLibraryName();
+            String file = sourceMember.getFileName();
+            String member = sourceMember.getMemberName();
+            IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
+
+            String validationError = RpgleFormatter.validateInput(input);
+            if (validationError != null) {
+                errors.add(new MemberError(sourceMember, validationError));
+            } else {
+                executeFormatter(sourceMember, input);
+            }
+
+        } catch (Exception e) {
+            MemberError memberError = new MemberError(sourceMember, e.getLocalizedMessage());
+            errors.add(memberError);
         }
     }
 

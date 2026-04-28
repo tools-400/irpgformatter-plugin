@@ -85,13 +85,20 @@ public class FormatStreamFilesJob extends Job {
 
     private void executeFormatter(IFile file) throws RpgleFormatterException, Exception {
 
-        IRpgleInput input = RpgleInputFactory.createFromStreamFile(file);
+        try {
 
-        String validationError = RpgleFormatter.validateInput(input);
-        if (validationError != null) {
-            errors.add(new FileError(file, validationError));
-        } else {
-            executeFormatter(file, input);
+            IRpgleInput input = RpgleInputFactory.createFromStreamFile(file);
+
+            String validationError = RpgleFormatter.validateInput(input);
+            if (validationError != null) {
+                errors.add(new FileError(file, validationError));
+            } else {
+                executeFormatter(file, input);
+            }
+
+        } catch (Exception e) {
+            FileError memberError = new FileError(file, e.getLocalizedMessage());
+            errors.add(memberError);
         }
     }
 

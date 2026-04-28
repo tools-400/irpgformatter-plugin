@@ -88,17 +88,24 @@ public class FormatRemoteStreamFilesJob extends Job {
 
     private void executeFormatter(IRemoteFile file) throws RpgleFormatterException, Exception {
 
-        IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
-        AS400 system = connection.getAS400ToolboxObject();
-        String path = file.getAbsolutePath();
+        try {
 
-        IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
+            IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
+            AS400 system = connection.getAS400ToolboxObject();
+            String path = file.getAbsolutePath();
 
-        String validationError = RpgleFormatter.validateInput(input);
-        if (validationError != null) {
-            errors.add(new FileError(file, validationError));
-        } else {
-            executeFormatter(file, input);
+            IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
+
+            String validationError = RpgleFormatter.validateInput(input);
+            if (validationError != null) {
+                errors.add(new FileError(file, validationError));
+            } else {
+                executeFormatter(file, input);
+            }
+
+        } catch (Exception e) {
+            FileError memberError = new FileError(file, e.getLocalizedMessage());
+            errors.add(memberError);
         }
     }
 
