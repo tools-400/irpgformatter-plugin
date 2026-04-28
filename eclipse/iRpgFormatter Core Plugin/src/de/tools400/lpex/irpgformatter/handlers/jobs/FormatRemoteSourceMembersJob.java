@@ -40,6 +40,7 @@ public class FormatRemoteSourceMembersJob extends Job {
     private RpgleFormatter formatter;
     private IFormatRemoteSourceMembersPostRun postRun;
 
+    private IProgressMonitor monitor;
     private List<MemberError> errors;
     private List<SourceMember> formatted;
 
@@ -57,6 +58,8 @@ public class FormatRemoteSourceMembersJob extends Job {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+
+        this.monitor = monitor;
 
         try {
 
@@ -101,11 +104,13 @@ public class FormatRemoteSourceMembersJob extends Job {
 
             ensureWritable(connection, sourceMember);
 
+            monitor.subTask(Messages.SubTask_Reading);
+
             String library = sourceMember.getLibraryName();
             String file = sourceMember.getFileName();
             String member = sourceMember.getMemberName();
 
-            IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
+            IRpgleInput input = RpgleInputFactory.createFromEditableRemoteMember(connection, library, file, member, monitor);
 
             String validationError = RpgleFormatter.validateInput(input);
             if (validationError != null) {
@@ -141,8 +146,11 @@ public class FormatRemoteSourceMembersJob extends Job {
 
         formatter.setSourceLength(sourceMember.getRecordLength());
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+
+        monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);
 
+        monitor.subTask(Messages.SubTask_Writing);
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formatted.add(sourceMember);

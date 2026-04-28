@@ -34,6 +34,7 @@ public class FormatStreamFilesJob extends Job {
     private RpgleFormatter formatter;
     private IFormatStreamFilesPostRun postRun;
 
+    private IProgressMonitor monitor;
     private List<FileError> errors;
     private List<IFile> formatted;
 
@@ -50,6 +51,8 @@ public class FormatStreamFilesJob extends Job {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+
+        this.monitor = monitor;
 
         try {
 
@@ -90,6 +93,7 @@ public class FormatStreamFilesJob extends Job {
 
             ensureWritable(file);
 
+            monitor.subTask(Messages.SubTask_Reading);
             IRpgleInput input = RpgleInputFactory.createFromStreamFile(file);
 
             String validationError = RpgleFormatter.validateInput(input);
@@ -116,8 +120,11 @@ public class FormatStreamFilesJob extends Job {
 
         formatter.setSourceLength(Preferences.getInstance().getEndColumn(100));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+
+        monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);
 
+        monitor.subTask(Messages.SubTask_Writing);
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formatted.add(file);

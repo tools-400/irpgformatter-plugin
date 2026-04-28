@@ -9,8 +9,11 @@
 package de.tools400.lpex.irpgformatter.input;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import com.ibm.as400.access.AS400;
+import com.ibm.etools.iseries.rse.ui.resources.QSYSEditableRemoteSourceFileMember;
+import com.ibm.etools.iseries.services.qsys.api.IQSYSMember;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 import com.ibm.lpex.core.LpexView;
 
@@ -96,6 +99,32 @@ public class RpgleInputFactory {
             return new RpgleRemoteMemberInput(system, library, file, member);
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, library + "/" + file + "(" + member + ")"), e);
+        }
+    }
+
+    /**
+     * Creates an {@link IRpgleInput} from a remote IBM i source member using
+     * {@link QSYSEditableRemoteSourceFileMember} for bulk download/upload.
+     *
+     * @param connection - the IBM i connection
+     * @param library - the remote library
+     * @param file - the remote source file
+     * @param member - the remote source member
+     * @param monitor - the progress monitor
+     * @return an IRpgleInput for the remote member
+     * @throws RpgleFormatterException if the member cannot be resolved
+     */
+    public static IRpgleInput createFromEditableRemoteMember(IBMiConnection connection, String library, String file,
+        String member, IProgressMonitor monitor) throws RpgleFormatterException {
+        try {
+            IQSYSMember qsysMember = connection.getMember(library, file, member, null);
+            QSYSEditableRemoteSourceFileMember editableMember =
+                new QSYSEditableRemoteSourceFileMember(qsysMember);
+            return new RpgleEditableMemberInput(editableMember, monitor);
+        } catch (Exception e) {
+            throw new RpgleFormatterException(
+                Messages.bind(Messages.Error_Failed_reading_file_A,
+                    library + "/" + file + "(" + member + ")"), e);
         }
     }
 }
