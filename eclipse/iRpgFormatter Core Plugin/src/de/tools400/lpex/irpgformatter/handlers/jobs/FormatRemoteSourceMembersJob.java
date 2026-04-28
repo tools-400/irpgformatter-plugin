@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,10 +16,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.rse.services.clientserver.messages.SystemMessageException;
 
+import com.ibm.as400.access.AS400;
+import com.ibm.as400.access.IFSFile;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -94,9 +99,12 @@ public class FormatRemoteSourceMembersJob extends Job {
             String connectionName = sourceMember.getConnectionName();
             IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
 
+            ensureWritable(connection, sourceMember);
+
             String library = sourceMember.getLibraryName();
             String file = sourceMember.getFileName();
             String member = sourceMember.getMemberName();
+
             IRpgleInput input = RpgleInputFactory.createFromJT400RemoteMember(connection, library, file, member);
 
             String validationError = RpgleFormatter.validateInput(input);
@@ -107,8 +115,25 @@ public class FormatRemoteSourceMembersJob extends Job {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             MemberError memberError = new MemberError(sourceMember, e.getLocalizedMessage());
             errors.add(memberError);
+        }
+    }
+
+    private void ensureWritable(IBMiConnection connection, SourceMember sourceMember)
+        throws SystemMessageException, IOException, FileLockedException {
+
+        String library = sourceMember.getLibraryName();
+        String file = sourceMember.getFileName();
+        String member = sourceMember.getMemberName();
+
+        AS400 system = connection.getAS400ToolboxObject();
+        String memberPath = "/QSYS.LIB/" + library + ".LIB/" + file + ".FILE/" + member + ".MBR";
+        IFSFile ifsFile = new IFSFile(system, memberPath);
+
+        if (!ifsFile.canWrite()) {
+            throw new FileLockedException(sourceMember.toString());
         }
     }
 

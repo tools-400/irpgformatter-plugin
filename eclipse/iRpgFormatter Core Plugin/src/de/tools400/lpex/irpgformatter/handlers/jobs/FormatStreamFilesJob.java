@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -87,6 +88,8 @@ public class FormatStreamFilesJob extends Job {
 
         try {
 
+            ensureWritable(file);
+
             IRpgleInput input = RpgleInputFactory.createFromStreamFile(file);
 
             String validationError = RpgleFormatter.validateInput(input);
@@ -99,6 +102,13 @@ public class FormatStreamFilesJob extends Job {
         } catch (Exception e) {
             FileError memberError = new FileError(file, e.getLocalizedMessage());
             errors.add(memberError);
+        }
+    }
+
+    private void ensureWritable(IFile file) throws FileLockedException {
+
+        if (file.isReadOnly()) {
+            throw new FileLockedException(file.getFullPath().toOSString());
         }
     }
 

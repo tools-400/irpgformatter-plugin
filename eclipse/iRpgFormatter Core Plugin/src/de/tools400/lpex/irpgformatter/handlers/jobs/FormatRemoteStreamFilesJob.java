@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,9 +19,11 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 import com.ibm.as400.access.AS400;
+import com.ibm.as400.access.IFSFile;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -94,6 +97,8 @@ public class FormatRemoteStreamFilesJob extends Job {
             AS400 system = connection.getAS400ToolboxObject();
             String path = file.getAbsolutePath();
 
+            ensureWritable(system, path);
+
             IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
 
             String validationError = RpgleFormatter.validateInput(input);
@@ -106,6 +111,14 @@ public class FormatRemoteStreamFilesJob extends Job {
         } catch (Exception e) {
             FileError memberError = new FileError(file, e.getLocalizedMessage());
             errors.add(memberError);
+        }
+    }
+
+    private void ensureWritable(AS400 system, String path) throws IOException, FileLockedException {
+
+        IFSFile ifsFile = new IFSFile(system, path);
+        if (!ifsFile.canWrite()) {
+            throw new FileLockedException(path);
         }
     }
 

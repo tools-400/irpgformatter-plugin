@@ -104,7 +104,7 @@ public class RpgleRemoteMemberOutput implements IRpgleOutput {
 
     private void setRecordFields(Record record, int seqNbr, int currentDate, String line) {
         record.setField("SRCSEQ", new BigDecimal(seqNbr));
-        record.setField("SRCDAT", currentDate);
+        record.setField("SRCDAT", new BigDecimal(currentDate));
         record.setField("SRCDTA", line);
     }
 }

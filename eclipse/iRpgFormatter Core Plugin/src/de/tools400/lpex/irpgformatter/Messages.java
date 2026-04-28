@@ -151,6 +151,7 @@ public class Messages extends NLS {
     public static String Error_A_formatted_B_errors;
     public static String Error_Not_all_files_formatted_A;
     public static String Error_A_members_formatted_B_errors;
+    public static String Error_File_is_locked_A;
     public static String Error_Not_all_members_formatted_A;
 
     static {
