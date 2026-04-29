@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
-import de.tools400.lpex.irpgformatter.rules.MinimumNameLengthRule;
+import de.tools400.lpex.irpgformatter.rules.statements.MinimumNameLengthRule;
 
 public class MinimumNameLengthRuleTest extends AbstractTestCase {
 

@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
-import de.tools400.lpex.irpgformatter.rules.FormatParameterRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatParameterRule;
 
 public class FormatParameterRuleTest extends AbstractTestCase {
 

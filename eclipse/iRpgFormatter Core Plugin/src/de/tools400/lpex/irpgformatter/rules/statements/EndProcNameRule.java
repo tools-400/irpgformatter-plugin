@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.rules.statements;
 
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.rules.IStatementRule;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.NameToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;

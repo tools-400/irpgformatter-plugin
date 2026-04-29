@@ -8,16 +8,17 @@
 
 package de.tools400.lpex.irpgformatter.rules.statements;
 
-import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 
-/**
- * Token-array based formatting rule for a single RPGLE statement.
- * <p>
- * Implementations receive the tokens of one statement and return a
- * (possibly modified) token array.
- * </p>
- */
-public interface IStatementRule {
+public class MaximumNameLengthRule {
 
-    IToken[] apply(IToken[] tokens);
+    private final FormatterConfig config;
+
+    public MaximumNameLengthRule(FormatterConfig config) {
+        this.config = config;
+    }
+
+    public int apply(int maxLength) {
+        return Math.min(maxLength, config.getMaxNameLength());
+    }
 }

@@ -8,22 +8,18 @@
 
 package de.tools400.lpex.irpgformatter.rules;
 
-import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
+import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 
-public class MinimumNameLengthRule {
+/**
+ * Token-array based formatting rule for a single RPGLE statement.
+ * <p>
+ * Implementations receive the tokens of one statement and return a
+ * (possibly modified) token array. Used for transformations that operate
+ * on the token sequence as a whole (e.g. inserting, removing, or rewriting
+ * positional tokens within a statement).
+ * </p>
+ */
+public interface IStatementRule {
 
-    private final FormatterConfig config;
-
-    public MinimumNameLengthRule(FormatterConfig config) {
-        this.config = config;
-    }
-
-    public boolean isSatisfiedBy(int length) {
-
-        if (length >= config.getMinLiteralLength()) {
-            return true;
-        }
-
-        return false;
-    }
+    IToken[] apply(IToken[] tokens);
 }

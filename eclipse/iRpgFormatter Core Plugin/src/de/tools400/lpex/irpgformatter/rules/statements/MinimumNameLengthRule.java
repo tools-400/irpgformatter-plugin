@@ -6,19 +6,24 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.lpex.irpgformatter.rules;
+package de.tools400.lpex.irpgformatter.rules.statements;
 
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 
-public class MaximumNameLengthRule {
+public class MinimumNameLengthRule {
 
     private final FormatterConfig config;
 
-    public MaximumNameLengthRule(FormatterConfig config) {
+    public MinimumNameLengthRule(FormatterConfig config) {
         this.config = config;
     }
 
-    public int apply(int maxLength) {
-        return Math.min(maxLength, config.getMaxNameLength());
+    public boolean isSatisfiedBy(int length) {
+
+        if (length >= config.getMinLiteralLength()) {
+            return true;
+        }
+
+        return false;
     }
 }

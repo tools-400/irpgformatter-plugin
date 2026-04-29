@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
-import de.tools400.lpex.irpgformatter.rules.MaximumNameLengthRule;
+import de.tools400.lpex.irpgformatter.rules.statements.MaximumNameLengthRule;
 
 public class MaximumNameLengthRuleTest extends AbstractTestCase {
 

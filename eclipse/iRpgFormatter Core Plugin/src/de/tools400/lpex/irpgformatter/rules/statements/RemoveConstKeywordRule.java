@@ -6,9 +6,11 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.lpex.irpgformatter.rules;
+package de.tools400.lpex.irpgformatter.rules.statements;
 
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
+import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
 
 public class RemoveConstKeywordRule implements IFormattingRule, RpgleSourceConstants {
 
