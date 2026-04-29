@@ -49,18 +49,21 @@ Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPG
 
 ### General Settings
 
-| Setting                        | Default          | Description                                                         |
-| ------------------------------ | ---------------- | ------------------------------------------------------------------- |
-| **Use const() keyword**        | Off              | Wrap constant values in `const()` for DCL-C statements              |
-| **Delimiter before parameter** | Off              | Place colon delimiter before parameter instead of after             |
-| **Parameter spacing**          | Before parameter | Spacing around colon between keyword parameters                     |
-| **Align sub-fields**           | On               | Align keywords within blocks at a common column                     |
-| **Break between case change**  | Off              | Break long names at camelCase boundaries                            |
-| **Break before keyword**       | Off              | Break line before keyword when parameters don't fit                 |
-| **Sort const value to end**    | Off              | Move `const()`/`value()` keyword to the end of the statement        |
-| **Maximum name length**        | 60               | Max characters for a name or literal before it is split with `...`  |
-| **Minimum name length**        | 20               | Min characters that must remain on a line when splitting long names |
-| **Execute iRPG formatter**     | On               | Run the iRPGFormatter to apply iRPG formatting rules                |
+| Setting                              | Default          | Description                                                                                |
+| ------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------ |
+| **Use const() keyword**              | Off              | Wrap constant values in `const()` for DCL-C statements                                     |
+| **Put delimiter before parameter**   | Off              | Place colon delimiter before parameter instead of after                                    |
+| **Parameter spacing**                | Before parameter | Spacing around colon between keyword parameters                                            |
+| **Align sub-fields/parameters**      | On               | Align keywords within blocks at a common column                                            |
+| **Break name on case change**        | Off              | Break long names at camelCase boundaries                                                   |
+| **Break before keyword**             | Off              | Break line before keyword when parameters don't fit                                        |
+| **Sort const/value to end**          | Off              | Move `const()`/`value()` keyword to the end of the statement                               |
+| **Replace dcl-pi name with \*N**     | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name   |
+| **Remove end-proc name**             | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC |
+| **Unindent compiler directives**     | On               | Force compiler directives to column 1; when off, keep their indentation                    |
+| **Maximum name length**              | 60               | Max characters for a name or literal before it is split with `...`                         |
+| **Minimum name length**              | 20               | Min characters that must remain on a line when splitting long names                        |
+| **Execute iRPG formatter**           | On               | Run the iRPGFormatter to apply iRPG formatting rules                                       |
 
 ### Save Actions
 
@@ -212,9 +215,46 @@ The spacing around colons between keyword parameters is configurable:
 - When **Use const() keyword** is enabled, the value is wrapped in `const()`: `dcl-c MY_CONST const(42);`
 - When **Sort const value to end** is enabled, the `const()` keyword is moved after all other keywords.
 
+### Procedure Interface (`dcl-pi`) Naming
+
+When a DCL-PI sits inside a DCL-PROC, RPGLE allows its name to be either repeated from the procedure or replaced by the placeholder `*N`. The formatter rewrites the DCL-PI name based on **Replace dcl-pi name with \*N**:
+
+| Setting | DCL-PI inside DCL-PROC contains... | Result            |
+| ------- | ---------------------------------- | ----------------- |
+| On      | a name (e.g. `myProc`)             | rewritten to `*N` |
+| On      | `*N`                               | left as `*N`      |
+| Off     | `*N`                               | restored to the parent procedure name |
+| Off     | a name                             | left unchanged    |
+
+A standalone DCL-PI without a DCL-PROC parent is never touched.
+
+**Example (setting on, default):**
+
+```rpgle
+dcl-proc myProc;
+  dcl-pi *n;
+    parm1 char(10);
+  end-pi;
+end-proc;
+```
+
+### End-Procedure Name
+
+The optional name on `end-proc` is governed by **Remove end-proc name**:
+
+| Setting | END-PROC contains...           | Result                                                       |
+| ------- | ------------------------------ | ------------------------------------------------------------ |
+| On      | a name                         | name removed (`end-proc;`)                                   |
+| On      | no name                        | left as `end-proc;`                                          |
+| Off     | no name                        | the matching procedure name is inserted                      |
+| Off     | a divergent name (e.g. typo)   | overwritten with the procedure name from the matching DCL-PROC |
+| Off     | the matching name              | left unchanged                                               |
+
 ### Compiler Directives
 
-Compiler directives (`/copy`, `/include`, `/if`, `/define`, `/eof`, etc.) are formatted with keyword casing applied to the directive keyword. The directive parameters are preserved as-is. Compiler directives are always placed at column 1 (no indentation).
+Compiler directives (`/copy`, `/include`, `/if`, `/define`, `/eof`, etc.) are formatted with keyword casing applied to the directive keyword. The directive parameters are preserved as-is.
+
+By default (**Unindent compiler directives** = on) directives are forced to column 1 regardless of the surrounding block indent. When the option is disabled, directives keep the indentation level of their enclosing block.
 
 ### Formatter Directives
 
