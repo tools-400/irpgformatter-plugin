@@ -24,48 +24,6 @@ import de.tools400.lpex.irpgformatter.rules.NullFormattingRule;
  */
 public class FormattingRulesTest extends AbstractTestCase {
 
-    // --- removeConstWrapper tests ---
-
-    @Test
-    public void removeConstWrapper_removeConst() {
-        assertEquals("1", FormattingRules.removeConstWrapper("const(1)"));
-    }
-
-    @Test
-    public void removeConstWrapper_removeConstWithSpaces() {
-        assertEquals("100", FormattingRules.removeConstWrapper("const( 100 )"));
-    }
-
-    @Test
-    public void removeConstWrapper_removeConstUppercase() {
-        assertEquals("'hello'", FormattingRules.removeConstWrapper("CONST('hello')"));
-    }
-
-    @Test
-    public void removeConstWrapper_removeConstMixedCase() {
-        assertEquals("42", FormattingRules.removeConstWrapper("Const(42)"));
-    }
-
-    @Test
-    public void removeConstWrapper_noConstWrapper() {
-        assertEquals("123", FormattingRules.removeConstWrapper("123"));
-    }
-
-    @Test
-    public void removeConstWrapper_stringLiteral() {
-        assertEquals("'test'", FormattingRules.removeConstWrapper("'test'"));
-    }
-
-    @Test
-    public void removeConstWrapper_expressionInConst() {
-        assertEquals("1 + 2", FormattingRules.removeConstWrapper("const(1 + 2)"));
-    }
-
-    @Test
-    public void removeConstWrapper_nestedParens() {
-        assertEquals("func(x)", FormattingRules.removeConstWrapper("const(func(x))"));
-    }
-
     // --- createIndent tests ---
 
     @Test

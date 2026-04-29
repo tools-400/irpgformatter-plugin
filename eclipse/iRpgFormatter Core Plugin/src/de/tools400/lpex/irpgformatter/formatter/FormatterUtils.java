@@ -24,7 +24,6 @@ import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatParameterRule;
 import de.tools400.lpex.irpgformatter.rules.statements.MaximumNameLengthRule;
 import de.tools400.lpex.irpgformatter.rules.statements.MinimumNameLengthRule;
-import de.tools400.lpex.irpgformatter.rules.statements.RemoveConstKeywordRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
@@ -287,8 +286,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         }
 
         if (token.haveChildren()) {
-            return formatWithParameters(line, token, maxLineLength, new FormatKeywordRule(config.getKeywords(), config.getKeywordCasingStyle()),
-                new RemoveConstKeywordRule(config.isUseConstKeyword()));
+            return formatWithParameters(line, token, maxLineLength, new FormatKeywordRule(config.getKeywords(), config.getKeywordCasingStyle()));
         } else {
             return formatOther(line, token, maxLineLength, new FormatKeywordRule(config.getKeywords(), config.getKeywordCasingStyle()));
         }
@@ -322,11 +320,6 @@ public class FormatterUtils implements RpgleSourceConstants {
         String parameters = buildParameters(children);
 
         String endKeyword = CLOSE_BRACKET;
-        if (keyword.length() == 0) {
-            // e.g. if the const() keyword has been removed
-            startKeyword = "";
-            endKeyword = "";
-        }
 
         // Try the complete line.
         String completeFunction = startKeyword + parameters + endKeyword;
@@ -516,7 +509,7 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         // Space left for prefix and continuation character?
         if (maxLineLength - prefix.length() - line.length() - contChar.length() <= 0) {
-            parts.add(line);
+            parts.add(StringUtils.trimR(line));
             line = subIndent;
         }
 
@@ -542,7 +535,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                     // breakpoint is too small. Recursion is safe because the
                     // recursive call uses subIndent, making condition 1 false.
                     if (!currentLine.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint)) {
-                        parts.add(currentLine);
+                        parts.add(StringUtils.trimR(currentLine));
                         currentLine = subIndent;
                         String[] nameParts = breakNameOrLiteral(currentLine, token, contChar, maxLineLength, prefix, suffix, strategy);
                         for (String namePart : nameParts) {

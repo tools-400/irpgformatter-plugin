@@ -74,18 +74,12 @@ public class Tokenizer implements RpgleSourceConstants {
         IToken token = null;
         int offset = 0;
 
-        boolean isDcl_C = false;
-        boolean expectConstKeywordToken = false;
-
         int lengthBefore = remaining.length();
         while (remaining.length() > 0) {
             if (tokenType == TokenType.CTL) {
                 token = parseControl(remaining, offset);
             } else if (tokenType == TokenType.DCL) {
                 token = parseDeclaration(remaining, offset);
-                if ("DCL-C".equals(token.getValue().toUpperCase())) {
-                    isDcl_C = true;
-                }
             } else if (tokenType == TokenType.NAME) {
                 token = parseName(remaining, offset);
             } else if (tokenType == TokenType.SPECIAL_WORD) {
@@ -98,9 +92,6 @@ public class Tokenizer implements RpgleSourceConstants {
                 token = parseFunction(remaining, offset);
             } else if (tokenType == TokenType.KEYWORD) {
                 token = parseKeyword(remaining, offset);
-                if (isDcl_C) {
-                    expectConstKeywordToken = false;
-                }
             } else if (tokenType == TokenType.EOL) {
                 token = parseEndOfLine(remaining, offset);
             } else if (tokenType == TokenType.COMMENT) {
@@ -112,28 +103,10 @@ public class Tokenizer implements RpgleSourceConstants {
             }
             if (token != null) {
 
-                // TODO: ugly hack for adding 'const' keyword
-                if (expectConstKeywordToken) {
-                    String rawValue = "const(" + token.getRawValue() + ")";
-                    int tokenOffset = token.getOffset();
-                    int rawLength = token.getRawLength();
-                    IToken constToken = new KeywordToken("const", rawValue, tokenOffset);
-                    constToken.addChild(token);
-                    expectConstKeywordToken = false;
-                    token = constToken;
-
-                    offset = offset + token.getRawLength();
-                    remaining = remaining.substring(rawLength).trim();
-                } else {
-                    offset = offset + token.getRawLength();
-                    remaining = remaining.substring(token.getRawLength()).trim();
-                }
+                offset = offset + token.getRawLength();
+                remaining = remaining.substring(token.getRawLength()).trim();
 
                 tokens.add(token);
-
-                if (isDcl_C && TokenType.NAME == token.getType()) {
-                    expectConstKeywordToken = true;
-                }
 
                 if (lengthBefore == remaining.length()) {
                     throw new RpgleFormatterException("Endless loop in tokenizer detected.");

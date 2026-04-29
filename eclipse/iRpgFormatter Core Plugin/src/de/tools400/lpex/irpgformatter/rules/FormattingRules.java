@@ -8,9 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.rules;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatCompilerDirectiveRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatDataTypeRule;
@@ -117,20 +114,6 @@ public class FormattingRules implements RpgleSourceConstants {
     // ---------------------------------------------------------------
     // Static methods (config-independent)
     // ---------------------------------------------------------------
-
-    /**
-     * Removes the const() wrapper from dcl-c values. Converts "const(1)" to "1"
-     */
-    public static String removeConstWrapper(String value) {
-
-        Pattern pattern = Pattern.compile("const\\s*\\((.+)\\)", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(value.trim());
-        if (matcher.matches()) {
-            return matcher.group(1).trim();
-        }
-
-        return value;
-    }
 
     /**
      * Applies formatting rules to a given value. Literals inside the value are

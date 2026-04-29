@@ -14,14 +14,14 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-import de.tools400.lpex.irpgformatter.rules.statements.EndProcNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.tokenizer.DeclToken;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.NameToken;
 import de.tools400.lpex.irpgformatter.tokenizer.OtherToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 
-public class EndProcNameRuleTest {
+public class FormatEndProcNameRuleTest {
 
     private static final String PROC_NAME = "myProc";
 
@@ -31,7 +31,7 @@ public class EndProcNameRuleTest {
     public void removeTrue_nameToken_isRemoved() {
         IToken[] tokens = endProcTokens(new NameToken("myProc", "myProc", 9));
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(1, result.length);
         assertEquals(TokenType.DCL, result[0].getType());
@@ -41,7 +41,7 @@ public class EndProcNameRuleTest {
     public void removeTrue_noNameToken_isLeftUntouched() {
         IToken[] tokens = new IToken[] { new DeclToken("end-proc", "end-proc", 0) };
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(1, result.length);
         assertSame(tokens[0], result[0]);
@@ -52,7 +52,7 @@ public class EndProcNameRuleTest {
         OtherToken other = new OtherToken("xyz", "xyz", 9);
         IToken[] tokens = endProcTokens(other);
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(2, result.length);
         assertSame(other, result[1]);
@@ -63,7 +63,7 @@ public class EndProcNameRuleTest {
         OtherToken trailing = new OtherToken(";", ";", 16);
         IToken[] tokens = new IToken[] { new DeclToken("end-proc", "end-proc ", 0), new NameToken("myProc", "myProc", 9), trailing };
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(2, result.length);
         assertEquals(TokenType.DCL, result[0].getType());
@@ -77,7 +77,7 @@ public class EndProcNameRuleTest {
         DeclToken endProc = new DeclToken("end-proc", "end-proc ", 0);
         IToken[] tokens = new IToken[] { endProc };
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(2, result.length);
         assertEquals(TokenType.NAME, result[1].getType());
@@ -89,7 +89,7 @@ public class EndProcNameRuleTest {
         DeclToken endProc = new DeclToken("end-proc", "end-proc ", 0);
         IToken[] tokens = new IToken[] { endProc };
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(endProc.getOffset() + endProc.getRawLength(), result[1].getOffset());
     }
@@ -98,7 +98,7 @@ public class EndProcNameRuleTest {
     public void removeFalse_divergentName_isOverwrittenWithProcName() {
         IToken[] tokens = endProcTokens(new NameToken("otherName", "otherName", 9));
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(2, result.length);
         assertEquals(TokenType.NAME, result[1].getType());
@@ -109,7 +109,7 @@ public class EndProcNameRuleTest {
     public void removeFalse_matchingName_keepsValueAndType() {
         IToken[] tokens = endProcTokens(new NameToken("myProc", "myProc", 9));
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(2, result.length);
         assertEquals(TokenType.NAME, result[1].getType());
@@ -120,7 +120,7 @@ public class EndProcNameRuleTest {
     public void removeFalse_overwrite_preservesOffsetOfReplacedToken() {
         IToken[] tokens = endProcTokens(new NameToken("otherName", "otherName", 23));
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(23, result[1].getOffset());
     }
@@ -131,7 +131,7 @@ public class EndProcNameRuleTest {
         OtherToken trailing = new OtherToken(";", ";", 9);
         IToken[] tokens = new IToken[] { endProc, trailing };
 
-        IToken[] result = new EndProcNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(3, result.length);
         assertEquals(TokenType.NAME, result[1].getType());
@@ -144,7 +144,7 @@ public class EndProcNameRuleTest {
     public void nullProcName_removeTrue_stillRemovesName() {
         IToken[] tokens = endProcTokens(new NameToken("orphan", "orphan", 9));
 
-        IToken[] result = new EndProcNameRule(null, true).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(null, true).apply(tokens);
 
         assertEquals(1, result.length);
         assertEquals(TokenType.DCL, result[0].getType());
@@ -154,7 +154,7 @@ public class EndProcNameRuleTest {
     public void nullProcName_removeFalse_isNoop_whenNameMissing() {
         IToken[] tokens = new IToken[] { new DeclToken("end-proc", "end-proc", 0) };
 
-        IToken[] result = new EndProcNameRule(null, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(null, false).apply(tokens);
 
         assertEquals(1, result.length);
         assertSame(tokens[0], result[0]);
@@ -165,7 +165,7 @@ public class EndProcNameRuleTest {
         NameToken existing = new NameToken("orphan", "orphan", 9);
         IToken[] tokens = endProcTokens(existing);
 
-        IToken[] result = new EndProcNameRule(null, false).apply(tokens);
+        IToken[] result = new FormatEndProcNameRule(null, false).apply(tokens);
 
         assertEquals(2, result.length);
         assertSame(existing, result[1]);
@@ -175,16 +175,16 @@ public class EndProcNameRuleTest {
 
     @Test
     public void nullTokens_returnsNull() {
-        assertNull(new EndProcNameRule(PROC_NAME, true).apply(null));
-        assertNull(new EndProcNameRule(PROC_NAME, false).apply(null));
+        assertNull(new FormatEndProcNameRule(PROC_NAME, true).apply(null));
+        assertNull(new FormatEndProcNameRule(PROC_NAME, false).apply(null));
     }
 
     @Test
     public void emptyTokens_isLeftUntouched() {
         IToken[] empty = new IToken[0];
 
-        assertEquals(0, new EndProcNameRule(PROC_NAME, true).apply(empty).length);
-        assertEquals(0, new EndProcNameRule(PROC_NAME, false).apply(empty).length);
+        assertEquals(0, new FormatEndProcNameRule(PROC_NAME, true).apply(empty).length);
+        assertEquals(0, new FormatEndProcNameRule(PROC_NAME, false).apply(empty).length);
     }
 
     // --- helpers ---

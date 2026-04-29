@@ -27,20 +27,20 @@ import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
  * If {@code procedureName} is {@code null}, the restore direction becomes a
  * no-op.
  */
-public class EndProcNameRule implements IStatementRule {
+public class FormatEndProcNameRule implements IStatementRule {
 
     private final String procedureName;
     private final Boolean removeEndProcName;
 
-    public EndProcNameRule(String procedureName) {
+    public FormatEndProcNameRule(String procedureName) {
         this(procedureName, null);
     }
 
-    public EndProcNameRule(String procedureName, boolean removeEndProcName) {
+    public FormatEndProcNameRule(String procedureName, boolean removeEndProcName) {
         this(procedureName, Boolean.valueOf(removeEndProcName));
     }
 
-    private EndProcNameRule(String procedureName, Boolean removeEndProcName) {
+    private FormatEndProcNameRule(String procedureName, Boolean removeEndProcName) {
         this.procedureName = procedureName;
         this.removeEndProcName = removeEndProcName;
     }

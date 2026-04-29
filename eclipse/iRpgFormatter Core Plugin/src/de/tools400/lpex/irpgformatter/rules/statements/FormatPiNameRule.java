@@ -28,22 +28,22 @@ import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
  * If {@code procedureName} is {@code null} (no parent DCL-PROC), the rule is
  * a no-op for the restore direction.
  */
-public class ReplacePiNameRule implements IStatementRule {
+public class FormatPiNameRule implements IStatementRule {
 
     private static final String STAR_N = "*N";
 
     private final String procedureName;
     private final Boolean replacePiName;
 
-    public ReplacePiNameRule(String procedureName) {
+    public FormatPiNameRule(String procedureName) {
         this(procedureName, null);
     }
 
-    public ReplacePiNameRule(String procedureName, boolean replacePiName) {
+    public FormatPiNameRule(String procedureName, boolean replacePiName) {
         this(procedureName, Boolean.valueOf(replacePiName));
     }
 
-    private ReplacePiNameRule(String procedureName, Boolean replacePiName) {
+    private FormatPiNameRule(String procedureName, Boolean replacePiName) {
         this.procedureName = procedureName;
         this.replacePiName = replacePiName;
     }

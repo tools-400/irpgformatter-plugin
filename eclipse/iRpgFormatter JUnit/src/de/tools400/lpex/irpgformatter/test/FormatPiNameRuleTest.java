@@ -14,7 +14,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-import de.tools400.lpex.irpgformatter.rules.statements.ReplacePiNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
 import de.tools400.lpex.irpgformatter.tokenizer.DeclToken;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.NameToken;
@@ -22,7 +22,7 @@ import de.tools400.lpex.irpgformatter.tokenizer.OtherToken;
 import de.tools400.lpex.irpgformatter.tokenizer.SpecialWordToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 
-public class ReplacePiNameRuleTest {
+public class FormatPiNameRuleTest {
 
     private static final String PROC_NAME = "myProc";
 
@@ -32,7 +32,7 @@ public class ReplacePiNameRuleTest {
     public void replaceTrue_nameToken_isReplacedWithStarN() {
         IToken[] tokens = piTokens(new NameToken("myProc", "myProc ", 8));
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(TokenType.SPECIAL_WORD, result[1].getType());
         assertEquals("*N", result[1].getValue());
@@ -43,7 +43,7 @@ public class ReplacePiNameRuleTest {
         SpecialWordToken starN = new SpecialWordToken("*N", "*N ", 8);
         IToken[] tokens = piTokens(starN);
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertSame(starN, result[1]);
     }
@@ -54,7 +54,7 @@ public class ReplacePiNameRuleTest {
         OtherToken keywordLike = new OtherToken("extproc", "extproc", 8);
         IToken[] tokens = piTokens(keywordLike);
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertSame(keywordLike, result[1]);
     }
@@ -65,7 +65,7 @@ public class ReplacePiNameRuleTest {
     public void replaceFalse_starNToken_isReplacedWithProcName() {
         IToken[] tokens = piTokens(new SpecialWordToken("*N", "*N ", 8));
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(TokenType.NAME, result[1].getType());
         assertEquals(PROC_NAME, result[1].getValue());
@@ -75,7 +75,7 @@ public class ReplacePiNameRuleTest {
     public void replaceFalse_starNTokenLowerCase_isReplacedWithProcName() {
         IToken[] tokens = piTokens(new SpecialWordToken("*n", "*n ", 8));
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(TokenType.NAME, result[1].getType());
         assertEquals(PROC_NAME, result[1].getValue());
@@ -86,7 +86,7 @@ public class ReplacePiNameRuleTest {
         NameToken name = new NameToken("myProc", "myProc ", 8);
         IToken[] tokens = piTokens(name);
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, false).apply(tokens);
 
         assertSame(name, result[1]);
     }
@@ -96,7 +96,7 @@ public class ReplacePiNameRuleTest {
         SpecialWordToken other = new SpecialWordToken("*OMIT", "*OMIT ", 8);
         IToken[] tokens = piTokens(other);
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, false).apply(tokens);
 
         assertSame(other, result[1]);
     }
@@ -108,7 +108,7 @@ public class ReplacePiNameRuleTest {
         NameToken name = new NameToken("myProc", "myProc ", 8);
         IToken[] tokens = piTokens(name);
 
-        IToken[] result = new ReplacePiNameRule(null, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(null, true).apply(tokens);
 
         assertSame(name, result[1]);
     }
@@ -118,7 +118,7 @@ public class ReplacePiNameRuleTest {
         SpecialWordToken starN = new SpecialWordToken("*N", "*N ", 8);
         IToken[] tokens = piTokens(starN);
 
-        IToken[] result = new ReplacePiNameRule(null, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(null, false).apply(tokens);
 
         assertSame(starN, result[1]);
     }
@@ -127,14 +127,14 @@ public class ReplacePiNameRuleTest {
 
     @Test
     public void nullTokens_returnsNull() {
-        assertNull(new ReplacePiNameRule(PROC_NAME, true).apply(null));
+        assertNull(new FormatPiNameRule(PROC_NAME, true).apply(null));
     }
 
     @Test
     public void singleToken_isLeftUntouched() {
         IToken[] tokens = new IToken[] { new DeclToken("dcl-pi", "dcl-pi ", 0) };
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(1, result.length);
         assertSame(tokens[0], result[0]);
@@ -144,7 +144,7 @@ public class ReplacePiNameRuleTest {
     public void emptyTokens_isLeftUntouched() {
         IToken[] tokens = new IToken[0];
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(0, result.length);
     }
@@ -155,7 +155,7 @@ public class ReplacePiNameRuleTest {
     public void replaceTrue_preservesOffsetOfReplacedToken() {
         IToken[] tokens = piTokens(new NameToken("myProc", "myProc ", 17));
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, true).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, true).apply(tokens);
 
         assertEquals(17, result[1].getOffset());
     }
@@ -164,7 +164,7 @@ public class ReplacePiNameRuleTest {
     public void replaceFalse_preservesOffsetOfReplacedToken() {
         IToken[] tokens = piTokens(new SpecialWordToken("*N", "*N ", 17));
 
-        IToken[] result = new ReplacePiNameRule(PROC_NAME, false).apply(tokens);
+        IToken[] result = new FormatPiNameRule(PROC_NAME, false).apply(tokens);
 
         assertEquals(17, result[1].getOffset());
     }

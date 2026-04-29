@@ -24,8 +24,9 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
-import de.tools400.lpex.irpgformatter.rules.statements.EndProcNameRule;
-import de.tools400.lpex.irpgformatter.rules.statements.ReplacePiNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
@@ -321,6 +322,7 @@ public class RpgleFormatter {
     private List<String> formatDclC(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_C);
+        tokens = new FormatConstKeywordRule(config).apply(tokens);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
@@ -338,7 +340,7 @@ public class RpgleFormatter {
             if (parent != null && parent.getType() == StatementType.DCL_PROC) {
                 procName = getProcName(parent);
             }
-            tokens = new ReplacePiNameRule(procName, config.isReplacePiName()).apply(tokens);
+            tokens = new FormatPiNameRule(procName, config.isReplacePiName()).apply(tokens);
         }
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
@@ -392,7 +394,7 @@ public class RpgleFormatter {
         if (type == StatementType.END_PROC) {
             CollectedStatement procStmt = statement.getMatchingDclProc();
             String procName = (procStmt != null) ? getProcName(procStmt) : null;
-            tokens = new EndProcNameRule(procName, config.isRemoveEndProcName()).apply(tokens);
+            tokens = new FormatEndProcNameRule(procName, config.isRemoveEndProcName()).apply(tokens);
         }
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
