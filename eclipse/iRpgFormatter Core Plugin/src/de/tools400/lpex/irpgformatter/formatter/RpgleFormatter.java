@@ -239,7 +239,7 @@ public class RpgleFormatter {
         case DCL_F:
         case DCL_S:
             // Format with indent
-            result.addAll(formatDclStatement(statement, indent));
+            result.addAll(formatDclStatement(statement, type, indent));
             break;
         case DCL_SUBF:
             // Format with indent
@@ -307,7 +307,7 @@ public class RpgleFormatter {
      */
     private List<String> formatCtlOpt(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.CTL_OPT);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
@@ -320,7 +320,7 @@ public class RpgleFormatter {
      */
     private List<String> formatDclC(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_C);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
@@ -331,7 +331,7 @@ public class RpgleFormatter {
      */
     private List<String> formatDclBlock(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
         if (type == StatementType.DCL_PI) {
             CollectedStatement parent = statement.getParent();
             String procName = null;
@@ -349,7 +349,7 @@ public class RpgleFormatter {
      * Extracts the procedure name (NAME token) from a DCL-PROC statement.
      */
     private String getProcName(CollectedStatement procStatement) throws RpgleFormatterException {
-        IToken[] procTokens = tokenizer.tokenize(procStatement.getStatement());
+        IToken[] procTokens = tokenizer.tokenize(procStatement.getStatement(), StatementType.DCL_PROC);
         if (procTokens.length >= 2 && procTokens[1].getType() == TokenType.NAME) {
             return procTokens[1].getValue();
         }
@@ -359,9 +359,9 @@ public class RpgleFormatter {
     /**
      * Formats dcl-f, dcl-s statements.
      */
-    private List<String> formatDclStatement(CollectedStatement statement, int indent) throws RpgleFormatterException {
+    private List<String> formatDclStatement(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
@@ -374,7 +374,7 @@ public class RpgleFormatter {
 
         int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, endColumn);
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_SUBF);
         tokens = formatterUtils.sortConstValueToEnd(tokens);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn, subFieldAlignCol);
 
@@ -388,7 +388,7 @@ public class RpgleFormatter {
      */
     private List<String> formatEndStatement(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
-        IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
         if (type == StatementType.END_PROC) {
             CollectedStatement procStmt = statement.getMatchingDclProc();
             String procName = (procStmt != null) ? getProcName(procStmt) : null;

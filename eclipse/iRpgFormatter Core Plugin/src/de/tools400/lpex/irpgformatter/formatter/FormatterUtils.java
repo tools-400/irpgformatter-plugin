@@ -11,6 +11,7 @@ package de.tools400.lpex.irpgformatter.formatter;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
 import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
@@ -711,7 +712,7 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         for (CollectedStatement child : statement.getChildren()) {
 
-            IToken[] tokens = tokenizer.tokenize(child.getStatement());
+            IToken[] tokens = tokenizer.tokenize(child.getStatement(), StatementType.DCL_SUBF);
             IToken nameToken = getNameToken(tokens);
 
             String[] nameParts = breakName("", nameToken, maxLineLength, "", "");

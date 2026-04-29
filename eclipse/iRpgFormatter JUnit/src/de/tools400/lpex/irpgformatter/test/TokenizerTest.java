@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
@@ -144,6 +145,67 @@ public class TokenizerTest extends AbstractTestCase {
 
         assertEquals(TokenType.EOL, tokens[2].getType());
         assertEquals(TokenType.COMMENT, tokens[3].getType());
+    }
+
+    /**
+     * Sub-field whose name happens to match a reserved keyword (CCSID).
+     * Without context the tokenizer would classify "CCSID" as KEYWORD.
+     */
+    @Test
+    public void test_dcl_subF_nameMatchesKeyword() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("CCSID int(10);", StatementType.DCL_SUBF);
+        assertTrue("Expected exactly 3 tokens", tokens.length == 3);
+        assertEquals(TokenType.NAME, tokens[0].getType());
+        assertEquals("CCSID", tokens[0].getValue());
+
+        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
+        assertEquals(TokenType.EOL, tokens[2].getType());
+    }
+
+    /**
+     * dcl-s with a name that happens to match a reserved keyword.
+     */
+    @Test
+    public void test_dcl_s_nameMatchesKeyword() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("dcl-s ccsid int(10);", StatementType.DCL_S);
+        assertTrue("Expected exactly 4 tokens", tokens.length == 4);
+        assertEquals(TokenType.DCL, tokens[0].getType());
+        assertEquals(TokenType.NAME, tokens[1].getType());
+        assertEquals("ccsid", tokens[1].getValue());
+
+        assertEquals(TokenType.DATA_TYPE, tokens[2].getType());
+        assertEquals(TokenType.EOL, tokens[3].getType());
+    }
+
+    /**
+     * dcl-ds with a name that happens to match a reserved keyword.
+     */
+    @Test
+    public void test_dcl_ds_nameMatchesKeyword() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("dcl-ds ccsid qualified;", StatementType.DCL_DS);
+        assertTrue("Expected exactly 4 tokens", tokens.length == 4);
+        assertEquals(TokenType.DCL, tokens[0].getType());
+        assertEquals(TokenType.NAME, tokens[1].getType());
+        assertEquals("ccsid", tokens[1].getValue());
+
+        assertEquals(TokenType.KEYWORD, tokens[2].getType());
+        assertEquals("qualified", tokens[2].getValue());
+        assertEquals(TokenType.EOL, tokens[3].getType());
+    }
+
+    /**
+     * Default no-arg overload still classifies first token by content (no
+     * forced-name) — keeps backward compatibility with callers that don't
+     * supply a context.
+     */
+    @Test
+    public void test_dcl_subF_noContext_keepsKeywordClassification() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("CCSID int(10);");
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
     }
 
     @Test
