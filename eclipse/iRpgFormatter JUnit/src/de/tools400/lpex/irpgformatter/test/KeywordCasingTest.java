@@ -14,10 +14,10 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
-import de.tools400.lpex.irpgformatter.rules.casing.KeywordCasing;
+import de.tools400.lpex.irpgformatter.rules.casing.KeywordCasingUtils;
 
 /**
- * Unit tests for {@link KeywordCasing}.
+ * Unit tests for {@link KeywordCasingUtils}.
  */
 public class KeywordCasingTest extends AbstractTestCase {
 
@@ -26,138 +26,138 @@ public class KeywordCasingTest extends AbstractTestCase {
     // Simple keywords
     @Test
     public void casingTransformation_Char_UPPERCASE() {
-        assertEquals("CHAR", KeywordCasing.apply("Char", KeywordCasingStyle.UPPERCASE));
+        assertEquals("CHAR", KeywordCasingUtils.apply("Char", KeywordCasingStyle.UPPERCASE));
     }
 
     @Test
     public void casingTransformation_Char_UPPER_CAMEL() {
-        assertEquals("Char", KeywordCasing.apply("Char", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("Char", KeywordCasingUtils.apply("Char", KeywordCasingStyle.UPPER_CAMEL));
     }
 
     @Test
     public void casingTransformation_Char_FIRST_UPPER() {
-        assertEquals("Char", KeywordCasing.apply("Char", KeywordCasingStyle.FIRST_UPPER));
+        assertEquals("Char", KeywordCasingUtils.apply("Char", KeywordCasingStyle.FIRST_UPPER));
     }
 
     @Test
     public void casingTransformation_Char_LOWER_CAMEL() {
-        assertEquals("char", KeywordCasing.apply("Char", KeywordCasingStyle.LOWER_CAMEL));
+        assertEquals("char", KeywordCasingUtils.apply("Char", KeywordCasingStyle.LOWER_CAMEL));
     }
 
     @Test
     public void casingTransformation_Char_LOWERCASE() {
-        assertEquals("char", KeywordCasing.apply("Char", KeywordCasingStyle.LOWERCASE));
+        assertEquals("char", KeywordCasingUtils.apply("Char", KeywordCasingStyle.LOWERCASE));
     }
 
     // Hyphenated keywords
     @Test
     public void casingTransformation_DclDs_UPPERCASE() {
-        assertEquals("DCL-DS", KeywordCasing.apply("Dcl-Ds", KeywordCasingStyle.UPPERCASE));
+        assertEquals("DCL-DS", KeywordCasingUtils.apply("Dcl-Ds", KeywordCasingStyle.UPPERCASE));
     }
 
     @Test
     public void casingTransformation_DclDs_UPPER_CAMEL() {
-        assertEquals("Dcl-Ds", KeywordCasing.apply("Dcl-Ds", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("Dcl-Ds", KeywordCasingUtils.apply("Dcl-Ds", KeywordCasingStyle.UPPER_CAMEL));
     }
 
     @Test
     public void casingTransformation_DclDs_FIRST_UPPER() {
-        assertEquals("Dcl-ds", KeywordCasing.apply("Dcl-Ds", KeywordCasingStyle.FIRST_UPPER));
+        assertEquals("Dcl-ds", KeywordCasingUtils.apply("Dcl-Ds", KeywordCasingStyle.FIRST_UPPER));
     }
 
     @Test
     public void casingTransformation_DclDs_LOWER_CAMEL() {
-        assertEquals("dcl-Ds", KeywordCasing.apply("Dcl-Ds", KeywordCasingStyle.LOWER_CAMEL));
+        assertEquals("dcl-Ds", KeywordCasingUtils.apply("Dcl-Ds", KeywordCasingStyle.LOWER_CAMEL));
     }
 
     @Test
     public void casingTransformation_DclDs_LOWERCASE() {
-        assertEquals("dcl-ds", KeywordCasing.apply("Dcl-Ds", KeywordCasingStyle.LOWERCASE));
+        assertEquals("dcl-ds", KeywordCasingUtils.apply("Dcl-Ds", KeywordCasingStyle.LOWERCASE));
     }
 
     // Star parameters
     @Test
     public void casingTransformation_NoPass_UPPERCASE() {
-        assertEquals("*NOPASS", KeywordCasing.apply("*NoPass", KeywordCasingStyle.UPPERCASE));
+        assertEquals("*NOPASS", KeywordCasingUtils.apply("*NoPass", KeywordCasingStyle.UPPERCASE));
     }
 
     @Test
     public void casingTransformation_NoPass_UPPER_CAMEL() {
-        assertEquals("*NoPass", KeywordCasing.apply("*NoPass", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("*NoPass", KeywordCasingUtils.apply("*NoPass", KeywordCasingStyle.UPPER_CAMEL));
     }
 
     @Test
     public void casingTransformation_NoPass_FIRST_UPPER() {
-        assertEquals("*Nopass", KeywordCasing.apply("*NoPass", KeywordCasingStyle.FIRST_UPPER));
+        assertEquals("*Nopass", KeywordCasingUtils.apply("*NoPass", KeywordCasingStyle.FIRST_UPPER));
     }
 
     @Test
     public void casingTransformation_NoPass_LOWER_CAMEL() {
-        assertEquals("*noPass", KeywordCasing.apply("*NoPass", KeywordCasingStyle.LOWER_CAMEL));
+        assertEquals("*noPass", KeywordCasingUtils.apply("*NoPass", KeywordCasingStyle.LOWER_CAMEL));
     }
 
     @Test
     public void casingTransformation_NoPass_LOWERCASE() {
-        assertEquals("*nopass", KeywordCasing.apply("*NoPass", KeywordCasingStyle.LOWERCASE));
+        assertEquals("*nopass", KeywordCasingUtils.apply("*NoPass", KeywordCasingStyle.LOWERCASE));
     }
 
     // --- Edge case tests ---
 
     @Test
     public void edgeCase_nullInput() {
-        assertNull(KeywordCasing.apply(null, KeywordCasingStyle.LOWERCASE));
+        assertNull(KeywordCasingUtils.apply(null, KeywordCasingStyle.LOWERCASE));
     }
 
     @Test
     public void edgeCase_emptyInput() {
-        assertEquals("", KeywordCasing.apply("", KeywordCasingStyle.LOWERCASE));
+        assertEquals("", KeywordCasingUtils.apply("", KeywordCasingStyle.LOWERCASE));
     }
 
     @Test
     public void edgeCase_singleAsterisk() {
-        assertEquals("*", KeywordCasing.apply("*", KeywordCasingStyle.UPPERCASE));
+        assertEquals("*", KeywordCasingUtils.apply("*", KeywordCasingStyle.UPPERCASE));
     }
 
     // Single character keywords
     @Test
     public void singleChar_A_UPPERCASE() {
-        assertEquals("A", KeywordCasing.apply("A", KeywordCasingStyle.UPPERCASE));
+        assertEquals("A", KeywordCasingUtils.apply("A", KeywordCasingStyle.UPPERCASE));
     }
 
     @Test
     public void singleChar_A_LOWERCASE() {
-        assertEquals("a", KeywordCasing.apply("A", KeywordCasingStyle.LOWERCASE));
+        assertEquals("a", KeywordCasingUtils.apply("A", KeywordCasingStyle.LOWERCASE));
     }
 
     @Test
     public void singleChar_a_UPPERCASE() {
-        assertEquals("A", KeywordCasing.apply("a", KeywordCasingStyle.UPPERCASE));
+        assertEquals("A", KeywordCasingUtils.apply("a", KeywordCasingStyle.UPPERCASE));
     }
 
     @Test
     public void singleChar_Z_FIRST_UPPER() {
-        assertEquals("Z", KeywordCasing.apply("Z", KeywordCasingStyle.FIRST_UPPER));
+        assertEquals("Z", KeywordCasingUtils.apply("Z", KeywordCasingStyle.FIRST_UPPER));
     }
 
     @Test
     public void singleChar_z_UPPER_CAMEL() {
-        assertEquals("z", KeywordCasing.apply("z", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("z", KeywordCasingUtils.apply("z", KeywordCasingStyle.UPPER_CAMEL));
     }
 
     @Test
     public void singleChar_Z_UPPER_CAMEL() {
-        assertEquals("Z", KeywordCasing.apply("Z", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("Z", KeywordCasingUtils.apply("Z", KeywordCasingStyle.UPPER_CAMEL));
     }
 
     @Test
     public void edgeCase_trailingHyphen() {
-        String result = KeywordCasing.apply("Dcl-", KeywordCasingStyle.UPPERCASE);
+        String result = KeywordCasingUtils.apply("Dcl-", KeywordCasingStyle.UPPERCASE);
         assertEquals("DCL-", result);
     }
 
     @Test
     public void edgeCase_leadingHyphen() {
-        String result = KeywordCasing.apply("-Ds", KeywordCasingStyle.UPPERCASE);
+        String result = KeywordCasingUtils.apply("-Ds", KeywordCasingStyle.UPPERCASE);
         assertEquals("-DS", result);
     }
 }

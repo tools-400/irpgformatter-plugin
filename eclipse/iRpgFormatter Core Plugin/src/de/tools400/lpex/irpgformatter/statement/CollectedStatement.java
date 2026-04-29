@@ -22,6 +22,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
 public class CollectedStatement implements Iterable<String>, RpgleSourceConstants {
 
     private CollectedStatement parent;
+    private CollectedStatement matchingDclProc;
 
     private List<String> collectedLines;
     private List<String> embeddedComments;
@@ -81,6 +82,15 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public CollectedStatement getParent() {
         return parent;
+    }
+
+    /**
+     * For an END-PROC statement, returns the matching DCL-PROC statement that
+     * this END-PROC closes. Returns {@code null} for any other statement type
+     * or when no matching DCL-PROC was found.
+     */
+    public CollectedStatement getMatchingDclProc() {
+        return matchingDclProc;
     }
 
     public boolean isComplete() {
@@ -274,6 +284,11 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         if (parent != null) {
             StatementType parentEndOfBLockType = parent.getType().getEndOfBlockType();
             if (statementType == parentEndOfBLockType) {
+                // Remember the matching DCL-PROC for END-PROC, before
+                // replacing the parent reference.
+                if (statementType == StatementType.END_PROC && parent.getType() == StatementType.DCL_PROC) {
+                    matchingDclProc = parent;
+                }
                 // Replace parent with super parent on END-* statements
                 parent = parent.getParent();
             }

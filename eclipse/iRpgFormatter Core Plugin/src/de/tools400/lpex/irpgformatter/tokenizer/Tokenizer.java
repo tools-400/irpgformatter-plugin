@@ -477,7 +477,8 @@ public class Tokenizer implements RpgleSourceConstants {
         String currentChar;
         for (int i = 0; i < line.length(); i++) {
             currentChar = line.substring(i, i + 1);
-            if (SPACE.equals(currentChar) || COLON.equals(currentChar) || CLOSE_BRACKET.equals(currentChar)) {
+            if (SPACE.equals(currentChar) || COLON.equals(currentChar) || CLOSE_BRACKET.equals(currentChar)
+                || SEMICOLON.equals(currentChar)) {
                 specialWord = line.substring(0, i);
                 break;
             }

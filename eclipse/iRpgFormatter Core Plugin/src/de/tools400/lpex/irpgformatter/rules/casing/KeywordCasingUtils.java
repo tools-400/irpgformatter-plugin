@@ -17,9 +17,9 @@ import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
  * transformed to the target casing style.
  * </p>
  */
-public final class KeywordCasing {
+public final class KeywordCasingUtils {
 
-    private KeywordCasing() {
+    private KeywordCasingUtils() {
         // Utility class
     }
 

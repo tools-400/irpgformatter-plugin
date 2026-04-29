@@ -815,6 +815,20 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_dclPi_restoresStarN_toProcName_whenPreferenceDisabled() throws RpgleFormatterException {
+        formatter.getConfig().setReplacePiName(false);
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-proc myProc;",
+            "  dcl-pi *n;",
+            "  end-pi;",
+            "end-proc;"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals("  dcl-pi myProc;", result[1]);
+    }
+
+    @Test
     public void format_subfieldIndentation() throws RpgleFormatterException {
         // @formatter:off
         String[] result = formatter.format(new TextLinesInput(
@@ -866,7 +880,8 @@ public class RpgleFormatterTest extends AbstractTestCase {
         // dcl-ds header: whitespace normalized
         assertEquals("dcl-ds msg_t qualified based(pDummy);", result[0]);
 
-        // Compiler directives should NOT be indented (unindentCompilerDirectives = true by default)
+        // Compiler directives should NOT be indented
+        // (unindentCompilerDirectives = true by default)
         assertEquals("/if defined(*V5R3M0)", result[1]);
         assertEquals("/else", result[3]);
         assertEquals("/endif", result[5]);
@@ -1294,37 +1309,37 @@ public class RpgleFormatterTest extends AbstractTestCase {
     @Test
     public void format_endProc_removesName_whenPreferenceEnabled() throws RpgleFormatterException {
         // Default: removeEndProcName = true
-        String[] result = formatter.format(new TextLinesInput(
-            "dcl-proc myProc;",
-            "  dcl-pi *n;",
-            "  end-pi;",
-            "end-proc myProc;"
-        ),0).toLines();
+        String[] result = formatter.format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "end-proc myProc;"), 0).toLines();
         assertEquals("end-proc;", result[3]);
     }
 
     @Test
     public void format_endProc_preservesName_whenPreferenceDisabled() throws RpgleFormatterException {
         formatter.getConfig().setRemoveEndProcName(false);
-        String[] result = formatter.format(new TextLinesInput(
-            "dcl-proc myProc;",
-            "  dcl-pi *n;",
-            "  end-pi;",
-            "end-proc myProc;"
-        ),0).toLines();
+        String[] result = formatter.format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "end-proc myProc;"), 0).toLines();
         assertTrue(result[3].contains("myProc"));
+    }
+
+    @Test
+    public void format_endProc_addsName_whenMissing_andPreferenceDisabled() throws RpgleFormatterException {
+        formatter.getConfig().setRemoveEndProcName(false);
+        String[] result = formatter.format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "end-proc;"), 0).toLines();
+        assertTrue("end-proc must carry the procedure name when restoration is enabled", result[3].contains("myProc"));
+    }
+
+    @Test
+    public void format_endProc_overwritesDivergentName_whenPreferenceDisabled() throws RpgleFormatterException {
+        formatter.getConfig().setRemoveEndProcName(false);
+        String[] result = formatter.format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "end-proc otherName;"), 0).toLines();
+        assertTrue("divergent name must be overwritten with the actual proc name", result[3].contains("myProc"));
+        assertTrue("divergent name must be gone", !result[3].contains("otherName"));
     }
 
     @Test
     public void format_compilerDirective_unindented_whenPreferenceEnabled() throws RpgleFormatterException {
         // Default: unindentCompilerDirectives = true
-        String[] result = formatter.format(new TextLinesInput(
-            "dcl-proc myProc;",
-            "  dcl-pi *n;",
-            "  end-pi;",
-            "  /copy qcpysrc,types",
-            "end-proc;"
-        ),0).toLines();
+        String[] result = formatter
+            .format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "  /copy qcpysrc,types", "end-proc;"), 0).toLines();
         assertEquals("/copy qcpysrc,types", result[3].trim());
         assertEquals(0, result[3].indexOf("/"));
     }
@@ -1332,13 +1347,8 @@ public class RpgleFormatterTest extends AbstractTestCase {
     @Test
     public void format_compilerDirective_indented_whenPreferenceDisabled() throws RpgleFormatterException {
         formatter.getConfig().setUnindentCompilerDirectives(false);
-        String[] result = formatter.format(new TextLinesInput(
-            "dcl-proc myProc;",
-            "  dcl-pi *n;",
-            "  end-pi;",
-            "  /copy qcpysrc,types",
-            "end-proc;"
-        ),0).toLines();
+        String[] result = formatter
+            .format(new TextLinesInput("dcl-proc myProc;", "  dcl-pi *n;", "  end-pi;", "  /copy qcpysrc,types", "end-proc;"), 0).toLines();
         assertTrue(result[3].startsWith("  "));
         assertTrue(result[3].trim().startsWith("/copy"));
     }

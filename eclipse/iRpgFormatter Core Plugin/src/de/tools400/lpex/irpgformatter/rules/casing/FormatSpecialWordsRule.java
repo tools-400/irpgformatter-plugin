@@ -34,7 +34,7 @@ public class FormatSpecialWordsRule extends AbstractCasingRule implements IForma
         String key = value.toUpperCase();
         String canonical = keywordsMap.get(key);
         if (canonical != null) {
-            result = KeywordCasing.apply(canonical, getKeywordCasingStyle());
+            result = KeywordCasingUtils.apply(canonical, getKeywordCasingStyle());
         } else {
             result = value;
         }

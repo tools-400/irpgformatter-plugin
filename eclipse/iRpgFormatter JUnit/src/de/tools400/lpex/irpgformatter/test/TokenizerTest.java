@@ -80,6 +80,16 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     @Test
+    public void test_specialWord_followedBySemicolon() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("dcl-pi *n;");
+        assertEquals(TokenType.DCL, tokens[0].getType());
+        assertEquals(TokenType.SPECIAL_WORD, tokens[1].getType());
+        assertEquals("*n", tokens[1].getValue());
+        assertEquals(TokenType.EOL, tokens[2].getType());
+    }
+
+    @Test
     public void test_function_comment() throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(" // Just a comment ");

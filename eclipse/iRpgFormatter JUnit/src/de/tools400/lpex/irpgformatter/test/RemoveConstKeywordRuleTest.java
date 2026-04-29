@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import de.tools400.lpex.irpgformatter.rules.casing.RemoveConstKeywordRule;
+import de.tools400.lpex.irpgformatter.rules.RemoveConstKeywordRule;
 
 public class RemoveConstKeywordRuleTest {
 
