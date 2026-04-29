@@ -78,6 +78,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Button breakNameOnCaseChangeCheckbox;
     private Button breakBeforeKeywordCheckbox;
     private Button sortConstValueToEndCheckbox;
+    private Button replacePiNameCheckbox;
+    private Button removeEndProcNameCheckbox;
+    private Button unindentCompilerDirectivesCheckbox;
     private Spinner maxNameLengthSpinner;
     private Spinner minNameLengthSpinner;
     private Button executeIbmFormatterCheckbox;
@@ -184,6 +187,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
         config.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
         config.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
+        config.setReplacePiName(replacePiNameCheckbox.getSelection());
+        config.setRemoveEndProcName(removeEndProcNameCheckbox.getSelection());
+        config.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         config.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()));
         config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
@@ -331,6 +337,22 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         sortConstValueToEndCheckbox.setLayoutData(createCheckboxGridData());
         sortConstValueToEndCheckbox.addSelectionListener(previewUpdater);
 
+        // Replace dcl-pi name with *N
+        replacePiNameCheckbox = UIUtils.createCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name);
+        replacePiNameCheckbox.setLayoutData(createCheckboxGridData());
+        replacePiNameCheckbox.addSelectionListener(previewUpdater);
+
+        // Remove end-proc name
+        removeEndProcNameCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name);
+        removeEndProcNameCheckbox.setLayoutData(createCheckboxGridData());
+        removeEndProcNameCheckbox.addSelectionListener(previewUpdater);
+
+        // Unindent compiler directives
+        unindentCompilerDirectivesCheckbox = UIUtils.createCheckbox(group, Messages.Label_Unindent_compiler_directives,
+            Messages.Tooltip_Unindent_compiler_directives);
+        unindentCompilerDirectivesCheckbox.setLayoutData(createCheckboxGridData());
+        unindentCompilerDirectivesCheckbox.addSelectionListener(previewUpdater);
+
         ModifyListener spinnerPreviewUpdater = new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
@@ -359,6 +381,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         breakNameOnCaseChangeCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
         breakBeforeKeywordCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break before keyword.");
         sortConstValueToEndCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Sort const/value to end.");
+        replacePiNameCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Replace dcl-pi name with *N.");
+        removeEndProcNameCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove end-proc name.");
+        unindentCompilerDirectivesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Unindent compiler directives.");
         maxNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
         minNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
 
@@ -494,6 +519,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
         data.setBreakBeforeKeyword(breakBeforeKeywordCheckbox.getSelection());
         data.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
+        data.setReplacePiName(replacePiNameCheckbox.getSelection());
+        data.setRemoveEndProcName(removeEndProcNameCheckbox.getSelection());
+        data.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         data.setMaxNameLength(maxNameLengthSpinner.getSelection());
         data.setMinNameLength(minNameLengthSpinner.getSelection());
         data.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
@@ -526,6 +554,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         breakNameOnCaseChangeCheckbox.setSelection(data.isBreakBetweenCaseChange());
         breakBeforeKeywordCheckbox.setSelection(data.isBreakBeforeKeyword());
         sortConstValueToEndCheckbox.setSelection(data.isSortConstValueToEnd());
+        replacePiNameCheckbox.setSelection(data.isReplacePiName());
+        removeEndProcNameCheckbox.setSelection(data.isRemoveEndProcName());
+        unindentCompilerDirectivesCheckbox.setSelection(data.isUnindentCompilerDirectives());
         maxNameLengthSpinner.setSelection(data.getMaxNameLength());
         minNameLengthSpinner.setSelection(data.getMinNameLength());
         executeIbmFormatterCheckbox.setSelection(data.isExecuteIbmFormatter());
@@ -647,6 +678,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         breakNameOnCaseChangeCheckbox.setSelection(preferences.isBreakBetweenCaseChange());
         breakBeforeKeywordCheckbox.setSelection(preferences.isBreakBeforeKeyword());
         sortConstValueToEndCheckbox.setSelection(preferences.isSortConstValueToEnd());
+        replacePiNameCheckbox.setSelection(preferences.isReplacePiName());
+        removeEndProcNameCheckbox.setSelection(preferences.isRemoveEndProcName());
+        unindentCompilerDirectivesCheckbox.setSelection(preferences.isUnindentCompilerDirectives());
         maxNameLengthSpinner.setSelection(preferences.getMaxNameLength());
         minNameLengthSpinner.setSelection(preferences.getMinNameLength());
 
@@ -685,6 +719,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
         preferences.setBreakBeforeKeyword(breakBeforeKeywordCheckbox.getSelection());
         preferences.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
+        preferences.setReplacePiName(replacePiNameCheckbox.getSelection());
+        preferences.setRemoveEndProcName(removeEndProcNameCheckbox.getSelection());
+        preferences.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         preferences.setMaxNameLength(maxNameLengthSpinner.getSelection());
         preferences.setMinLiteralLength(minNameLengthSpinner.getSelection());
 
@@ -714,6 +751,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         breakNameOnCaseChangeCheckbox.setSelection(preferences.getDefaultBreakBetweenCaseChange());
         breakBeforeKeywordCheckbox.setSelection(preferences.getDefaultBreakBeforeKeyword());
         sortConstValueToEndCheckbox.setSelection(preferences.getDefaultSortConstValueToEnd());
+        replacePiNameCheckbox.setSelection(preferences.getDefaultReplacePiName());
+        removeEndProcNameCheckbox.setSelection(preferences.getDefaultRemoveEndProcName());
+        unindentCompilerDirectivesCheckbox.setSelection(preferences.getDefaultUnindentCompilerDirectives());
         maxNameLengthSpinner.setSelection(preferences.getDefaultMaxNameLength());
         minNameLengthSpinner.setSelection(preferences.getDefaultMinLiteralLength());
 

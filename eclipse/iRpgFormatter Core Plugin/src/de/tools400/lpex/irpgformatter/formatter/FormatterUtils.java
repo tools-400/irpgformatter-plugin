@@ -131,6 +131,8 @@ public class FormatterUtils implements RpgleSourceConstants {
                 tokenResults = formatDeclaration(formattedLine, token, maxLength);
             } else if (token.getType() == TokenType.NAME) {
                 tokenResults = breakName(formattedLine, token, maxLength, "", "");
+            } else if (token.getType() == TokenType.SPECIAL_WORD) {
+                tokenResults = formatSpecialWord(formattedLine, token, maxLength);
             } else if (token.getType() == TokenType.LITERAL) {
                 tokenResults = breakLiteral(formattedLine, token, maxLength, "", "");
             } else if (token.getType() == TokenType.DATE_TIME_LITERAL) {
@@ -230,6 +232,11 @@ public class FormatterUtils implements RpgleSourceConstants {
 
     private String[] formatEndOfLine(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
         return formatOther(line, token, maxLineLength, new NullFormattingRule());
+    }
+
+    private String[] formatSpecialWord(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
+        return formatOther(line, token, maxLineLength,
+            new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
     }
 
     private String[] formatOther(String line, IToken token, int maxLineLength, IFormattingRule formattingRule) throws RpgleFormatterException {

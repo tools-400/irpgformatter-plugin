@@ -1,6 +1,7 @@
 **free
 DCL-PROC myProc export;
-  DCL-PI *n Pointer ExtProc('myProc');
+  // Replace dcl-pi name with *N.
+  DCL-PI myProc Pointer ExtProc('myProc');
     // Put delimiter before parameter.
     procedureName VARCHAR(256) OPTIONS(*VARSIZE: *Nopass : *Omit);
 
@@ -23,14 +24,18 @@ DCL-PROC myProc export;
   // Use const() in dcl-c statements.
   DCL-C MY_CONSTANT 1;
 
+  // Unindent compiler directives.
+/if defined(colors)
   // Align sub-fields/parameters.
   dcl-enum myEnum QUALIFIED;
     RED   'red';
     YELLOW 'yellow';
     GREEN 'green' Dft;
   end-enum;
+/endif
 
   Return *Null;
 
-END-PROC;
+// Remove end-proc name.
+END-PROC myProc;
 

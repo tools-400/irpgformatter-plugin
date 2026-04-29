@@ -31,6 +31,9 @@ public class FormatterConfig {
     private boolean breakBetweenCaseChange;
     private boolean useConstKeyword;
     private boolean sortConstValueToEnd;
+    private boolean replacePiName;
+    private boolean removeEndProcName;
+    private boolean unindentCompilerDirectives;
     private KeywordCasingStyle keywordCasingStyle;
     private ParameterSpacingStyle parameterSpacingStyle;
     private Map<String, String> keywords;
@@ -79,6 +82,18 @@ public class FormatterConfig {
 
     public boolean isSortConstValueToEnd() {
         return sortConstValueToEnd;
+    }
+
+    public boolean isReplacePiName() {
+        return replacePiName;
+    }
+
+    public boolean isRemoveEndProcName() {
+        return removeEndProcName;
+    }
+
+    public boolean isUnindentCompilerDirectives() {
+        return unindentCompilerDirectives;
     }
 
     public KeywordCasingStyle getKeywordCasingStyle() {
@@ -141,6 +156,18 @@ public class FormatterConfig {
         this.sortConstValueToEnd = sortConstValueToEnd;
     }
 
+    public void setReplacePiName(boolean replacePiName) {
+        this.replacePiName = replacePiName;
+    }
+
+    public void setRemoveEndProcName(boolean removeEndProcName) {
+        this.removeEndProcName = removeEndProcName;
+    }
+
+    public void setUnindentCompilerDirectives(boolean unindentCompilerDirectives) {
+        this.unindentCompilerDirectives = unindentCompilerDirectives;
+    }
+
     public void setKeywordCasingStyle(KeywordCasingStyle keywordCasingStyle) {
         this.keywordCasingStyle = keywordCasingStyle;
     }
@@ -192,6 +219,9 @@ public class FormatterConfig {
         config.breakBetweenCaseChange = prefs.isBreakBetweenCaseChange();
         config.useConstKeyword = prefs.isUseConstKeyword();
         config.sortConstValueToEnd = prefs.isSortConstValueToEnd();
+        config.replacePiName = prefs.isReplacePiName();
+        config.removeEndProcName = prefs.isRemoveEndProcName();
+        config.unindentCompilerDirectives = prefs.isUnindentCompilerDirectives();
         config.keywordCasingStyle = prefs.getKeywordCasingStyle();
         config.parameterSpacingStyle = prefs.getParameterSpacingStyle();
         config.keywords = Collections.unmodifiableMap(prefs.getKeywords());

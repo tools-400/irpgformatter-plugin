@@ -95,6 +95,9 @@ public final class PreferencesProfileManager {
         addScalarSetting(doc, profile, "breakBetweenCaseChange", String.valueOf(data.isBreakBetweenCaseChange()));
         addScalarSetting(doc, profile, "breakBeforeKeyword", String.valueOf(data.isBreakBeforeKeyword()));
         addScalarSetting(doc, profile, "sortConstValueToEnd", String.valueOf(data.isSortConstValueToEnd()));
+        addScalarSetting(doc, profile, "replacePiName", String.valueOf(data.isReplacePiName()));
+        addScalarSetting(doc, profile, "removeEndProcName", String.valueOf(data.isRemoveEndProcName()));
+        addScalarSetting(doc, profile, "unindentCompilerDirectives", String.valueOf(data.isUnindentCompilerDirectives()));
         addScalarSetting(doc, profile, "maxNameLength", String.valueOf(data.getMaxNameLength()));
         addScalarSetting(doc, profile, "minNameLength", String.valueOf(data.getMinNameLength()));
         addScalarSetting(doc, profile, "executeIbmFormatter", String.valueOf(data.isExecuteIbmFormatter()));
@@ -183,6 +186,15 @@ public final class PreferencesProfileManager {
                     break;
                 case "sortConstValueToEnd":
                     data.setSortConstValueToEnd(Boolean.parseBoolean(value));
+                    break;
+                case "replacePiName":
+                    data.setReplacePiName(Boolean.parseBoolean(value));
+                    break;
+                case "removeEndProcName":
+                    data.setRemoveEndProcName(Boolean.parseBoolean(value));
+                    break;
+                case "unindentCompilerDirectives":
+                    data.setUnindentCompilerDirectives(Boolean.parseBoolean(value));
                     break;
                 case "maxNameLength":
                     data.setMaxNameLength(Integer.parseInt(value));
@@ -287,6 +299,9 @@ public final class PreferencesProfileManager {
         private boolean breakBetweenCaseChange;
         private boolean breakBeforeKeyword;
         private boolean sortConstValueToEnd;
+        private boolean replacePiName = true;
+        private boolean removeEndProcName = true;
+        private boolean unindentCompilerDirectives = true;
         private int maxNameLength = 60;
         private int minNameLength = 20;
         private boolean executeIbmFormatter = true;
@@ -352,6 +367,30 @@ public final class PreferencesProfileManager {
 
         public void setSortConstValueToEnd(boolean sortConstValueToEnd) {
             this.sortConstValueToEnd = sortConstValueToEnd;
+        }
+
+        public boolean isReplacePiName() {
+            return replacePiName;
+        }
+
+        public void setReplacePiName(boolean replacePiName) {
+            this.replacePiName = replacePiName;
+        }
+
+        public boolean isRemoveEndProcName() {
+            return removeEndProcName;
+        }
+
+        public void setRemoveEndProcName(boolean removeEndProcName) {
+            this.removeEndProcName = removeEndProcName;
+        }
+
+        public boolean isUnindentCompilerDirectives() {
+            return unindentCompilerDirectives;
+        }
+
+        public void setUnindentCompilerDirectives(boolean unindentCompilerDirectives) {
+            this.unindentCompilerDirectives = unindentCompilerDirectives;
         }
 
         public int getMaxNameLength() {

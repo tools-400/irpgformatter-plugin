@@ -48,6 +48,9 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String BREAK_BETWEEN_CASE_CHANGE = "breakBetweenCaseChange";
     private static final String BREAK_BEFORE_KEYWORD = "breakBeforeKeyword";
     private static final String SORT_CONST_VALUE_TO_END = "sortConstValueToEnd";
+    private static final String REPLACE_PI_NAME = "replacePiName";
+    private static final String REMOVE_END_PROC_NAME = "removeEndProcName";
+    private static final String UNINDENT_COMPILER_DIRECTIVES = "unindentCompilerDirectives";
     private static final String MAX_NAME_LENGTH = "maxNameLength";
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
@@ -74,6 +77,9 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_BREAK_BETWEEN_CASE_CHANGE = false;
     private static final boolean DEFAULT_BREAK_BEFORE_KEYWORD = false;
     private static final boolean DEFAULT_SORT_CONST_VALUE_TO_END = false;
+    private static final boolean DEFAULT_REPLACE_PI_NAME = true;
+    private static final boolean DEFAULT_REMOVE_END_PROC_NAME = true;
+    private static final boolean DEFAULT_UNINDENT_COMPILER_DIRECTIVES = true;
     private static final int DEFAULT_MAX_NAME_LENGTH = 60;
     private static final int DEFAULT_MIN_NAME_LENGTH = 10;
     private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 35;
@@ -275,6 +281,30 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setValue(SORT_CONST_VALUE_TO_END, enabled);
     }
 
+    public boolean isReplacePiName() {
+        return preferenceStore.getBoolean(REPLACE_PI_NAME);
+    }
+
+    public void setReplacePiName(boolean enabled) {
+        preferenceStore.setValue(REPLACE_PI_NAME, enabled);
+    }
+
+    public boolean isRemoveEndProcName() {
+        return preferenceStore.getBoolean(REMOVE_END_PROC_NAME);
+    }
+
+    public void setRemoveEndProcName(boolean enabled) {
+        preferenceStore.setValue(REMOVE_END_PROC_NAME, enabled);
+    }
+
+    public boolean isUnindentCompilerDirectives() {
+        return preferenceStore.getBoolean(UNINDENT_COMPILER_DIRECTIVES);
+    }
+
+    public void setUnindentCompilerDirectives(boolean enabled) {
+        preferenceStore.setValue(UNINDENT_COMPILER_DIRECTIVES, enabled);
+    }
+
     public boolean isExecuteIbmFormatter() {
         return preferenceStore.getBoolean(EXECUTE_IBM_FORMATTER);
     }
@@ -420,6 +450,9 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(BREAK_BETWEEN_CASE_CHANGE, getDefaultBreakBetweenCaseChange());
         preferenceStore.setDefault(BREAK_BEFORE_KEYWORD, getDefaultBreakBeforeKeyword());
         preferenceStore.setDefault(SORT_CONST_VALUE_TO_END, getDefaultSortConstValueToEnd());
+        preferenceStore.setDefault(REPLACE_PI_NAME, getDefaultReplacePiName());
+        preferenceStore.setDefault(REMOVE_END_PROC_NAME, getDefaultRemoveEndProcName());
+        preferenceStore.setDefault(UNINDENT_COMPILER_DIRECTIVES, getDefaultUnindentCompilerDirectives());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, getDefaultExecuteIbmFormatter());
         preferenceStore.setDefault(EXECUTE_IRPG_FORMATTER, getDefaultExecuteIrpgFormatter());
         preferenceStore.setDefault(FORMAT_ON_SAVE, getDefaultFormatOnSave());
@@ -472,6 +505,18 @@ public final class Preferences implements RpgleSourceConstants {
 
     public boolean getDefaultSortConstValueToEnd() {
         return DEFAULT_SORT_CONST_VALUE_TO_END;
+    }
+
+    public boolean getDefaultReplacePiName() {
+        return DEFAULT_REPLACE_PI_NAME;
+    }
+
+    public boolean getDefaultRemoveEndProcName() {
+        return DEFAULT_REMOVE_END_PROC_NAME;
+    }
+
+    public boolean getDefaultUnindentCompilerDirectives() {
+        return DEFAULT_UNINDENT_COMPILER_DIRECTIVES;
     }
 
     public boolean getDefaultExecuteIbmFormatter() {

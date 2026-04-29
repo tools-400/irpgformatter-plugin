@@ -32,6 +32,9 @@ public class Messages extends NLS {
     public static String Label_Break_on_case_change;
     public static String Label_Break_before_keyword;
     public static String Label_Sort_const_value_to_end;
+    public static String Label_Replace_pi_name;
+    public static String Label_Remove_end_proc_name;
+    public static String Label_Unindent_compiler_directives;
     public static String Label_Max_name_length;
     public static String Label_Min_name_length;
     public static String Label_Execute_IBM_formatter;
@@ -95,6 +98,9 @@ public class Messages extends NLS {
     public static String Tooltip_Break_on_case_change;
     public static String Tooltip_Break_before_keyword;
     public static String Tooltip_Sort_const_value_to_end;
+    public static String Tooltip_Replace_pi_name;
+    public static String Tooltip_Remove_end_proc_name;
+    public static String Tooltip_Unindent_compiler_directives;
     public static String Tooltip_Max_name_length;
     public static String Tooltip_Min_name_length;
     public static String Tooltip_Execute_IBM_formatter;

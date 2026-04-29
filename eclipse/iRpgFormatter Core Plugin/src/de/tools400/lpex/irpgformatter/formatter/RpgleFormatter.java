@@ -27,6 +27,8 @@ import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.tokenizer.SpecialWordToken;
+import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
@@ -248,7 +250,7 @@ public class RpgleFormatter {
         case END_ENUM:
         case END_PROC:
             // Format with indent
-            result.addAll(formatEndStatement(statement, indent));
+            result.addAll(formatEndStatement(statement, type, indent));
             break;
         case OTHER:
         default:
@@ -291,6 +293,9 @@ public class RpgleFormatter {
         List<String> result = new ArrayList<>();
 
         String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(statement.getStatement());
+        if (config.isUnindentCompilerDirectives()) {
+            indent = 0;
+        }
         result.add(StringUtils.spaces(indent) + formatted);
 
         return result;
@@ -326,9 +331,27 @@ public class RpgleFormatter {
     private List<String> formatDclBlock(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        if (type == StatementType.DCL_PI && config.isReplacePiName()) {
+            tokens = replacePiNameWithStarN(tokens, statement);
+        }
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
+    }
+
+    /**
+     * Replaces the NAME token of a DCL-PI statement with the special word *N
+     * when the DCL-PI belongs to a DCL-PROC parent.
+     */
+    private IToken[] replacePiNameWithStarN(IToken[] tokens, CollectedStatement statement) throws RpgleFormatterException {
+        CollectedStatement parent = statement.getParent();
+        if (parent == null || parent.getType() != StatementType.DCL_PROC) {
+            return tokens;
+        }
+        if (tokens.length >= 2 && tokens[1].getType() == TokenType.NAME) {
+            tokens[1] = new SpecialWordToken("*N", "*N", tokens[1].getOffset());
+        }
+        return tokens;
     }
 
     /**
@@ -357,15 +380,31 @@ public class RpgleFormatter {
     }
 
     /**
-     * Formats an end statement (end-ds, end-pr, end-pi).
+     * Formats an end statement (end-ds, end-pr, end-pi, end-proc).
      *
      * @throws RpgleFormatterException
      */
-    private List<String> formatEndStatement(CollectedStatement statement, int indent) throws RpgleFormatterException {
+    private List<String> formatEndStatement(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement());
+        if (type == StatementType.END_PROC && config.isRemoveEndProcName()) {
+            tokens = removeNameToken(tokens);
+        }
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
+    }
+
+    /**
+     * Removes the NAME token (index 1) from the token array, if present.
+     */
+    private IToken[] removeNameToken(IToken[] tokens) {
+        if (tokens.length >= 2 && tokens[1].getType() == TokenType.NAME) {
+            IToken[] result = new IToken[tokens.length - 1];
+            result[0] = tokens[0];
+            System.arraycopy(tokens, 2, result, 1, tokens.length - 2);
+            return result;
+        }
+        return tokens;
     }
 }
