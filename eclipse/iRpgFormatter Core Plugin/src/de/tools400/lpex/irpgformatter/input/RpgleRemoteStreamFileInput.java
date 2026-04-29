@@ -94,4 +94,12 @@ public class RpgleRemoteStreamFileInput extends AbstractRpgleInput implements IR
     public IRpgleOutput getOutput() {
         return new RpgleRemoteStreamFileOutput(system, path);
     }
+
+    @Override
+    public String toString() {
+
+        String buffer = String.format("Remote Stream File: %s", getName());
+
+        return buffer;
+    }
 }

@@ -34,7 +34,7 @@ import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
-public class FormatRemoteSourceMembersJob extends Job {
+public class FormatRemoteSourceMemberJob extends Job {
 
     private SourceMember[] sourceMembers;
     private RpgleFormatter formatter;
@@ -44,7 +44,7 @@ public class FormatRemoteSourceMembersJob extends Job {
     private List<MemberError> errors;
     private List<SourceMember> formatted;
 
-    public FormatRemoteSourceMembersJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
+    public FormatRemoteSourceMemberJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
         super(Messages.Job_Formatting_remote_source_members);
 
         this.sourceMembers = sourceMembers;

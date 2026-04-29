@@ -10,7 +10,7 @@ package de.tools400.lpex.irpgformatter.handlers.jobs;
 
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFilesJob.FileError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob.FileError;
 
 public interface IFormatRemoteStreamFilesPostRun {
 

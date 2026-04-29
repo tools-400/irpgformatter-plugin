@@ -8,14 +8,19 @@
 
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
+
+import com.ibm.as400.access.AS400;
+import com.ibm.as400.access.IFSFile;
+import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
@@ -28,18 +33,18 @@ import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
-public class FormatStreamFilesJob extends Job {
+public class FormatRemoteStreamFileJob extends Job {
 
-    private IFile[] files;
+    private IRemoteFile[] files;
     private RpgleFormatter formatter;
-    private IFormatStreamFilesPostRun postRun;
+    private IFormatRemoteStreamFilesPostRun postRun;
 
     private IProgressMonitor monitor;
     private List<FileError> errors;
-    private List<IFile> formatted;
+    private List<IRemoteFile> formatted;
 
-    public FormatStreamFilesJob(IFile[] files, IFormatStreamFilesPostRun postRun) {
-        super(Messages.Job_Formatting_stream_files);
+    public FormatRemoteStreamFileJob(IRemoteFile[] files, IFormatRemoteStreamFilesPostRun postRun) {
+        super(Messages.Job_Formatting_remote_stream_files);
 
         this.files = files;
         this.formatter = new RpgleFormatter();
@@ -64,9 +69,9 @@ public class FormatStreamFilesJob extends Job {
 
             while (count < totalNumberOfFiles) {
 
-                IFile file = files[count];
+                IRemoteFile file = files[count];
 
-                monitor.setTaskName(file.getFullPath().toString());
+                monitor.setTaskName(file.getAbsolutePath());
                 executeFormatter(file);
 
                 monitor.worked(1);
@@ -81,21 +86,25 @@ public class FormatStreamFilesJob extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.run(formatted.toArray(new IFile[formatted.size()]), errors.toArray(new FileError[errors.size()]));
+            postRun.run(formatted.toArray(new IRemoteFile[formatted.size()]), errors.toArray(new FileError[errors.size()]));
         }
 
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(IFile file) throws RpgleFormatterException, Exception {
+    private void executeFormatter(IRemoteFile file) throws RpgleFormatterException, Exception {
 
         try {
 
+            IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
+            AS400 system = connection.getAS400ToolboxObject();
+            String path = file.getAbsolutePath();
+
             monitor.subTask(Messages.SubTask_Checking_availability);
-            ensureWritable(file);
+            ensureWritable(system, path);
 
             monitor.subTask(Messages.SubTask_Reading);
-            IRpgleInput input = RpgleInputFactory.createFromStreamFile(file);
+            IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
 
             String validationError = RpgleFormatter.validateInput(input);
             if (validationError != null) {
@@ -110,14 +119,15 @@ public class FormatStreamFilesJob extends Job {
         }
     }
 
-    private void ensureWritable(IFile file) throws FileLockedException {
+    private void ensureWritable(AS400 system, String path) throws IOException, FileLockedException {
 
-        if (file.isReadOnly()) {
-            throw new FileLockedException(file.getFullPath().toOSString());
+        IFSFile ifsFile = new IFSFile(system, path);
+        if (!ifsFile.canWrite()) {
+            throw new FileLockedException(path);
         }
     }
 
-    private void executeFormatter(IFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
+    private void executeFormatter(IRemoteFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
 
         formatter.setSourceLength(Preferences.getInstance().getEndColumn(100));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
@@ -136,15 +146,15 @@ public class FormatStreamFilesJob extends Job {
 
     public class FileError implements IErrorObject {
 
-        private IFile file;
+        private IRemoteFile file;
         private String errorMessage;
 
-        public FileError(IFile file, String errorMessage) {
+        public FileError(IRemoteFile file, String errorMessage) {
             this.file = file;
             this.errorMessage = errorMessage;
         }
 
-        public IFile getFile() {
+        public IRemoteFile getFile() {
             return file;
         }
 
@@ -154,7 +164,7 @@ public class FormatStreamFilesJob extends Job {
 
         @Override
         public String getFullPath() {
-            return file.getFullPath().toOSString();
+            return file.getAbsolutePath();
         }
     }
 }

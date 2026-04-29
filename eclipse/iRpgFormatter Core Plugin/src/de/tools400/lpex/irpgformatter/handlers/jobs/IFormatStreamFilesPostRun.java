@@ -10,7 +10,7 @@ package de.tools400.lpex.irpgformatter.handlers.jobs;
 
 import org.eclipse.core.resources.IFile;
 
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFilesJob.FileError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
 
 public interface IFormatStreamFilesPostRun {
 

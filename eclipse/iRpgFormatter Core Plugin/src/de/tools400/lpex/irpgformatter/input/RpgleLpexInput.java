@@ -85,13 +85,12 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
 
     @Override
     public String getName() {
+
         String name = LpexViewUtils.getName(view);
         if (name == null) {
             name = "*N";
         }
-        if (isRange) {
-            return name + " [lines: " + startLine + "-" + endLine + "]";
-        }
+
         return name;
     }
 
@@ -121,5 +120,21 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
     @Override
     public IRpgleOutput getOutput() {
         return new RpgleLpexOutput(new LpexLineEditor(view));
+    }
+
+    @Override
+    public String toString() {
+
+        String path = LpexViewUtils.getName(view);
+        if (path == null) {
+            path = "*N";
+        }
+
+        String buffer = String.format("Lpex View: %s", path);
+        if (isRange) {
+            return buffer + String.format(" [lines: %s-%s]", startLine, endLine);
+        }
+
+        return buffer;
     }
 }

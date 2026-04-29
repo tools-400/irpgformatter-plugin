@@ -113,7 +113,7 @@ public class RpgleRemoteMemberInput extends AbstractRpgleInput implements IRpgle
 
     @Override
     public String getName() {
-        return library + "/" + sourceFile + "(" + sourceMember + ")";
+        return IBMiUtils.qualifiedMember(library, sourceFile, sourceMember);
     }
 
     public String getSourceType() throws Exception {
@@ -127,5 +127,13 @@ public class RpgleRemoteMemberInput extends AbstractRpgleInput implements IRpgle
     @Override
     public IRpgleOutput getOutput() {
         return new RpgleRemoteMemberOutput(system, library, sourceFile, sourceMember);
+    }
+
+    @Override
+    public String toString() {
+
+        String buffer = String.format("Remote Member: %s", IBMiUtils.qualifiedMember(library, sourceFile, sourceMember));
+
+        return buffer;
     }
 }

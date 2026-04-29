@@ -61,12 +61,13 @@ public class FormatLpexSourceAction implements LpexAction {
                 endLine = ((RpgleLpexInput)input).getEndLine();
                 // Extend selected lines to logical block
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
-                String firstLine = LpexViewUtils.getElementText(view, startLine);
-                defaultIndent = getIndent(firstLine);
+                // Use current indent of first line
+                defaultIndent = getIndent(view, startLine);
             } else {
                 input = RpgleInputFactory.createFromAll(view);
                 startLine = 1;
                 endLine = -1;
+                // Use indent of preferences
                 defaultIndent = Preferences.getInstance().getStartColumn() - 1;
             }
 
@@ -104,8 +105,7 @@ public class FormatLpexSourceAction implements LpexAction {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
             // Update indent from first line.
             // The IBM formatter may have changed it.
-            String firstLine = LpexViewUtils.getElementText(view, startLine);
-            defaultIndent = getIndent(firstLine);
+            defaultIndent = getIndent(view, startLine);
         }
 
         if (executeIrpgFormatter) {
@@ -131,8 +131,15 @@ public class FormatLpexSourceAction implements LpexAction {
         restoreCursorPosition(view);
     }
 
-    private int getIndent(String firstLine) {
-        return StringUtils.getIndent(firstLine).length();
+    private int getIndent(LpexView view, int startLine) {
+
+        String line = LpexViewUtils.getElementText(view, startLine).toUpperCase();
+        while (line.trim().length() == 0 || "**FREE".equals(line)) {
+            startLine++;
+            line = LpexViewUtils.getElementText(view, startLine).toUpperCase();
+        }
+
+        return StringUtils.getIndent(line).length();
     }
 
     private void saveCursorPosition(LpexView view) {

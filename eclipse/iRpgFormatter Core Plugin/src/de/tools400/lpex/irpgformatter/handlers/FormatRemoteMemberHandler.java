@@ -15,11 +15,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMembersJob;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMembersJob.MemberError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob.MemberError;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteSourceMembersPostRun;
 
-public class FormatRemoteSourceMembersHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
+public class FormatRemoteMemberHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
 
     public static final String ID = "de.tools400.lpex.irpgformatter.commands.format";
 
@@ -47,7 +47,7 @@ public class FormatRemoteSourceMembersHandler extends AbstractFormatHandler impl
 
     private void scheduleFormatterJob(SourceMember[] sourceMembers) {
 
-        FormatRemoteSourceMembersJob job = new FormatRemoteSourceMembersJob(sourceMembers, this);
+        FormatRemoteSourceMemberJob job = new FormatRemoteSourceMemberJob(sourceMembers, this);
         job.schedule();
     }
 

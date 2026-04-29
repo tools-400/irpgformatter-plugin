@@ -16,11 +16,11 @@ import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFilesJob;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFilesJob.FileError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob.FileError;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteStreamFilesPostRun;
 
-public class FormatRemoteStreamsFileHandler extends AbstractFormatHandler implements IFormatRemoteStreamFilesPostRun {
+public class FormatRemoteStreamFileHandler extends AbstractFormatHandler implements IFormatRemoteStreamFilesPostRun {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -46,7 +46,7 @@ public class FormatRemoteStreamsFileHandler extends AbstractFormatHandler implem
 
     private void scheduleFormatterJob(IRemoteFile[] files) {
 
-        FormatRemoteStreamFilesJob job = new FormatRemoteStreamFilesJob(files, this);
+        FormatRemoteStreamFileJob job = new FormatRemoteStreamFileJob(files, this);
         job.schedule();
     }
 

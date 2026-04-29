@@ -28,6 +28,7 @@ import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
+import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
  * RPGLE source code formatter.
@@ -106,9 +107,8 @@ public class RpgleFormatter {
         if (!input.isFreeFormat()) {
             IRpgleFormatterPlugin.logError(Messages.Error_Not_free_format, null);
             String[] sourceLines = input.getSourceLines();
-            return new FormattedResult(new FormattedStatement[] {
-                new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines)
-            });
+            return new FormattedResult(
+                new FormattedStatement[] { new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines) });
         }
 
         errorCount = 0;
@@ -130,22 +130,16 @@ public class RpgleFormatter {
             // Check for formatter directive
             int directive = getFormatterDirective(statement, type);
             if (directive != 0) {
-                results.add(new FormattedStatement(
-                    statement.getStartLineNumber(),
-                    statement.numLines(),
-                    statement.getOriginalStatements().toArray(new String[0])
-                ));
+                results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(),
+                    statement.getOriginalStatements().toArray(new String[0])));
                 formatterDisabled = (directive == -1);
                 continue;
             }
 
             // If formatter is disabled, output original lines unchanged
             if (formatterDisabled) {
-                results.add(new FormattedStatement(
-                    statement.getStartLineNumber(),
-                    statement.numLines(),
-                    statement.getOriginalStatements().toArray(new String[0])
-                ));
+                results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(),
+                    statement.getOriginalStatements().toArray(new String[0])));
                 continue;
             }
 
@@ -168,11 +162,7 @@ public class RpgleFormatter {
                     errorCount++;
                 }
             }
-            results.add(new FormattedStatement(
-                statement.getStartLineNumber(),
-                statement.numLines(),
-                stmtOutput.toArray(new String[0])
-            ));
+            results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(), stmtOutput.toArray(new String[0])));
         }
 
         return new FormattedResult(results.toArray(new FormattedStatement[0]));
@@ -220,12 +210,12 @@ public class RpgleFormatter {
             result.add(freeSpecialWord);
             break;
         case COMMENT:
-            // Add as is without indent
-            result.addAll(formatKeepOriginal(statement));
+            // Format with indent
+            result.addAll(formatComment(statement, indent));
             break;
         case COMPILER_DIRECTIVE:
-            // Format and add without indent
-            result.addAll(formatCompilerDirective(statement));
+            // Format with indent
+            result.addAll(formatCompilerDirective(statement, indent));
             break;
         case CTL_OPT:
             // Format with indent
@@ -281,14 +271,27 @@ public class RpgleFormatter {
     }
 
     /**
+     * Formats a line comment.
+     */
+    private List<String> formatComment(CollectedStatement statement, int indent) {
+
+        List<String> result = new ArrayList<>();
+
+        String formatted = statement.getStatement().trim();
+        result.add(StringUtils.spaces(indent) + formatted);
+
+        return result;
+    }
+
+    /**
      * Formats a compiler directive.
      */
-    private List<String> formatCompilerDirective(CollectedStatement statement) {
+    private List<String> formatCompilerDirective(CollectedStatement statement, int indent) {
 
         List<String> result = new ArrayList<>();
 
         String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(statement.getStatement());
-        result.add(formatted);
+        result.add(StringUtils.spaces(indent) + formatted);
 
         return result;
     }

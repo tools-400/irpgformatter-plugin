@@ -9,7 +9,7 @@
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMembersJob.MemberError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob.MemberError;
 
 public interface IFormatRemoteSourceMembersPostRun {
 

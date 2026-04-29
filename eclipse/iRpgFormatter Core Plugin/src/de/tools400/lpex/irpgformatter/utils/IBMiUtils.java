@@ -87,4 +87,11 @@ public class IBMiUtils {
 
         return fieldDescription.getLength();
     }
+
+    public static String qualifiedMember(String libraryName, String fileName, String memberName) {
+
+        String buffer = String.format("%s/%s(%s)", libraryName, fileName, memberName);
+
+        return buffer;
+    }
 }

@@ -9,9 +9,9 @@
 package de.tools400.lpex.irpgformatter.formatter;
 
 /**
- * Holds a single formatted statement together with its original position
- * and size in the source, so that output handlers can perform
- * statement-aware updates (skip unchanged, insert/delete lines).
+ * Holds a single formatted statement together with its original position and
+ * size in the source, so that output handlers can perform statement-aware
+ * updates (skip unchanged, insert/delete lines).
  */
 public class FormattedStatement {
 
@@ -21,10 +21,10 @@ public class FormattedStatement {
 
     /**
      * @param originalStartLine 1-based start line of the statement in the
-     *                          original source
+     *        original source
      * @param originalLineCount number of lines the statement occupied in the
-     *                          original source (including embedded comments)
-     * @param formattedLines    the formatted output lines for this statement
+     *        original source (including embedded comments)
+     * @param formattedLines the formatted output lines for this statement
      */
     public FormattedStatement(int originalStartLine, int originalLineCount, String[] formattedLines) {
         this.originalStartLine = originalStartLine;
@@ -42,5 +42,14 @@ public class FormattedStatement {
 
     public String[] getFormattedLines() {
         return formattedLines;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        for (String line : formattedLines) {
+            buffer.append(line);
+        }
+        return buffer.toString();
     }
 }

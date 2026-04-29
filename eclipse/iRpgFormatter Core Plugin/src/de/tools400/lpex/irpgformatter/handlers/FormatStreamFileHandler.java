@@ -16,11 +16,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFilesJob;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFilesJob.FileError;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob;
+import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatStreamFilesPostRun;
 
-public class FormatStreamFilesHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
+public class FormatStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -46,7 +46,7 @@ public class FormatStreamFilesHandler extends AbstractFormatHandler implements I
 
     private void scheduleFormatterJob(IFile[] files) {
 
-        FormatStreamFilesJob job = new FormatStreamFilesJob(files, this);
+        FormatStreamFileJob job = new FormatStreamFileJob(files, this);
         job.schedule();
     }
 
