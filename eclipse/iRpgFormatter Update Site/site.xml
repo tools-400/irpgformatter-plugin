@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.tools400.lpex.irpgformatter.core.feature_1.0.0.b006.jar" id="de.tools400.lpex.irpgformatter.core.feature" version="1.0.0.b006">
+   <feature url="features/de.tools400.lpex.irpgformatter.core.feature_1.0.0.b007.jar" id="de.tools400.lpex.irpgformatter.core.feature" version="1.0.0.b007">
       <category name="de.tools400.irpgformatter"/>
    </feature>
    <category-def name="de.tools400.irpgformatter" label="iRpgFormatter">
