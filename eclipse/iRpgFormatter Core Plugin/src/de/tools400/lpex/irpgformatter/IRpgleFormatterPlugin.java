@@ -101,7 +101,7 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
      * Convenience method to log error messages to the application log.
      * 
      * @param message Message
-     * @param e The exception that has produced the error
+     * @param The exception that has produced the error
      */
     public static void logError(String message, Throwable e) {
         if (plugin == null) {
@@ -111,7 +111,21 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
             }
             return;
         }
-        plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, message, e));
+        plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, message, e));
+    }
+
+    /**
+     * Convenience method to log warning messages to the application log.
+     * 
+     * @param message Message
+     * @param The warning that has produced the error
+     */
+    public static void logWarning(String message) {
+        if (plugin == null) {
+            System.out.println(String.format("WARN: %s", message));
+            return;
+        }
+        plugin.getLog().log(new Status(Status.WARNING, PLUGIN_ID, message));
     }
 
     @Override

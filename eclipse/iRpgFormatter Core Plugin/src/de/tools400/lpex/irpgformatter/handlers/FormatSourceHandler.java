@@ -11,10 +11,9 @@ package de.tools400.lpex.irpgformatter.handlers;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -53,12 +52,12 @@ public class FormatSourceHandler extends AbstractHandler {
             return false;
         }
 
-        if (first instanceof IResource) {
-            return true;
-        }
-
-        if (first instanceof IAdaptable) {
-            return ((IAdaptable)first).getAdapter(IResource.class) != null;
+        if (first instanceof AbstractRemoteFile) {
+            AbstractRemoteFile remoteFile = (AbstractRemoteFile)first;
+            String subsystemId = remoteFile.getParentRemoteFileSubSystem().getConfigurationId();
+            if ("local.files".equals(subsystemId)) {
+                return true;
+            }
         }
 
         return false;

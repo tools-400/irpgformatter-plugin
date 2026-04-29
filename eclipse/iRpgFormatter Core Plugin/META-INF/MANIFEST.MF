@@ -24,7 +24,8 @@ Require-Bundle: org.eclipse.ui,
  com.ibm.etools.iseries.subsystems.qsys,
  com.ibm.etools.iseries.services.qsys,
  com.ibm.etools.iseries.rse.ui,
- org.eclipse.jface.text
+ org.eclipse.jface.text,
+ org.eclipse.rse.subsystems.files.core
 Bundle-Vendor: Tools/400
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
