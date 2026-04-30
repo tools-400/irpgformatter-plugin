@@ -248,8 +248,8 @@ public class FormatterUtilsTest extends AbstractTestCase {
         assertEquals("    atMustBe...", results[5]);
         assertEquals("    Splitted...", results[6]);
         assertEquals("    AcrossSe...", results[7]);
-        assertEquals("    veralLin...", results[8]);
-        assertEquals("    es: 123)", results[9]);
+        assertEquals("    veralLines:", results[8]);
+        assertEquals("    123)", results[9]);
     }
 
     // --- buildParameters - single parameter tests ---
@@ -414,6 +414,179 @@ public class FormatterUtilsTest extends AbstractTestCase {
         IToken[] tokens = getTokenizer().tokenize("options(*varsize:*trim:*string)");
         String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
         assertEquals(" *varsize : *trim : *string ", parameters);
+    }
+
+    // --- formatTokens - wrap path honors parameterSpacingStyle ---
+    //
+    // Regression coverage for the bug where the wrap path used a hardcoded
+    // `COLON + SPACE` delimiter and ignored ParameterSpacingStyle, so toggling
+    // BEFORE/AFTER/BOTH/NONE had no visible effect once parameters wrapped.
+
+    @Test
+    public void format_function_wrap_spacingNone_delimAfter() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(false);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize:", results[1]);
+        assertEquals("  *nopass:", results[2]);
+        assertEquals("  *omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingBefore_delimAfter() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(false);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize:", results[1]);
+        assertEquals("  *nopass:", results[2]);
+        assertEquals("  *omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingAfter_delimAfter() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(false);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize :", results[1]);
+        assertEquals("  *nopass :", results[2]);
+        assertEquals("  *omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingBoth_delimAfter() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(false);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        // BOTH edge-padding (leading space on first param, trailing space on
+        // last) is dropped on wrap because the indent already provides
+        // separation and the trailing space is consumed by trimR.
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize :", results[1]);
+        assertEquals("  *nopass :", results[2]);
+        assertEquals("  *omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingNone_delimBefore() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(true);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize", results[1]);
+        assertEquals("  :*nopass", results[2]);
+        assertEquals("  :*omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingBefore_delimBefore() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(true);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize", results[1]);
+        assertEquals("  : *nopass", results[2]);
+        assertEquals("  : *omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingAfter_delimBefore() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(true);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize", results[1]);
+        assertEquals("  :*nopass", results[2]);
+        assertEquals("  :*omit)", results[3]);
+    }
+
+    @Test
+    public void format_function_wrap_spacingBoth_delimBefore() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(true);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 14);
+
+        // BOTH edge-padding (leading space on first param, trailing space on
+        // last) is dropped on wrap. The colon-space delimiter on each wrapped
+        // line is still preserved.
+        assertEquals(4, results.length);
+        assertEquals("options(", results[0]);
+        assertEquals("  *varsize", results[1]);
+        assertEquals("  : *nopass", results[2]);
+        assertEquals("  : *omit)", results[3]);
+    }
+
+    // --- formatTokens - wrap only between some parameters ---
+    //
+    // Verifies the inline spacing between the parameters that fit together is
+    // also driven by ParameterSpacingStyle (not just the wrapped delimiter).
+
+    @Test
+    public void format_function_partialWrap_spacingAfter_delimAfter() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(false);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.AFTER);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 27);
+
+        assertEquals(2, results.length);
+        assertEquals("options(*varsize :*nopass :", results[0]);
+        assertEquals("  *omit)", results[1]);
+    }
+
+    @Test
+    public void format_function_partialWrap_spacingBefore_delimBefore() throws RpgleFormatterException {
+        getFormatterConfig().setDelimiterBeforeParameter(true);
+        getFormatterConfig().setParameterSpacingStyle(ParameterSpacingStyle.BEFORE);
+
+        String function = "options(*varsize:*nopass:*omit)";
+        IToken[] tokens = getTokenizer().tokenize(function);
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 27);
+
+        assertEquals(2, results.length);
+        assertEquals("options(*varsize: *nopass", results[0]);
+        assertEquals("  : *omit)", results[1]);
     }
 
 }

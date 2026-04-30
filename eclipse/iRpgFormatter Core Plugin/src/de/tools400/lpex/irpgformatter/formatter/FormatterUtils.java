@@ -356,8 +356,6 @@ public class FormatterUtils implements RpgleSourceConstants {
 
     private String[] formatParameters(String line, IToken[] tokens, int maxLineLength) throws RpgleFormatterException {
 
-        boolean addColonBeforeParameter = config.isDelimiterBeforeParameter();
-
         String currentLine = line;
 
         List<String> result = new LinkedList<>();
@@ -365,18 +363,9 @@ public class FormatterUtils implements RpgleSourceConstants {
         String[] parameterParts;
         for (int i = 0; i < tokens.length; i++) {
 
-            String parameterPrefix = "";
-            String parameterSuffix = "";
-
-            if (addColonBeforeParameter) {
-                if (i > 0) {
-                    parameterPrefix = COLON + SPACE;
-                }
-            } else {
-                if (i < tokens.length - 1) {
-                    parameterSuffix = COLON + SPACE;
-                }
-            }
+            FormatParameterRule.Delimiter delimiter = formatParameterRule.delimiterFor(i, tokens.length);
+            String parameterPrefix = delimiter.getPrefix();
+            String parameterSuffix = delimiter.getSuffix();
 
             if (i == 0) {
                 parameterParts = breakParameter(currentLine, tokens[i], maxLineLength, parameterPrefix, parameterSuffix);
@@ -435,9 +424,14 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else {
             // Line overflow. Trim line.
             parts.add(StringUtils.trimR(line));
-            maxLength = maxLineLength - subIndent.length() - prefix.length() - suffix.length();
+            // Drop leading whitespace from prefix on the new line — the indent
+            // already provides the separation, so a leading space (e.g. from
+            // BEFORE/BOTH spacing in delimiter-after-parameter mode) would just
+            // shift the parameter one column to the right.
+            String wrappedPrefix = StringUtils.trimL(prefix);
+            maxLength = maxLineLength - subIndent.length() - wrappedPrefix.length() - suffix.length();
             if (value.length() <= maxLength) {
-                parts.add(subIndent + prefix + value + suffix);
+                parts.add(subIndent + wrappedPrefix + value + suffix);
             } else {
                 throw new LineOverflowException(value);
             }
@@ -474,6 +468,11 @@ public class FormatterUtils implements RpgleSourceConstants {
         if (maxLineLength - prefix.length() - line.length() - contChar.length() <= 0) {
             parts.add(StringUtils.trimR(line));
             line = subIndent;
+            // Drop leading whitespace from prefix on the new line — the indent
+            // already provides the separation, so a leading space (e.g. from
+            // BEFORE/BOTH spacing in delimiter-after-parameter mode) would just
+            // shift the value one column to the right.
+            prefix = StringUtils.trimL(prefix);
         }
 
         int maxLength = maxLineLength - prefix.length() - line.length() - StringUtils.trimR(suffix).length();
