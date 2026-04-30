@@ -686,8 +686,9 @@ public class FormatterUtils implements RpgleSourceConstants {
 
     /**
      * Computes the keyword alignment column for all sub-fields in a block. The
-     * alignment column is determined by the longest field name that does not
-     * exceed MAX_NAME_LENGTH, plus 1 space. Fields with names longer than
+     * alignment column is determined by the longest field name (optionally
+     * preceded by a <code>DCL-SUBF</code> prefix) that does not exceed
+     * MAX_NAME_LENGTH, plus 1 space. Fields with names longer than
      * MAX_NAME_LENGTH are broken with ellipsis and contribute with their last
      * part to the alignment calculation.
      *
@@ -711,8 +712,18 @@ public class FormatterUtils implements RpgleSourceConstants {
             String[] nameParts = breakName("", nameToken, maxLineLength, "", "");
             String lastNamePart = nameParts[nameParts.length - 1];
 
-            if (lastNamePart.length() <= maxNameLength && lastNamePart.length() > longestName) {
-                longestName = lastNamePart.length();
+            int prefixLength = 0;
+            if (tokens.length > 0 && tokens[0].getType() == TokenType.DCL) {
+                // Optional `DCL-SUBF` prefix shifts the name (and thus the
+                // keyword alignment column) to the right by the prefix length
+                // plus one separating space.
+                prefixLength = tokens[0].getValue().length() + 1;
+            }
+
+            int effectiveLength = prefixLength + lastNamePart.length();
+
+            if (effectiveLength <= maxNameLength && effectiveLength > longestName) {
+                longestName = effectiveLength;
             }
         }
 

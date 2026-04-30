@@ -1117,6 +1117,29 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  field1 char(10);", result[1]);
     }
 
+    @Test
+    public void format_subFieldAlignment_mixedDclSubfPrefix() throws RpgleFormatterException {
+        // Sub-fields may optionally start with `dcl-subf`. The prefix
+        // contributes to the alignment column so that data types of all
+        // sub-fields (with or without prefix) start in the same column.
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-Ds *n;",
+            "  dcl-Subf select char(10);",
+            "  name char(10);",
+            "  dcl-Subf address char(25);",
+            "end-Ds;"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals(5, result.length);
+        // Longest prefix+name: "dcl-subf address" = 16 chars, alignColumn = 16
+        assertEquals("dcl-ds *n;", result[0]);
+        assertEquals("  dcl-subf select  char(10);", result[1]);
+        assertEquals("  name             char(10);", result[2]);
+        assertEquals("  dcl-subf address char(25);", result[3]);
+        assertEquals("end-ds;", result[4]);
+    }
+
     // --- format - formatter directives (@formatter:off / @formatter:on) ---
 
     @Test
