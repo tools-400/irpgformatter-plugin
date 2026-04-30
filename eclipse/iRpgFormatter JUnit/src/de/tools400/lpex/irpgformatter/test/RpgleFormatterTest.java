@@ -10,11 +10,15 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
@@ -1115,6 +1119,44 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals(3, result.length);
         // "field1" = 6 chars, alignColumn = 7, so 1 space after name
         assertEquals("  field1 char(10);", result[1]);
+    }
+
+    // --- format - error collection ---
+
+    @Test
+    public void format_collectsErrorsAndKeepsOriginalLines() throws RpgleFormatterException {
+
+        // Choose a source length so small that a non-breakable token (here:
+        // the keyword `extproc(`) cannot fit on any line, deterministically
+        // triggering a LineOverflowException.
+        formatter.setSourceLength(7);
+
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-s f extproc('m');"
+        ),0).toLines();
+        // @formatter:on
+
+        assertTrue("Expected at least one collected error", formatter.getErrorCount() > 0);
+
+        List<FormatError> errors = formatter.getErrors();
+        assertEquals("getErrors() and getErrorCount() must agree", formatter.getErrorCount(), errors.size());
+
+        FormatError error = errors.get(0);
+        assertNotNull("Error message must not be null", error.getMessage());
+        assertEquals("Start line must point at the failing statement", 0, error.getStartLineNumber());
+        assertNull("LineOverflowException must not be exposed as an unexpected cause", error.getCause());
+
+        // The original (unformatted) source line must still be present in the
+        // formatted output — failing to format must never silently drop code.
+        boolean foundOriginal = false;
+        for (String line : result) {
+            if (line.contains("extproc('m')")) {
+                foundOriginal = true;
+                break;
+            }
+        }
+        assertTrue("Original source must be preserved on error", foundOriginal);
     }
 
     @Test

@@ -461,7 +461,9 @@ public class PreviewPanel {
             if (previewFormatter.getErrorCount() == 0) {
                 errorHandler.accept(null);
             } else {
-                errorHandler.accept("Could not format preview source.");
+                // Surface the concrete reason inline (no modal dialog —
+                // would be intrusive while the user adjusts the spinner).
+                errorHandler.accept(previewFormatter.getErrors().get(0).getMessage());
             }
             String formattedSource = String.join("\n", lines);
             StyledText styledText = previewViewer.getTextWidget();

@@ -11,8 +11,15 @@ package de.tools400.lpex.irpgformatter.handlers.jobs;
 import org.eclipse.core.resources.IFile;
 
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public interface IFormatStreamFilesPostRun {
 
-    public void run(IFile[] formatted, FileError[] errors);
+    /**
+     * @param formatted files whose formatted source was written back
+     * @param errors files that could not be written at all
+     * @param statementErrors written files that nevertheless contain
+     *        individual statement-level errors; one group per affected file
+     */
+    public void run(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
 }

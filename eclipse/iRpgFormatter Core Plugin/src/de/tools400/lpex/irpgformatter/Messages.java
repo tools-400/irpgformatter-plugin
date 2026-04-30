@@ -78,6 +78,11 @@ public class Messages extends NLS {
 
     public static String ColumnLabel_Key_read_only;
     public static String ColumnLabel_Value_editable;
+    public static String ColumnLabel_Member;
+    public static String ColumnLabel_Errors;
+
+    public static String Label_Errors_in_A;
+    public static String Error_Line_A_message_B;
 
     public static String Label_Preview;
     public static String Label_Preview_Edit;
@@ -157,6 +162,8 @@ public class Messages extends NLS {
 
     public static String I_N_F_O_R_M_A_T_I_O_N;
 
+    public static String Error_Source_formatted_with_N_errors;
+
     public static String Info_Finished_formatting_stream_files_A;
     public static String Info_Finished_formatting_source_members_A;
     public static String Error_A_formatted_B_errors;
@@ -164,6 +171,9 @@ public class Messages extends NLS {
     public static String Error_A_members_formatted_B_errors;
     public static String Error_File_is_locked_A;
     public static String Error_Not_all_members_formatted_A;
+
+    public static String Error_A_members_formatted_with_statement_errors_B;
+    public static String Error_A_files_formatted_with_statement_errors_B;
 
     static {
         // initialize resource bundle

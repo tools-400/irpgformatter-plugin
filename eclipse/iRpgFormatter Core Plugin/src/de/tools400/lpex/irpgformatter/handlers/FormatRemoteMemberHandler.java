@@ -18,6 +18,7 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob.MemberError;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteSourceMembersPostRun;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteMemberHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
 
@@ -55,9 +56,13 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
      * Callback of the formatter job. Called at the end of the formatter.
      */
     @Override
-    public void run(SourceMember[] formatted, MemberError[] errors) {
+    public void postRun(SourceMember[] formatted, MemberError[] errors, ErrorGroup[] statementErrors) {
 
         if (errors.length > 0) {
+            // Hard write failures take precedence — these members are not on
+            // disk in any form. Statement-level errors of other members are
+            // intentionally not surfaced in the same dialog (different
+            // severity, different remediation).
             String message;
             if (formatted.length > 0) {
                 message = Messages.bind(Messages.Error_A_members_formatted_B_errors, formatted.length, errors.length);
@@ -65,6 +70,10 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
                 message = Messages.bind(Messages.Error_Not_all_members_formatted_A, errors.length);
             }
             displayErrorDialog(message, errors);
+        } else if (statementErrors.length > 0) {
+            String message = Messages.bind(Messages.Error_A_members_formatted_with_statement_errors_B,
+                formatted.length, statementErrors.length);
+            displayStatementErrorsDialog(message, statementErrors);
         } else {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_source_members_A, formatted.length));
         }

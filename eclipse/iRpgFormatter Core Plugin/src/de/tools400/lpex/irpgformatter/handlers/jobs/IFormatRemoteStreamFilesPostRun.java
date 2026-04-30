@@ -11,8 +11,15 @@ package de.tools400.lpex.irpgformatter.handlers.jobs;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob.FileError;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public interface IFormatRemoteStreamFilesPostRun {
 
-    public void run(IRemoteFile[] formatted, FileError[] errors);
+    /**
+     * @param formatted files whose formatted source was written back
+     * @param errors files that could not be written at all
+     * @param statementErrors written files that nevertheless contain
+     *        individual statement-level errors; one group per affected file
+     */
+    public void run(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
 }

@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
+import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -26,6 +27,7 @@ import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatStreamFileJob extends Job {
@@ -37,6 +39,7 @@ public class FormatStreamFileJob extends Job {
     private IProgressMonitor monitor;
     private List<FileError> errors;
     private List<IFile> formatted;
+    private List<ErrorGroup> statementErrors;
 
     public FormatStreamFileJob(IFile[] files, IFormatStreamFilesPostRun postRun) {
         super(Messages.Job_Formatting_stream_files);
@@ -47,6 +50,7 @@ public class FormatStreamFileJob extends Job {
 
         this.errors = new LinkedList<>();
         this.formatted = new LinkedList<>();
+        this.statementErrors = new LinkedList<>();
     }
 
     @Override
@@ -81,7 +85,8 @@ public class FormatStreamFileJob extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.run(formatted.toArray(new IFile[formatted.size()]), errors.toArray(new FileError[errors.size()]));
+            postRun.run(formatted.toArray(new IFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
+                statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
         }
 
         return Status.OK_STATUS;
@@ -129,9 +134,21 @@ public class FormatStreamFileJob extends Job {
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formatted.add(file);
+            if (formatter.getErrorCount() > 0) {
+                statementErrors.add(new ErrorGroup(file.getFullPath().toOSString(), toDetailMessages(formatter.getErrors())));
+            }
         } else {
             errors.add(new FileError(file, Messages.Error_Could_not_format_member));
         }
+    }
+
+    private static String[] toDetailMessages(List<FormatError> formatErrors) {
+        String[] details = new String[formatErrors.size()];
+        for (int i = 0; i < formatErrors.size(); i++) {
+            FormatError fe = formatErrors.get(i);
+            details[i] = Messages.bind(Messages.Error_Line_A_message_B, fe.getStartLineNumber() + 1, fe.getMessage());
+        }
+        return details;
     }
 
     public class FileError implements IErrorObject {

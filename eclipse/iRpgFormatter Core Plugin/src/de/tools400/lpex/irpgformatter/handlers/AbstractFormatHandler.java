@@ -17,6 +17,7 @@ import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IErrorObject;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public abstract class AbstractFormatHandler extends AbstractHandler {
@@ -40,7 +41,18 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
             @Override
             public IStatus runInUIThread(IProgressMonitor arg0) {
-                UIUtils.displayErrorDetailsTitleAreaDialog(message, errorDetails);
+                UIUtils.displayErrorDetailsDialog(message, errorDetails);
+                return Status.OK_STATUS;
+            }
+        };
+        job.schedule();
+    }
+
+    protected void displayStatementErrorsDialog(String message, ErrorGroup[] groups) {
+        UIJob job = new UIJob(UIUtils.getDisplay(), "") {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor arg0) {
+                UIUtils.displayErrorDetailsDialog(message, groups);
                 return Status.OK_STATUS;
             }
         };

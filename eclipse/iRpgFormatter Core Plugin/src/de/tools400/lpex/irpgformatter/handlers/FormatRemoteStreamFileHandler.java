@@ -19,6 +19,7 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob.FileError;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteStreamFilesPostRun;
+import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteStreamFileHandler extends AbstractFormatHandler implements IFormatRemoteStreamFilesPostRun {
 
@@ -54,7 +55,7 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
      * Callback of the formatter job. Called at the end of the formatter.
      */
     @Override
-    public void run(IRemoteFile[] formatted, FileError[] errors) {
+    public void run(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
 
         if (errors.length > 0) {
             String message;
@@ -64,6 +65,10 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
                 message = Messages.bind(Messages.Error_Not_all_files_formatted_A, errors.length);
             }
             displayErrorDialog(message, errors);
+        } else if (statementErrors.length > 0) {
+            String message = Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B,
+                formatted.length, statementErrors.length);
+            displayStatementErrorsDialog(message, statementErrors);
         } else {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));
         }

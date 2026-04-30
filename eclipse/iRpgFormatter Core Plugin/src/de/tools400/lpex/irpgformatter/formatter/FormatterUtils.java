@@ -168,6 +168,11 @@ public class FormatterUtils implements RpgleSourceConstants {
                 formattedLine = tokenResults[tokenResults.length - 1];
             }
 
+            boolean isDebugEnabled = true;
+            if (isDebugEnabled) {
+                throw new LineOverflowException("DEBUG Test");
+            }
+
             if (token.getType() == TokenType.NAME) {
                 if (isSubField) {
                     if (isAlignSubFieldsEnabled) {
@@ -235,8 +240,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     private String[] formatSpecialWord(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
-        return formatOther(line, token, maxLineLength,
-            new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
+        return formatOther(line, token, maxLineLength, new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
     }
 
     private String[] formatOther(String line, IToken token, int maxLineLength, IFormattingRule formattingRule) throws RpgleFormatterException {

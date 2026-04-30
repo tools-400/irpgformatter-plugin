@@ -55,8 +55,34 @@ public class UIUtils {
         ErrorDialog.openError(getShell(), Messages.E_R_R_O_R, message, multiStatus);
     }
 
+    /**
+     * Application-wide entry point for showing an error message together with
+     * a scrollable list of detail entries. All callers that want the standard
+     * iRPGFormatter look-and-feel for such dialogs should use this method;
+     * the underlying dialog implementation can then be swapped centrally
+     * without touching call sites.
+     */
+    public static void displayErrorDetailsDialog(String message, String[] errorDetails) {
+        displayErrorDetailsTitleAreaDialog(message, errorDetails);
+    }
+
     public static void displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails) {
         ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), message, errorDetails);
+        dialog.open();
+    }
+
+    /**
+     * Application-wide entry point for showing a master/detail error dialog
+     * (table of resources on top, error details of the selected row at the
+     * bottom). Use when errors naturally group by resource — e.g. one group
+     * per source member containing the statement-level errors.
+     */
+    public static void displayErrorDetailsDialog(String message, ErrorGroup[] errorGroups) {
+        displayMemberErrorsDialog(message, errorGroups);
+    }
+
+    public static void displayMemberErrorsDialog(String message, ErrorGroup[] errorGroups) {
+        MemberErrorsDialog dialog = new MemberErrorsDialog(getShell(), message, errorGroups);
         dialog.open();
     }
 

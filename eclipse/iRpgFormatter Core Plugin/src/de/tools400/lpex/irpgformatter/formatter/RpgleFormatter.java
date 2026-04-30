@@ -60,7 +60,7 @@ public class RpgleFormatter {
     private final FormatterUtils formatterUtils;
     private final Tokenizer tokenizer;
 
-    private int errorCount;
+    private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
 
     public RpgleFormatter(FormatterConfig config) {
@@ -115,7 +115,7 @@ public class RpgleFormatter {
                 new FormattedStatement[] { new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines) });
         }
 
-        errorCount = 0;
+        errors.clear();
 
         String[] sourceLines = input.getSourceLines();
         List<FormattedStatement> results = new ArrayList<>();
@@ -157,13 +157,17 @@ public class RpgleFormatter {
                 try {
                     stmtOutput.addAll(formatLine(statement, type, indent));
                 } catch (Exception e) {
+                    Throwable unexpectedCause = null;
                     if (e instanceof LineOverflowException) {
                         ((LineOverflowException)e).setLineNumbers(statement.getStartLineNumber(), statement.getEndLineNumber());
                     } else {
-                        IRpgleFormatterPlugin.logError("Unexpected formatting error.", e);
+                        unexpectedCause = e;
                     }
+                    // Original-source fallback: keep the statement verbatim
+                    // in the output so that later lines remain numbered
+                    // correctly; the caller is informed via getErrors().
                     stmtOutput.addAll(statement.getOriginalStatements());
-                    errorCount++;
+                    errors.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, e.getMessage(), unexpectedCause));
                 }
             }
             results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(), stmtOutput.toArray(new String[0])));
@@ -173,7 +177,20 @@ public class RpgleFormatter {
     }
 
     public int getErrorCount() {
-        return errorCount;
+        return errors.size();
+    }
+
+    /**
+     * Returns the list of statements that could not be formatted during the
+     * last {@link #format(IRpgleInput, int)} call. The corresponding original
+     * source lines are still present in the formatted result; this list is
+     * the only place where the underlying error information is exposed.
+     *
+     * @return an unmodifiable list of formatting errors (empty if all
+     *         statements were formatted successfully)
+     */
+    public List<FormatError> getErrors() {
+        return Collections.unmodifiableList(errors);
     }
 
     /**

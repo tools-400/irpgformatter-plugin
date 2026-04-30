@@ -8,12 +8,16 @@
 
 package de.tools400.lpex.irpgformatter.actions;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import com.ibm.lpex.core.LpexAction;
 import com.ibm.lpex.core.LpexView;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -98,7 +102,7 @@ public class FormatLpexSourceAction implements LpexAction {
         int sourceLength = LpexViewUtils.getMaxLineLength(view);
         formatter.setSourceLength(sourceLength);
 
-        int endLine;
+        int endLine = -1;
         saveCursorPosition(view);
 
         if (executeIbmFormatter) {
@@ -111,13 +115,22 @@ public class FormatLpexSourceAction implements LpexAction {
         if (executeIrpgFormatter) {
             FormattedResult result = formatter.format(input, defaultIndent);
 
-            // Write formatted source back to view
+            // Write formatted source back to view. Statements that failed to
+            // format are written as their original source lines, so the
+            // overall write still happens — even when getErrorCount() > 0.
             IRpgleOutput output = input.getOutput();
             output.writeSourceLines(result);
 
+            // Re-select the (possibly resized) block regardless of errors,
+            // since the lines have been written back to the view.
             if (haveSelection && result.getLineCount() > 0) {
                 endLine = startLine + result.getLineCount() - 1;
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
+            }
+
+            if (formatter.getErrorCount() > 0) {
+                reportFormattingErrors(formatter.getErrors());
+            } else if (haveSelection && result.getLineCount() > 0) {
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
             } else {
                 LpexViewUtils.displayMessage(view, Messages.Message_Source_formatted_successfully);
@@ -129,6 +142,32 @@ public class FormatLpexSourceAction implements LpexAction {
         }
 
         restoreCursorPosition(view);
+    }
+
+    /**
+     * Shows the standard error-details dialog summarizing the failed
+     * statements and logs any unexpected underlying exceptions to the
+     * Eclipse error log so that they are not silently swallowed.
+     */
+    private void reportFormattingErrors(List<FormatError> errors) {
+
+        String[] details = new String[errors.size()];
+        for (int i = 0; i < errors.size(); i++) {
+            FormatError error = errors.get(i);
+            details[i] = Messages.bind(Messages.Error_Line_A_message_B, error.getStartLineNumber() + 1, error.getMessage());
+        }
+
+        UIUtils.displayErrorDetailsDialog(
+            Messages.bind(Messages.Error_Source_formatted_with_N_errors, errors.size()), details);
+
+        // Unexpected underlying exceptions still go to the Eclipse error log
+        // for post-mortem analysis. LineOverflowException-style errors carry
+        // a null cause and are intentionally only shown to the user.
+        for (FormatError error : errors) {
+            if (error.getCause() != null) {
+                IRpgleFormatterPlugin.logError(error.getMessage(), error.getCause());
+            }
+        }
     }
 
     private int getIndent(LpexView view, int startLine) {
