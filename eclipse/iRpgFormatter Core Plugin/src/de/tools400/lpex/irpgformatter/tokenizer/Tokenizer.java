@@ -53,15 +53,18 @@ public class Tokenizer implements RpgleSourceConstants {
     /**
      * Tokenizes <code>value</code> with awareness of the surrounding statement
      * type. Some token positions in RPGLE are unambiguously names (e.g. the
-     * first token of a sub-field, or the second token of a <code>dcl-*</code>
-     * statement). Without context, an identifier that happens to match a
-     * reserved keyword (such as <code>CCSID</code>) would be misclassified as
-     * <code>KEYWORD</code>. Passing the statement type lets the tokenizer force
-     * a <code>NAME</code> classification at those positions.
+     * first token of a sub-field — or the second token, if the optional
+     * <code>DCL-SUBF</code> prefix is present — or the second token of a
+     * <code>dcl-*</code> statement). Without context, an identifier that
+     * happens to match a reserved keyword (such as <code>CCSID</code>) would
+     * be misclassified as <code>KEYWORD</code>. Passing the statement type
+     * lets the tokenizer force a <code>NAME</code> classification at those
+     * positions.
      *
      * @param value the source text of the statement
      * @param context the statement type the line was identified as; pass
-     *        {@link StatementType#OTHER} to disable forced-name handling
+     *        <code>null</code> (or {@link StatementType#OTHER}) to disable
+     *        forced-name handling
      */
     public IToken[] tokenize(String value, StatementType context) throws RpgleFormatterException {
 
@@ -69,8 +72,7 @@ public class Tokenizer implements RpgleSourceConstants {
 
         String remaining = value.trim();
 
-        int tokenIndex = 0;
-        TokenType tokenType = classifyToken(remaining, context, tokenIndex);
+        TokenType tokenType = classifyToken(remaining, context, tokens);
         IToken token = null;
         int offset = 0;
 
@@ -113,8 +115,7 @@ public class Tokenizer implements RpgleSourceConstants {
                 }
 
                 token = null;
-                tokenIndex++;
-                tokenType = classifyToken(remaining, context, tokenIndex);
+                tokenType = classifyToken(remaining, context, tokens);
             } else {
                 throw new RpgleFormatterException("No token found!");
             }
@@ -357,7 +358,7 @@ public class Tokenizer implements RpgleSourceConstants {
         return line.length();
     }
 
-    private TokenType classifyToken(String line, StatementType context, int tokenIndex) {
+    private TokenType classifyToken(String line, StatementType context, List<IToken> previousTokens) {
 
         if (StringUtils.isNullOrEmpty(line)) {
             return null;
@@ -384,7 +385,7 @@ public class Tokenizer implements RpgleSourceConstants {
         // force NAME classification when the text matches a name pattern.
         // This prevents identifiers that happen to match a reserved keyword
         // (such as CCSID) from being misclassified as KEYWORD.
-        if (isForcedNamePosition(context, tokenIndex) && checkNameToken(line)) {
+        if (mustBeNameToken(context, previousTokens) && checkNameToken(line)) {
             return TokenType.NAME;
         }
 
@@ -405,21 +406,32 @@ public class Tokenizer implements RpgleSourceConstants {
     }
 
     /**
-     * Returns <code>true</code> if the token at <code>tokenIndex</code> within
-     * a statement of type <code>context</code> must be a NAME token according
-     * to RPGLE syntax — regardless of whether the text happens to match a
-     * reserved keyword.
+     * Returns <code>true</code> if the next token to be classified within a
+     * statement of type <code>context</code> must be a NAME token according to
+     * RPGLE syntax — regardless of whether the text happens to match a
+     * reserved keyword. The decision is based on the tokens that have already
+     * been collected for the current statement.
      */
-    private boolean isForcedNamePosition(StatementType context, int tokenIndex) {
+    private boolean mustBeNameToken(StatementType context, List<IToken> previousTokens) {
 
         if (context == null) {
             return false;
         }
 
+        int tokenIndex = previousTokens.size();
+
         switch (context) {
         case DCL_SUBF:
-            // Sub-fields start with the field name.
-            return tokenIndex == 0;
+            // Sub-fields start with the field name. An optional leading
+            // DCL-* token (e.g. `DCL-SUBF`) shifts the name to the next
+            // position.
+            if (tokenIndex == 0) {
+                return true;
+            }
+            if (tokenIndex == 1 && previousTokens.get(0).getType() == TokenType.DCL) {
+                return true;
+            }
+            return false;
         case DCL_S:
         case DCL_F:
         case DCL_C:

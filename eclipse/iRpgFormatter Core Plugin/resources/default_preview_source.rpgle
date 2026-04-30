@@ -18,6 +18,12 @@ DCL-PROC myProc export;
   // Break name on case change.
   DCL-S longCamelCaseNameExceedingMaxLineLength VarCHAR(100) Template;
 
+  DCL-DS *N;
+    DCL-SUBF select CHAR(10);
+    name CHAR(10);
+    DCL-SUBF address CHAR(25);
+  END-DS;
+
   // Casing style.
   DCL-S message_t VarCHAR(100) Template;
 

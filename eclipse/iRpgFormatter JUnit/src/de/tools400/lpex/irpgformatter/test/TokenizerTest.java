@@ -148,8 +148,8 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     /**
-     * Sub-field whose name happens to match a reserved keyword (CCSID).
-     * Without context the tokenizer would classify "CCSID" as KEYWORD.
+     * Sub-field whose name happens to match a reserved keyword (CCSID). Without
+     * context the tokenizer would classify "CCSID" as KEYWORD.
      */
     @Test
     public void test_dcl_subF_nameMatchesKeyword() throws RpgleFormatterException {
@@ -161,6 +161,23 @@ public class TokenizerTest extends AbstractTestCase {
 
         assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
         assertEquals(TokenType.EOL, tokens[2].getType());
+    }
+
+    /**
+     * Sub-field whose name happens to match a reserved keyword (CCSID). Without
+     * context the tokenizer would classify "CCSID" as KEYWORD.
+     */
+    @Test
+    public void test_dcl_subF__with_dcl_subF_keyword() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("DCL-SUBF select CHAR(10);", StatementType.DCL_SUBF);
+        assertTrue("Expected exactly 4 tokens", tokens.length == 4);
+        assertEquals(TokenType.DCL, tokens[0].getType());
+        assertEquals(TokenType.NAME, tokens[1].getType());
+        assertEquals("select", tokens[1].getValue());
+
+        assertEquals(TokenType.DATA_TYPE, tokens[2].getType());
+        assertEquals(TokenType.EOL, tokens[3].getType());
     }
 
     /**
