@@ -170,10 +170,14 @@ public class Messages extends NLS {
     public static String Error_Not_all_files_formatted_A;
     public static String Error_A_members_formatted_B_errors;
     public static String Error_File_is_locked_A;
+    public static String Error_Member_locked_by_job_A;
     public static String Error_Not_all_members_formatted_A;
 
     public static String Error_A_members_formatted_with_statement_errors_B;
     public static String Error_A_files_formatted_with_statement_errors_B;
+
+    public static String Error_A_members_formatted_B_failed_C_with_statement_errors;
+    public static String Error_A_files_formatted_B_failed_C_with_statement_errors;
 
     static {
         // initialize resource bundle

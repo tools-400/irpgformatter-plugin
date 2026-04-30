@@ -126,7 +126,6 @@ public class FormatRemoteSourceMemberJob extends Job {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             MemberError memberError = new MemberError(sourceMember, e.getLocalizedMessage());
             errors.add(memberError);
         }

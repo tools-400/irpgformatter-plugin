@@ -31,6 +31,7 @@ import com.ibm.etools.iseries.subsystems.qsys.objects.IRemoteObjectContextProvid
 import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSObjectSubSystem;
 import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 
 public class SourceMembersResolver {
@@ -73,7 +74,7 @@ public class SourceMembersResolver {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            IRpgleFormatterPlugin.logError("Failed to resolve source members.", e);
         }
 
         return sourceMembers.toArray(new SourceMember[sourceMembers.size()]);

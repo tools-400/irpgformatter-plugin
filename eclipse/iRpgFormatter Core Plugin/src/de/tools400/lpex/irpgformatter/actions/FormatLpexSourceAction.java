@@ -85,10 +85,10 @@ public class FormatLpexSourceAction implements LpexAction {
 
         } catch (RpgleFormatterException e) {
             LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Format_failed_A, e.getMessage()));
-            e.printStackTrace();
+            IRpgleFormatterPlugin.logError("Format failed.", e);
         } catch (Throwable e) {
             LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Unexpected_error_A, e.getMessage()));
-            e.printStackTrace();
+            IRpgleFormatterPlugin.logError("Unexpected error while formatting.", e);
         }
     }
 

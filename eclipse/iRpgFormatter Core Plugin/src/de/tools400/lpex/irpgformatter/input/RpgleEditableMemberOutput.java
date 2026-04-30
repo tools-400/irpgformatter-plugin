@@ -20,7 +20,9 @@ import com.ibm.etools.iseries.rse.ui.resources.QSYSEditableRemoteSourceFileMembe
 import com.ibm.etools.iseries.services.qsys.api.IQSYSMember;
 import com.ibm.etools.iseries.subsystems.qsys.resources.QSYSRemoteMemberTransfer;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.DateUtils;
@@ -67,9 +69,13 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
 
             try {
 
-                if (isLocked()) {
-                    // TODO: fix error handling
-                    getMemberLockedMessages();
+                String lockMessage = getMemberLockMessage();
+                if (lockMessage != null) {
+                    // Member is held open by another user/job — abort
+                    // before the upload, surfaced via FileLockedException
+                    // with the detailed lock message (job/user/number) so
+                    // the user can see who's holding the lock.
+                    throw new FileLockedException(editableMember.getMember().getAbsoluteName(), lockMessage);
                 }
 
                 QSYSRemoteMemberTransfer memberTransfer = new QSYSRemoteMemberTransfer(editableMember.getMember(), localPath);
@@ -87,36 +93,38 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
 
             return true;
 
+        } catch (FileLockedException e) {
+            // Pass the detailed lock message through unchanged — wrapping
+            // it would replace it with the generic "Failed writing file"
+            // text and the user would never see who holds the lock.
+            throw new RpgleFormatterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, editableMember.getMember().getAbsoluteName()), e);
         }
     }
 
-    public boolean isLocked() throws Exception {
-
-        if (editableMember.queryLocks() != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public String getMemberLockedMessages() {
+    /**
+     * Returns a human-readable description of the lock currently held on the
+     * member, or {@code null} if the member is not locked. Errors while
+     * querying the lock are logged to the Eclipse error log; the method then
+     * returns {@code null} so that the upload may still proceed (failing
+     * later with the actual transfer error if appropriate).
+     */
+    private String getMemberLockMessage() {
 
         try {
 
-            if (isLocked()) {
-                ISeriesHostObjectLock lock = editableMember.queryLocks();
-                IQSYSMember member = editableMember.getMember();
-                return Messages.bind("Member_C_of_file_A_slash_B_is_locked_by_job_F_slash_E_slash_D", new Object[] { member.getLibrary(),
-                    member.getFile(), member.getName(), lock.getJobName(), lock.getJobUser(), lock.getJobNumber() });
+            ISeriesHostObjectLock lock = editableMember.queryLocks();
+            if (lock == null) {
+                return null;
             }
+            IQSYSMember member = editableMember.getMember();
+            return Messages.bind(Messages.Error_Member_locked_by_job_A, new Object[] { member.getLibrary(),
+                member.getFile(), member.getName(), lock.getJobName(), lock.getJobUser(), lock.getJobNumber() });
 
         } catch (Exception e) {
-            // TODO: fix error handling
-            e.printStackTrace();
+            IRpgleFormatterPlugin.logError("Failed to query member lock info.", e);
+            return null;
         }
-
-        return null;
     }
 }

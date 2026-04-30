@@ -53,24 +53,33 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
 
     /**
      * Callback of the formatter job. Called at the end of the formatter.
+     * Both write-level and statement-level errors are presented together
+     * in the master/detail dialog.
      */
     @Override
     public void run(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
 
-        if (errors.length > 0) {
-            String message;
-            if (formatted.length > 0) {
-                message = Messages.bind(Messages.Error_A_formatted_B_errors, formatted.length, errors.length);
-            } else {
-                message = Messages.bind(Messages.Error_Not_all_files_formatted_A, errors.length);
-            }
-            displayErrorDialog(message, errors);
-        } else if (statementErrors.length > 0) {
-            String message = Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B,
-                formatted.length, statementErrors.length);
-            displayStatementErrorsDialog(message, statementErrors);
-        } else {
+        if (errors.length == 0 && statementErrors.length == 0) {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));
+            return;
         }
+
+        ErrorGroup[] groups = concat(toErrorGroups(errors), statementErrors);
+        String message = buildHeader(formatted.length, errors.length, statementErrors.length);
+        displayErrorDialog(message, groups);
+    }
+
+    private static String buildHeader(int formatted, int writeErrors, int statementErrorFiles) {
+        if (writeErrors > 0 && statementErrorFiles == 0) {
+            if (formatted > 0) {
+                return Messages.bind(Messages.Error_A_formatted_B_errors, formatted, writeErrors);
+            }
+            return Messages.bind(Messages.Error_Not_all_files_formatted_A, writeErrors);
+        }
+        if (writeErrors == 0 && statementErrorFiles > 0) {
+            return Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B, formatted, statementErrorFiles);
+        }
+        return Messages.bind(Messages.Error_A_files_formatted_B_failed_C_with_statement_errors,
+            new Object[] { formatted, writeErrors, statementErrorFiles });
     }
 }

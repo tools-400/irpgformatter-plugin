@@ -20,6 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+
 public class ResourceUtils {
 
     private ResourceUtils() {
@@ -54,8 +56,7 @@ public class ResourceUtils {
             }
         } catch (IOException e) {
             // Log error but continue with empty map
-            e.printStackTrace();
-            System.err.println("Error loading keywords from " + classpathResource + ": " + e.getMessage());
+            IRpgleFormatterPlugin.logError("Failed to load keywords from " + classpathResource + ".", e);
         }
         return Collections.unmodifiableMap(result);
     }
@@ -85,8 +86,7 @@ public class ResourceUtils {
             }
         } catch (IOException e) {
             // Log error but continue with empty map
-            e.printStackTrace();
-            System.err.println("Error loading string from " + classpathResource + ": " + e.getMessage());
+            IRpgleFormatterPlugin.logError("Failed to load string from " + classpathResource + ".", e);
         }
         return lines.toString();
     }

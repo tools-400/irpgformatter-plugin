@@ -33,22 +33,13 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         job.schedule();
     }
 
-    protected void displayErrorDialog(String message, IErrorObject[] errors) {
-        String[] errorDetails = new String[errors.length];
-        for (int i = 0; i < errors.length; i++) {
-            errorDetails[i] = errors[i].getFullPath() + ": " + errors[i].getErrorMessage();
-        }
-        UIJob job = new UIJob(UIUtils.getDisplay(), "") {
-            @Override
-            public IStatus runInUIThread(IProgressMonitor arg0) {
-                UIUtils.displayErrorDetailsDialog(message, errorDetails);
-                return Status.OK_STATUS;
-            }
-        };
-        job.schedule();
-    }
-
-    protected void displayStatementErrorsDialog(String message, ErrorGroup[] groups) {
+    /**
+     * Shows the unified master/detail error dialog. Both write-level errors
+     * (one resource per group, one detail line) and statement-level errors
+     * (one resource per group, multiple detail lines) are presented in the
+     * same dialog so the user only deals with one window.
+     */
+    protected void displayErrorDialog(String message, ErrorGroup[] groups) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
             @Override
             public IStatus runInUIThread(IProgressMonitor arg0) {
@@ -57,5 +48,29 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
             }
         };
         job.schedule();
+    }
+
+    /**
+     * Converts write-level error objects (one error message per resource)
+     * into the {@link ErrorGroup} representation used by the master/detail
+     * dialog, so they can be displayed alongside statement-level errors.
+     */
+    protected static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
+        ErrorGroup[] groups = new ErrorGroup[errors.length];
+        for (int i = 0; i < errors.length; i++) {
+            groups[i] = new ErrorGroup(errors[i].getFullPath(), new String[] { errors[i].getErrorMessage() });
+        }
+        return groups;
+    }
+
+    /**
+     * Concatenates two {@link ErrorGroup} arrays in order. Used when a batch
+     * has both write failures and statement-level errors.
+     */
+    protected static ErrorGroup[] concat(ErrorGroup[] a, ErrorGroup[] b) {
+        ErrorGroup[] result = new ErrorGroup[a.length + b.length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
     }
 }
