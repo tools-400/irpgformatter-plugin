@@ -168,11 +168,6 @@ public class FormatterUtils implements RpgleSourceConstants {
                 formattedLine = tokenResults[tokenResults.length - 1];
             }
 
-            boolean isDebugEnabled = true;
-            if (isDebugEnabled) {
-                throw new LineOverflowException("DEBUG Test");
-            }
-
             if (token.getType() == TokenType.NAME) {
                 if (isSubField) {
                     if (isAlignSubFieldsEnabled) {
