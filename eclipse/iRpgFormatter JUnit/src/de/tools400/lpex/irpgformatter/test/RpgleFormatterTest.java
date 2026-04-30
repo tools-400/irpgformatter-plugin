@@ -1126,10 +1126,11 @@ public class RpgleFormatterTest extends AbstractTestCase {
     @Test
     public void format_collectsErrorsAndKeepsOriginalLines() throws RpgleFormatterException {
 
-        // Choose a source length so small that a non-breakable token (here:
-        // the keyword `extproc(`) cannot fit on any line, deterministically
-        // triggering a LineOverflowException.
-        formatter.setSourceLength(7);
+        // Choose a source length so small that even the leading `dcl-s`
+        // token (5 chars, plus the sub-indent on a fresh line) cannot fit
+        // on any line, deterministically triggering a LineOverflowException
+        // in formatOther.
+        formatter.setSourceLength(3);
 
         // @formatter:off
         String[] result = formatter.format(new TextLinesInput(
@@ -1144,7 +1145,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
         FormatError error = errors.get(0);
         assertNotNull("Error message must not be null", error.getMessage());
-        assertEquals("Start line must point at the failing statement", 0, error.getStartLineNumber());
+        assertEquals("Start line must point at the failing statement", 1, error.getStartLineNumber());
         assertNull("LineOverflowException must not be exposed as an unexpected cause", error.getCause());
 
         // The original (unformatted) source line must still be present in the
