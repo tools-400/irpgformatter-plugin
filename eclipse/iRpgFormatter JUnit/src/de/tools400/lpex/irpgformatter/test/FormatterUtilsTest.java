@@ -8,7 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
-import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 
 public class FormatterUtilsTest extends AbstractTestCase {
 
@@ -418,81 +416,4 @@ public class FormatterUtilsTest extends AbstractTestCase {
         assertEquals(" *varsize : *trim : *string ", parameters);
     }
 
-    // --- sortConstValueToEnd tests ---
-
-    @Test
-    public void testSortConstToEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("const", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[3].getType());
-    }
-
-    @Test
-    public void testSortValueToEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam value packed(7:2);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("value", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[3].getType());
-    }
-
-    @Test
-    public void testSortConstToEnd_alreadyAtEnd() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam char(10) const;");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    @Test
-    public void testSortConstToEnd_beforeOtherKeywords() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10) options(*nopass);");
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        assertEquals(TokenType.NAME, tokens[0].getType());
-        assertEquals(TokenType.DATA_TYPE, tokens[1].getType());
-        assertEquals(TokenType.KEYWORD, tokens[2].getType());
-        assertEquals("options", tokens[2].getValue().toLowerCase());
-        assertEquals(TokenType.KEYWORD, tokens[3].getType());
-        assertEquals("const", tokens[3].getValue().toLowerCase());
-        assertEquals(TokenType.EOL, tokens[4].getType());
-    }
-
-    @Test
-    public void testSortConstToEnd_disabled() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(false);
-        IToken[] tokens = getTokenizer().tokenize("myParam const char(10);");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    @Test
-    public void testSortConstToEnd_noConstValue() throws RpgleFormatterException {
-        getFormatterConfig().setSortConstValueToEnd(true);
-        IToken[] tokens = getTokenizer().tokenize("myParam char(10);");
-        TokenType[] before = getTokenTypes(tokens);
-        tokens = getFormatterUtils().sortConstValueToEnd(tokens);
-        TokenType[] after = getTokenTypes(tokens);
-        assertArrayEquals(before, after);
-    }
-
-    private static TokenType[] getTokenTypes(IToken[] tokens) {
-        TokenType[] types = new TokenType[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            types[i] = tokens[i].getType();
-        }
-        return types;
-    }
 }

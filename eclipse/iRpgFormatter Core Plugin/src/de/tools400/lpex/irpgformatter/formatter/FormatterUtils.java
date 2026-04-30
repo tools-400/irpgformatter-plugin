@@ -66,42 +66,6 @@ public class FormatterUtils implements RpgleSourceConstants {
         return config;
     }
 
-    public IToken[] sortConstValueToEnd(IToken[] tokens) {
-        if (!config.isSortConstValueToEnd()) {
-            return tokens;
-        }
-
-        List<IToken> constValueTokens = new LinkedList<>();
-        List<IToken> otherTokens = new LinkedList<>();
-        List<IToken> trailingTokens = new LinkedList<>();
-
-        for (int i = 0; i < tokens.length; i++) {
-            IToken token = tokens[i];
-            if (token.getType() == TokenType.EOL || token.getType() == TokenType.COMMENT) {
-                trailingTokens.add(token);
-            } else if (token.getType() == TokenType.KEYWORD && isConstOrValue(token)) {
-                constValueTokens.add(token);
-            } else {
-                otherTokens.add(token);
-            }
-        }
-
-        if (constValueTokens.isEmpty()) {
-            return tokens;
-        }
-
-        List<IToken> result = new LinkedList<>();
-        result.addAll(otherTokens);
-        result.addAll(constValueTokens);
-        result.addAll(trailingTokens);
-        return result.toArray(new IToken[0]);
-    }
-
-    private static boolean isConstOrValue(IToken token) {
-        String upper = token.getValue().toUpperCase();
-        return "CONST".equals(upper) || "VALUE".equals(upper);
-    }
-
     public FormattingRules getFormattingRules() {
         return formattingRules;
     }

@@ -27,6 +27,7 @@ import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.SortConstValueToEndRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
@@ -59,6 +60,8 @@ public class RpgleFormatter {
     private final FormatterConfig config;
     private final FormatterUtils formatterUtils;
     private final Tokenizer tokenizer;
+    private final FormatConstKeywordRule formatConstKeywordRule;
+    private final SortConstValueToEndRule sortConstValueToEndRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
@@ -68,6 +71,8 @@ public class RpgleFormatter {
         this.endColumn = config.getEndColumn(100);
         this.formatterUtils = new FormatterUtils(config);
         this.tokenizer = new Tokenizer(config);
+        this.formatConstKeywordRule = new FormatConstKeywordRule(config);
+        this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
     }
 
     public RpgleFormatter() {
@@ -339,7 +344,7 @@ public class RpgleFormatter {
     private List<String> formatDclC(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_C);
-        tokens = new FormatConstKeywordRule(config).apply(tokens);
+        tokens = formatConstKeywordRule.apply(tokens);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
 
         return Arrays.asList(results);
@@ -394,7 +399,7 @@ public class RpgleFormatter {
         int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, endColumn);
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_SUBF);
-        tokens = formatterUtils.sortConstValueToEnd(tokens);
+        tokens = sortConstValueToEndRule.apply(tokens);
         String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn, subFieldAlignCol);
 
         return Arrays.asList(results);
