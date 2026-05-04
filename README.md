@@ -12,14 +12,14 @@ Further information about the iRpgFormatter are available on the [iRpgFormatter 
 
 1. Open an RPGLE source member in the LPEX editor
 2. Right-click to open the context menu
-3. Select **iRPGFormatter > iFormat**
+3. Select **Source > iFormat**
 
 ### Formatting Selected Lines
 
 You can format only a portion of the source:
 
 1. Select the lines you want to format
-2. Right-click and select **iRPGFormatter > iFormat**
+2. Right-click and select **Source > iFormat**
 3. Only the selected lines will be formatted
 
 **Note:** If your selection starts or ends inside a block (DCL-DS, DCL-PR, DCL-PI), the selection is automatically expanded to include the complete block.
@@ -35,7 +35,9 @@ The formatter requires **\*\*free** format. Fixed-format sources are not support
 
 ## Preferences
 
-Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPGFormatter**
+Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPGFormatter**, next to the IBM formatter settings.
+
+Consider mapping a **User Key Action** to the `iRPGFormatter.Format` **User Action**.
 
 ### IBM Settings
 
