@@ -130,7 +130,8 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
 
     @Override
     protected IPropertyChangeListener getPreferencesChangeListener() {
-        return this;
+        // return this;
+        return null;
     }
 
     public static String getInitialUserKeyActions() {
