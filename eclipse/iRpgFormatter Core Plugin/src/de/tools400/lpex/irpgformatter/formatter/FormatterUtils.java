@@ -132,7 +132,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                 formattedLine = tokenResults[tokenResults.length - 1];
             }
 
-            if (token.getType() == TokenType.NAME) {
+            if (token.getType() == TokenType.NAME || isSpecialWordStarN(token)) {
                 if (isSubField) {
                     if (isAlignSubFieldsEnabled) {
                         if (formattedLine.trim().length() > subFieldAlignCol) {
@@ -671,8 +671,15 @@ public class FormatterUtils implements RpgleSourceConstants {
             IToken[] tokens = tokenizer.tokenize(child.getStatement(), StatementType.DCL_SUBF);
             IToken nameToken = getNameToken(tokens);
 
-            String[] nameParts = breakName("", nameToken, maxLineLength, "", "");
-            String lastNamePart = nameParts[nameParts.length - 1];
+            String lastNamePart;
+            if (nameToken.getType() == TokenType.NAME) {
+                String[] nameParts = breakName("", nameToken, maxLineLength, "", "");
+                lastNamePart = nameParts[nameParts.length - 1];
+            } else if (nameToken.getType() == TokenType.SPECIAL_WORD) {
+                lastNamePart = nameToken.getValue();
+            } else {
+                throw new UnexpectedTokenException(nameToken);
+            }
 
             int prefixLength = 0;
             if (tokens.length > 0 && tokens[0].getType() == TokenType.DCL) {
@@ -693,21 +700,26 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     /**
-     * Returns the <code>NAME</code> token from a the tokens of a tokenized
-     * statement.
+     * Returns the name token from the tokens of a tokenized statement. The name
+     * token is either a <code>NAME</code> token or the special word
+     * <code>*N</code>.
      *
      * @param tokens - tokens of a tokenized statement
-     * @return the NAME token
+     * @return the name token
      * @throws RpgleFormatterException
      */
     private static IToken getNameToken(IToken[] tokens) throws RpgleFormatterException {
 
         for (IToken token : tokens) {
-            if (TokenType.NAME == token.getType()) {
+            if (TokenType.NAME == token.getType() || isSpecialWordStarN(token)) {
                 return token;
             }
         }
 
         throw new TokenNotFoundException(TokenType.NAME.name());
+    }
+
+    private static boolean isSpecialWordStarN(IToken token) {
+        return TokenType.SPECIAL_WORD == token.getType() && "*N".equalsIgnoreCase(token.getValue());
     }
 }
