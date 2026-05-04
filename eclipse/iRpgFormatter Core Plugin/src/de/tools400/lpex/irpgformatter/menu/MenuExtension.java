@@ -21,7 +21,6 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.actions.FormatLpexSourceAction;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.menuextension.AbstractLpexMenuExtension;
-import de.tools400.lpex.menuextension.LpexKey;
 import de.tools400.lpex.menuextension.LpexMenu;
 import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
 import de.tools400.lpex.menuextension.model.UserAction;
@@ -137,8 +136,6 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
     public static String getInitialUserKeyActions() {
 
         List<UserKeyAction> actions = new LinkedList<>();
-
-        checkAndAddUserKeyAction(actions, createShortcut(LpexKey.CTRL, LpexKey.ALT, "F"), FormatLpexSourceAction.ID);
 
         StringBuilder buffer = new StringBuilder();
         for (UserKeyAction action : actions) {
