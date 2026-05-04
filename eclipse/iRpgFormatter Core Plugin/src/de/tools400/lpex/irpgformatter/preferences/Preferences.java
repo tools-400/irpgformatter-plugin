@@ -40,7 +40,6 @@ public final class Preferences implements RpgleSourceConstants {
      */
     private IPreferenceStore ibmPreferenceStore;
 
-    private static final String KEYWORD_CASING_STYLE = "keywordCasingStyle";
     private static final String PARAMETER_SPACING_STYLE = "parameterSpacingStyle";
     private static final String USE_CONST_KEYWORD = "useConstKeyword";
     private static final String DELIMITER_BEFORE_PARAMETER = "delimiterBeforeParameter";
@@ -442,7 +441,6 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void initializeDefaultPreferences() {
-        preferenceStore.setDefault(KEYWORD_CASING_STYLE, getDefaultKeywordCasingStyle().name());
         preferenceStore.setDefault(PARAMETER_SPACING_STYLE, getDefaultParameterSpacingStyle().name());
         preferenceStore.setDefault(USE_CONST_KEYWORD, getDefaultUseConstKeyword());
         preferenceStore.setDefault(DELIMITER_BEFORE_PARAMETER, getDefaultDelimiterBeforeParameter());
