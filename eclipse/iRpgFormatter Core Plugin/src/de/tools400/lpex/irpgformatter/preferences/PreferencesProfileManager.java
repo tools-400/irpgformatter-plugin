@@ -80,17 +80,21 @@ public final class PreferencesProfileManager {
         profiles.setAttribute(ATTR_VERSION, PROFILE_VERSION);
         doc.appendChild(profiles);
 
-        // <profile kind="iRPGFormatterProfile" name="iRPGFormatter" version="1">
+        // <profile kind="iRPGFormatterProfile" name="iRPGFormatter"
+        // version="1">
         Element profile = doc.createElement(TAG_PROFILE);
         profile.setAttribute(ATTR_KIND, PROFILE_KIND);
         profile.setAttribute(ATTR_NAME, PROFILE_NAME);
         profile.setAttribute(ATTR_VERSION, PROFILE_VERSION);
         profiles.appendChild(profile);
 
-        // Scalar settings
-        addScalarSetting(doc, profile, "parameterSpacingStyle", data.getParameterSpacingStyle());
+        // Scalar settings: IBM Settings
+        addScalarSetting(doc, profile, "executeIbmFormatter", String.valueOf(data.isExecuteIbmFormatter()));
+
+        // Scalar settings: General Settings
         addScalarSetting(doc, profile, "useConstKeyword", String.valueOf(data.isUseConstKeyword()));
         addScalarSetting(doc, profile, "delimiterBeforeParameter", String.valueOf(data.isDelimiterBeforeParameter()));
+        addScalarSetting(doc, profile, "parameterSpacingStyle", data.getParameterSpacingStyle());
         addScalarSetting(doc, profile, "alignSubFields", String.valueOf(data.isAlignSubFields()));
         addScalarSetting(doc, profile, "breakBetweenCaseChange", String.valueOf(data.isBreakBetweenCaseChange()));
         addScalarSetting(doc, profile, "breakBeforeKeyword", String.valueOf(data.isBreakBeforeKeyword()));
@@ -100,8 +104,9 @@ public final class PreferencesProfileManager {
         addScalarSetting(doc, profile, "unindentCompilerDirectives", String.valueOf(data.isUnindentCompilerDirectives()));
         addScalarSetting(doc, profile, "maxNameLength", String.valueOf(data.getMaxNameLength()));
         addScalarSetting(doc, profile, "minNameLength", String.valueOf(data.getMinNameLength()));
-        addScalarSetting(doc, profile, "executeIbmFormatter", String.valueOf(data.isExecuteIbmFormatter()));
         addScalarSetting(doc, profile, "executeIrpgFormatter", String.valueOf(data.isExecuteIrpgFormatter()));
+
+        // Scalar settings: Save Actions
         addScalarSetting(doc, profile, "formatOnSave", String.valueOf(data.isFormatOnSave()));
 
         // Map settings
@@ -157,7 +162,8 @@ public final class PreferencesProfileManager {
         for (int i = 0; i < settings.getLength(); i++) {
             Element setting = (Element)settings.item(i);
 
-            // Skip nested <entry> elements that are also returned by getElementsByTagName
+            // Skip nested <entry> elements that are also returned by
+            // getElementsByTagName
             if (!setting.getParentNode().equals(profileElement)) {
                 continue;
             }
@@ -166,71 +172,71 @@ public final class PreferencesProfileManager {
             String value = setting.getAttribute(ATTR_VALUE);
 
             switch (id) {
-                case "parameterSpacingStyle":
-                    data.setParameterSpacingStyle(value);
-                    break;
-                case "useConstKeyword":
-                    data.setUseConstKeyword(Boolean.parseBoolean(value));
-                    break;
-                case "delimiterBeforeParameter":
-                    data.setDelimiterBeforeParameter(Boolean.parseBoolean(value));
-                    break;
-                case "alignSubFields":
-                    data.setAlignSubFields(Boolean.parseBoolean(value));
-                    break;
-                case "breakBetweenCaseChange":
-                    data.setBreakBetweenCaseChange(Boolean.parseBoolean(value));
-                    break;
-                case "breakBeforeKeyword":
-                    data.setBreakBeforeKeyword(Boolean.parseBoolean(value));
-                    break;
-                case "sortConstValueToEnd":
-                    data.setSortConstValueToEnd(Boolean.parseBoolean(value));
-                    break;
-                case "replacePiName":
-                    data.setReplacePiName(Boolean.parseBoolean(value));
-                    break;
-                case "removeEndProcName":
-                    data.setRemoveEndProcName(Boolean.parseBoolean(value));
-                    break;
-                case "unindentCompilerDirectives":
-                    data.setUnindentCompilerDirectives(Boolean.parseBoolean(value));
-                    break;
-                case "maxNameLength":
-                    data.setMaxNameLength(Integer.parseInt(value));
-                    break;
-                case "minNameLength":
-                    data.setMinNameLength(Integer.parseInt(value));
-                    break;
-                case "executeIbmFormatter":
-                    data.setExecuteIbmFormatter(Boolean.parseBoolean(value));
-                    break;
-                case "executeIrpgFormatter":
-                    data.setExecuteIrpgFormatter(Boolean.parseBoolean(value));
-                    break;
-                case "formatOnSave":
-                    data.setFormatOnSave(Boolean.parseBoolean(value));
-                    break;
-                case "dataTypes":
-                    data.setDataTypes(readMapEntries(setting));
-                    break;
-                case "declarationTypes":
-                    data.setDeclarationTypes(readMapEntries(setting));
-                    break;
-                case "keywords":
-                    data.setKeywords(readMapEntries(setting));
-                    break;
-                case "specialWords":
-                    data.setSpecialWords(readMapEntries(setting));
-                    break;
-                case "customPreviewSource":
-                    String content = setting.getTextContent().trim();
-                    content = content.replace("\r\n", "\n").replace("\r", "\n");
-                    data.setCustomPreviewSource(content);
-                    break;
-                default:
-                    // Ignore unknown settings for forward compatibility
-                    break;
+            case "parameterSpacingStyle":
+                data.setParameterSpacingStyle(value);
+                break;
+            case "useConstKeyword":
+                data.setUseConstKeyword(Boolean.parseBoolean(value));
+                break;
+            case "delimiterBeforeParameter":
+                data.setDelimiterBeforeParameter(Boolean.parseBoolean(value));
+                break;
+            case "alignSubFields":
+                data.setAlignSubFields(Boolean.parseBoolean(value));
+                break;
+            case "breakBetweenCaseChange":
+                data.setBreakBetweenCaseChange(Boolean.parseBoolean(value));
+                break;
+            case "breakBeforeKeyword":
+                data.setBreakBeforeKeyword(Boolean.parseBoolean(value));
+                break;
+            case "sortConstValueToEnd":
+                data.setSortConstValueToEnd(Boolean.parseBoolean(value));
+                break;
+            case "replacePiName":
+                data.setReplacePiName(Boolean.parseBoolean(value));
+                break;
+            case "removeEndProcName":
+                data.setRemoveEndProcName(Boolean.parseBoolean(value));
+                break;
+            case "unindentCompilerDirectives":
+                data.setUnindentCompilerDirectives(Boolean.parseBoolean(value));
+                break;
+            case "maxNameLength":
+                data.setMaxNameLength(Integer.parseInt(value));
+                break;
+            case "minNameLength":
+                data.setMinNameLength(Integer.parseInt(value));
+                break;
+            case "executeIbmFormatter":
+                data.setExecuteIbmFormatter(Boolean.parseBoolean(value));
+                break;
+            case "executeIrpgFormatter":
+                data.setExecuteIrpgFormatter(Boolean.parseBoolean(value));
+                break;
+            case "formatOnSave":
+                data.setFormatOnSave(Boolean.parseBoolean(value));
+                break;
+            case "dataTypes":
+                data.setDataTypes(readMapEntries(setting));
+                break;
+            case "declarationTypes":
+                data.setDeclarationTypes(readMapEntries(setting));
+                break;
+            case "keywords":
+                data.setKeywords(readMapEntries(setting));
+                break;
+            case "specialWords":
+                data.setSpecialWords(readMapEntries(setting));
+                break;
+            case "customPreviewSource":
+                String content = setting.getTextContent().trim();
+                content = content.replace("\r\n", "\n").replace("\r", "\n");
+                data.setCustomPreviewSource(content);
+                break;
+            default:
+                // Ignore unknown settings for forward compatibility
+                break;
             }
         }
 
