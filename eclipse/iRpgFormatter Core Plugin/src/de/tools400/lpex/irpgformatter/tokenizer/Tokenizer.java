@@ -56,9 +56,9 @@ public class Tokenizer implements RpgleSourceConstants {
      * first token of a sub-field — or the second token, if the optional
      * <code>DCL-SUBF</code> prefix is present — or the second token of a
      * <code>dcl-*</code> statement). Without context, an identifier that
-     * happens to match a reserved keyword (such as <code>CCSID</code>) would
-     * be misclassified as <code>KEYWORD</code>. Passing the statement type
-     * lets the tokenizer force a <code>NAME</code> classification at those
+     * happens to match a reserved keyword (such as <code>CCSID</code>) would be
+     * misclassified as <code>KEYWORD</code>. Passing the statement type lets
+     * the tokenizer force a <code>NAME</code> classification at those
      * positions.
      *
      * @param value the source text of the statement
@@ -276,7 +276,8 @@ public class Tokenizer implements RpgleSourceConstants {
                     insideParameters = true;
                     bracketDepth = 1;
                 } else {
-                    // Nested open bracket inside parameters (e.g. dim(%elem(...)))
+                    // Nested open bracket inside parameters (e.g.
+                    // dim(%elem(...)))
                     parameters.append(currentChar);
                     bracketDepth++;
                 }
@@ -304,6 +305,12 @@ public class Tokenizer implements RpgleSourceConstants {
                 name = line.substring(0, i);
                 break;
             }
+        }
+
+        // Bare token: loop exhausted input without finding any delimiter
+        // (e.g. `char` inside overlay(char) — no '(', space, or ';').
+        if (name == null) {
+            name = line.substring(0, i);
         }
 
         int rawLength = skipSpaceAndColon(line.substring(i)) + i;
@@ -421,9 +428,9 @@ public class Tokenizer implements RpgleSourceConstants {
     /**
      * Returns <code>true</code> if the next token to be classified within a
      * statement of type <code>context</code> must be a NAME token according to
-     * RPGLE syntax — regardless of whether the text happens to match a
-     * reserved keyword. The decision is based on the tokens that have already
-     * been collected for the current statement.
+     * RPGLE syntax — regardless of whether the text happens to match a reserved
+     * keyword. The decision is based on the tokens that have already been
+     * collected for the current statement.
      */
     private boolean mustBeNameToken(StatementType context, List<IToken> previousTokens) {
 

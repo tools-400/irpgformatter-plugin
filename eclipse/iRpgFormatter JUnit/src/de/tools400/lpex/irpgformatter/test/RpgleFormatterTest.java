@@ -1123,6 +1123,28 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  field1 char(10);", result[1]);
     }
 
+    @Test
+    public void format_subField_keywordNameWithBareOverlayParam_noNPE() throws RpgleFormatterException {
+        // Regression: NPE in parseTokenWithArgs when a bare identifier (no
+        // parens, space, or semicolon) is used as a keyword argument, e.g.
+        // 'char' inside overlay(char). The loop exited without setting 'name',
+        // leaving it null and causing AbstractToken.<init> to throw NPE.
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-ds ebcdic qualified;",
+            "char            char(1);",
+            "integer         uns(3) overlay(char);",
+            "end-ds;"
+        ), 0).toLines();
+        // @formatter:on
+        assertEquals(0, formatter.getErrorCount());
+        assertEquals(4, result.length);
+        assertEquals("dcl-ds ebcdic qualified;", result[0]);
+        assertTrue("char sub-field must be indented", result[1].startsWith("  char "));
+        assertTrue("integer sub-field must be indented", result[2].startsWith("  integer "));
+        assertEquals("end-ds;", result[3]);
+    }
+
     // --- format - error collection ---
 
     @Test
