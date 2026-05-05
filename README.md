@@ -62,11 +62,19 @@ Consider mapping a **User Key Action** to the `iRPGFormatter.Format` **User Acti
 | **Sort const/value to end**        | Off              | Move `const()`/`value()` keyword to the end of the statement                                 |
 | **Replace dcl-pi name with \*N**   | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name     |
 | **Remove end-proc name**           | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC   |
-| **Remove empty comment lines**     | Off              | Remove standalone `//` lines that serve no structural purpose (see [Comment Block Handling]) |
 | **Unindent compiler directives**   | On               | Force compiler directives to column 1; when off, keep their indentation                      |
 | **Maximum name length**            | 60               | Max characters for a name or literal before it is split with `...`                           |
 | **Minimum name length**            | 20               | Min characters that must remain on a line when splitting long names                          |
 | **Execute iRPG formatter**         | On               | Run the iRPGFormatter to apply iRPG formatting rules                                         |
+
+### Experimental Settings
+
+These settings implement new formatting rules that are still being evaluated. They are disabled by default and may change in future releases.
+
+| Setting                              | Default | Description                                                                                                          |
+| ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Remove empty comment lines**       | Off     | Remove standalone `//` lines that serve no structural purpose (see [Comment Block Handling])                         |
+| **Remove empty lines before dcl-pi** | Off     | Remove blank lines and empty `//` comments immediately before a `dcl-pi` statement (see [Empty Lines Before DCL-PI]) |
 
 ### Save Actions
 
@@ -278,7 +286,11 @@ dcl-s myVar3 char(30);         // formatted normally
 - If `@formatter:off` is used without a corresponding `@formatter:on`, the rest of the file remains unformatted
 - The directive lines themselves are always preserved as-is
 
-### Comment Block Handling
+### Experimental Formatting Rules
+
+The rules in this section correspond to the [Experimental Settings] in the preferences.
+
+#### Comment Block Handling
 
 > **Note:** The following rules are implemented in `RemoveEmptyCommentLinesRule`
 > (package `rules/statements`). When adding new comment-formatting behaviour,
@@ -344,6 +356,33 @@ dcl-proc myProc;
 
 Lines inside a `///...///` ILEDoc block are never touched regardless of the
 setting.
+
+#### Empty Lines Before DCL-PI
+
+When **Remove empty lines before dcl-pi** is enabled, blank lines and empty `//` comment lines that appear immediately before a `dcl-pi` statement are removed. This eliminates the visual gap that sometimes accumulates between `dcl-proc` and `dcl-pi`.
+
+The rule runs after **Remove empty comment lines**, so `//` lines already converted to blanks by that rule are also removed here.
+
+**Example:**
+
+```rpgle
+// before formatting:
+dcl-proc f_isIfsDir;
+  //
+  dcl-pi *n ind;
+    i_path like(ifs_path_t) const;
+  end-pi;
+end-proc;
+
+// after formatting (Remove empty lines before dcl-pi = On):
+dcl-proc f_isIfsDir;
+  dcl-pi *n ind;
+    i_path like(ifs_path_t) const;
+  end-pi;
+end-proc;
+```
+
+Lines inside a `@formatter:off` region are never removed.
 
 ### Error Handling
 
