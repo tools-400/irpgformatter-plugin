@@ -9,12 +9,14 @@
 package de.tools400.lpex.irpgformatter.formatter;
 
 import de.tools400.lpex.irpgformatter.parser.StatementType;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
+import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
  * Captures information about a single statement that could not be formatted.
- * The original (unformatted) source lines of the statement are preserved in
- * the formatted result; this object lets the caller report the failure to
- * the user without losing the underlying cause.
+ * The original (unformatted) source lines of the statement are preserved in the
+ * formatted result; this object lets the caller report the failure to the user
+ * without losing the underlying cause.
  */
 public class FormatError {
 
@@ -56,10 +58,59 @@ public class FormatError {
     }
 
     public String getMessage() {
-        return message;
+
+        StringBuilder buffer = new StringBuilder();
+
+        if (!StringUtils.isNullOrEmpty(message)) {
+            buffer.append(message);
+        } else {
+            formatUnexpectedException(buffer);
+        }
+
+        return buffer.toString();
     }
 
     public Throwable getCause() {
         return cause;
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("Line: ");
+        buffer.append(startLineNumber);
+        if (startLineNumber != endLineNumber) {
+            buffer.append("-");
+            buffer.append(endLineNumber);
+        }
+
+        // at
+        // de.tools400.lpex.irpgformatter.tokenizer.AbstractToken.<init>(AbstractToken.java:32)
+
+        buffer.append(" - ");
+        if (cause instanceof RpgleFormatterException) {
+            buffer.append(cause.getLocalizedMessage());
+        } else {
+            formatUnexpectedException(buffer);
+        }
+
+        return buffer.toString();
+    }
+
+    private void formatUnexpectedException(StringBuilder buffer) {
+        buffer.append(ExceptionUtils.getLocalizedMessage(cause));
+        if (cause.getStackTrace() != null && cause.getStackTrace().length > 0) {
+            buffer.append(" at ");
+            buffer.append(cause.getStackTrace()[0].getClassName());
+            buffer.append(".");
+            buffer.append(cause.getStackTrace()[0].getMethodName());
+            buffer.append("(");
+            buffer.append(cause.getStackTrace()[0].getFileName());
+            buffer.append(":");
+            buffer.append(cause.getStackTrace()[0].getLineNumber());
+            buffer.append(")");
+        }
     }
 }

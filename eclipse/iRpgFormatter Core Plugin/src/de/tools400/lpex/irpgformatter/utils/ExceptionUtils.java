@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.utils;
 
+import java.net.UnknownHostException;
+
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.utils.jobs.DisplayErrorJob;
 
@@ -23,5 +25,22 @@ public class ExceptionUtils {
 
         DisplayErrorJob job = new DisplayErrorJob(e);
         job.schedule();
+    }
+
+    public static String getLocalizedMessage(Throwable throwable) {
+
+        String exceptionMessage;
+        if (throwable instanceof UnknownHostException) {
+            exceptionMessage = throwable.toString();
+        } else {
+            exceptionMessage = throwable.getLocalizedMessage();
+        }
+
+        if (StringUtils.isNullOrEmpty(exceptionMessage)) {
+            return throwable.getClass().getName();
+        } else {
+            return exceptionMessage.replaceAll("\\p{C}", "�");
+        }
+
     }
 }
