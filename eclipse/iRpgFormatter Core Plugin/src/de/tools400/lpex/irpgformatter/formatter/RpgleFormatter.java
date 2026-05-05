@@ -28,6 +28,7 @@ import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyCommentLinesRule;
+import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyLinesBeforeDclPiRule;
 import de.tools400.lpex.irpgformatter.rules.statements.SortConstValueToEndRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
@@ -64,6 +65,7 @@ public class RpgleFormatter {
     private final FormatConstKeywordRule formatConstKeywordRule;
     private final SortConstValueToEndRule sortConstValueToEndRule;
     private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
+    private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
@@ -76,6 +78,7 @@ public class RpgleFormatter {
         this.formatConstKeywordRule = new FormatConstKeywordRule(config);
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
         this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
+        this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
     }
 
     public RpgleFormatter() {
@@ -137,6 +140,10 @@ public class RpgleFormatter {
             ? removeEmptyCommentLinesRule.apply(statements)
             : new boolean[statements.length];
 
+        boolean[] suppressBeforeDclPi = config.isRemoveEmptyLinesBeforeDclPi()
+            ? removeEmptyLinesBeforeDclPiRule.apply(statements)
+            : new boolean[statements.length];
+
         // Step 3: Process each statement
         boolean formatterDisabled = false;
         for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
@@ -164,6 +171,9 @@ public class RpgleFormatter {
             List<String> stmtOutput = new ArrayList<>();
             if (type == StatementType.OTHER) {
                 stmtOutput.addAll(statement.getOriginalStatements());
+            } else if (suppressBeforeDclPi[stmtIdx]
+                    && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
+                // stmtOutput remains empty → line is completely removed
             } else if (type == StatementType.COMMENT && suppressComment[stmtIdx]) {
                 stmtOutput.add("");
             } else {

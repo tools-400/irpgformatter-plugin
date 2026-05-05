@@ -111,6 +111,7 @@ public final class PreferencesProfileManager {
 
         // Scalar settings: Experimental Settings
         addScalarSetting(doc, profile, "removeEmptyCommentLines", String.valueOf(data.isRemoveEmptyCommentLines()));
+        addScalarSetting(doc, profile, "removeEmptyLinesBeforeDclPi", String.valueOf(data.isRemoveEmptyLinesBeforeDclPi()));
 
         // Map settings
         addMapSetting(doc, profile, "dataTypes", data.getDataTypes());
@@ -223,6 +224,9 @@ public final class PreferencesProfileManager {
             case "removeEmptyCommentLines":
                 data.setRemoveEmptyCommentLines(Boolean.parseBoolean(value));
                 break;
+            case "removeEmptyLinesBeforeDclPi":
+                data.setRemoveEmptyLinesBeforeDclPi(Boolean.parseBoolean(value));
+                break;
             case "dataTypes":
                 data.setDataTypes(readMapEntries(setting));
                 break;
@@ -320,6 +324,7 @@ public final class PreferencesProfileManager {
         private boolean executeIrpgFormatter = true;
         private boolean formatOnSave;
         private boolean removeEmptyCommentLines;
+        private boolean removeEmptyLinesBeforeDclPi;
         private Map<String, String> dataTypes;
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
@@ -452,6 +457,14 @@ public final class PreferencesProfileManager {
 
         public void setRemoveEmptyCommentLines(boolean removeEmptyCommentLines) {
             this.removeEmptyCommentLines = removeEmptyCommentLines;
+        }
+
+        public boolean isRemoveEmptyLinesBeforeDclPi() {
+            return removeEmptyLinesBeforeDclPi;
+        }
+
+        public void setRemoveEmptyLinesBeforeDclPi(boolean removeEmptyLinesBeforeDclPi) {
+            this.removeEmptyLinesBeforeDclPi = removeEmptyLinesBeforeDclPi;
         }
 
         public Map<String, String> getDataTypes() {

@@ -35,6 +35,7 @@ public class FormatterConfig {
     private boolean removeEndProcName;
     private boolean unindentCompilerDirectives;
     private boolean removeEmptyCommentLines;
+    private boolean removeEmptyLinesBeforeDclPi;
     private KeywordCasingStyle keywordCasingStyle;
     private ParameterSpacingStyle parameterSpacingStyle;
     private Map<String, String> keywords;
@@ -99,6 +100,10 @@ public class FormatterConfig {
 
     public boolean isRemoveEmptyCommentLines() {
         return removeEmptyCommentLines;
+    }
+
+    public boolean isRemoveEmptyLinesBeforeDclPi() {
+        return removeEmptyLinesBeforeDclPi;
     }
 
     public KeywordCasingStyle getKeywordCasingStyle() {
@@ -177,6 +182,10 @@ public class FormatterConfig {
         this.removeEmptyCommentLines = removeEmptyCommentLines;
     }
 
+    public void setRemoveEmptyLinesBeforeDclPi(boolean removeEmptyLinesBeforeDclPi) {
+        this.removeEmptyLinesBeforeDclPi = removeEmptyLinesBeforeDclPi;
+    }
+
     public void setKeywordCasingStyle(KeywordCasingStyle keywordCasingStyle) {
         this.keywordCasingStyle = keywordCasingStyle;
     }
@@ -232,6 +241,7 @@ public class FormatterConfig {
         config.removeEndProcName = prefs.isRemoveEndProcName();
         config.unindentCompilerDirectives = prefs.isUnindentCompilerDirectives();
         config.removeEmptyCommentLines = prefs.isRemoveEmptyCommentLines();
+        config.removeEmptyLinesBeforeDclPi = prefs.isRemoveEmptyLinesBeforeDclPi();
         config.keywordCasingStyle = prefs.getKeywordCasingStyle();
         config.parameterSpacingStyle = prefs.getParameterSpacingStyle();
         config.keywords = Collections.unmodifiableMap(prefs.getKeywords());
