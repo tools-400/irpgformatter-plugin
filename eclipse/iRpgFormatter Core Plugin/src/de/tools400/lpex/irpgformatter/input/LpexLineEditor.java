@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import com.ibm.lpex.core.LpexDocumentLocation;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
@@ -17,7 +18,7 @@ import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
  */
 class LpexLineEditor implements LineEditor {
 
-    private final LpexView view;
+    public final LpexView view;
 
     LpexLineEditor(LpexView view) {
         this.view = view;
@@ -34,17 +35,14 @@ class LpexLineEditor implements LineEditor {
     }
 
     @Override
-    public void locateElement(int lineNumber) {
-        LpexViewUtils.locateElement(view, lineNumber);
+    public void addLineAt(int element) {
+        // doCommand with explicit location avoids moving the visible cursor,
+        // eliminating screen flicker from cursor jumps during batch updates.
+        view.doCommand(new LpexDocumentLocation(element, 1), "add");
     }
 
     @Override
-    public void addLine() {
-        LpexViewUtils.addLine(view);
-    }
-
-    @Override
-    public void deleteLine() {
-        LpexViewUtils.deleteLine(view);
+    public void deleteLineAt(int element) {
+        view.doCommand(new LpexDocumentLocation(element, 1), "delete");
     }
 }

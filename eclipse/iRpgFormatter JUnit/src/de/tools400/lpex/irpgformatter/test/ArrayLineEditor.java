@@ -21,11 +21,9 @@ import de.tools400.lpex.irpgformatter.input.LineEditor;
 class ArrayLineEditor implements LineEditor {
 
     private final List<String> lines;
-    private int currentLine;
 
     ArrayLineEditor(String... initialLines) {
         lines = new ArrayList<>(Arrays.asList(initialLines));
-        currentLine = 1;
     }
 
     @Override
@@ -39,19 +37,13 @@ class ArrayLineEditor implements LineEditor {
     }
 
     @Override
-    public void locateElement(int lineNumber) {
-        currentLine = lineNumber;
+    public void addLineAt(int element) {
+        lines.add(element, "");
     }
 
     @Override
-    public void addLine() {
-        lines.add(currentLine, "");
-        currentLine++;
-    }
-
-    @Override
-    public void deleteLine() {
-        lines.remove(currentLine - 1);
+    public void deleteLineAt(int element) {
+        lines.remove(element - 1);
     }
 
     String[] toArray() {

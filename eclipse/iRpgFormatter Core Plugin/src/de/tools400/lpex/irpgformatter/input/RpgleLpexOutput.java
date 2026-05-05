@@ -13,9 +13,9 @@ import de.tools400.lpex.irpgformatter.formatter.FormattedStatement;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
- * Writes formatted source lines back to a specific range in an LPEX view.
- * Uses statement-aware update logic: processes statements from bottom to top
- * so that insertions/deletions do not shift positions of earlier statements.
+ * Writes formatted source lines back to a specific range in an LPEX view. Uses
+ * statement-aware update logic: processes statements from bottom to top so that
+ * insertions/deletions do not shift positions of earlier statements.
  */
 public class RpgleLpexOutput implements IRpgleOutput {
 
@@ -56,16 +56,15 @@ public class RpgleLpexOutput implements IRpgleOutput {
             // 3a. More lines than original → insert after last overwritten line
             if (newLines.length > origCount) {
                 for (int j = origCount; j < newLines.length; j++) {
-                    editor.locateElement(origStart + j - 1);
-                    editor.addLine();
+                    editor.addLineAt(origStart + j - 1);
                     editor.setElementText(origStart + j, newLines[j]);
                 }
             }
-            // 3b. Fewer lines than original → delete surplus lines (from bottom)
+            // 3b. Fewer lines than original → delete surplus lines (from
+            // bottom)
             else if (newLines.length < origCount) {
                 for (int j = 0; j < origCount - newLines.length; j++) {
-                    editor.locateElement(origStart + newLines.length);
-                    editor.deleteLine();
+                    editor.deleteLineAt(origStart + newLines.length);
                 }
             }
         }
