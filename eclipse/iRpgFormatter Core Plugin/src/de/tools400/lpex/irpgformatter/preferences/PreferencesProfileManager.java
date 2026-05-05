@@ -109,6 +109,9 @@ public final class PreferencesProfileManager {
         // Scalar settings: Save Actions
         addScalarSetting(doc, profile, "formatOnSave", String.valueOf(data.isFormatOnSave()));
 
+        // Scalar settings: Experimental Settings
+        addScalarSetting(doc, profile, "removeEmptyCommentLines", String.valueOf(data.isRemoveEmptyCommentLines()));
+
         // Map settings
         addMapSetting(doc, profile, "dataTypes", data.getDataTypes());
         addMapSetting(doc, profile, "declarationTypes", data.getDeclarationTypes());
@@ -217,6 +220,9 @@ public final class PreferencesProfileManager {
             case "formatOnSave":
                 data.setFormatOnSave(Boolean.parseBoolean(value));
                 break;
+            case "removeEmptyCommentLines":
+                data.setRemoveEmptyCommentLines(Boolean.parseBoolean(value));
+                break;
             case "dataTypes":
                 data.setDataTypes(readMapEntries(setting));
                 break;
@@ -313,6 +319,7 @@ public final class PreferencesProfileManager {
         private boolean executeIbmFormatter = true;
         private boolean executeIrpgFormatter = true;
         private boolean formatOnSave;
+        private boolean removeEmptyCommentLines;
         private Map<String, String> dataTypes;
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
@@ -437,6 +444,14 @@ public final class PreferencesProfileManager {
 
         public void setFormatOnSave(boolean formatOnSave) {
             this.formatOnSave = formatOnSave;
+        }
+
+        public boolean isRemoveEmptyCommentLines() {
+            return removeEmptyCommentLines;
+        }
+
+        public void setRemoveEmptyCommentLines(boolean removeEmptyCommentLines) {
+            this.removeEmptyCommentLines = removeEmptyCommentLines;
         }
 
         public Map<String, String> getDataTypes() {

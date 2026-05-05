@@ -27,6 +27,7 @@ import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyCommentLinesRule;
 import de.tools400.lpex.irpgformatter.rules.statements.SortConstValueToEndRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
@@ -62,6 +63,7 @@ public class RpgleFormatter {
     private final Tokenizer tokenizer;
     private final FormatConstKeywordRule formatConstKeywordRule;
     private final SortConstValueToEndRule sortConstValueToEndRule;
+    private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
@@ -73,6 +75,7 @@ public class RpgleFormatter {
         this.tokenizer = new Tokenizer(config);
         this.formatConstKeywordRule = new FormatConstKeywordRule(config);
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
+        this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
     }
 
     public RpgleFormatter() {
@@ -129,9 +132,15 @@ public class RpgleFormatter {
         int startLineNumber = input.getStartLineNumber();
         CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber);
 
-        // Step 2: Process each statement
+        // Step 2: Pre-compute which comment lines should be suppressed (output as blank)
+        boolean[] suppressComment = config.isRemoveEmptyCommentLines()
+            ? removeEmptyCommentLinesRule.apply(statements)
+            : new boolean[statements.length];
+
+        // Step 3: Process each statement
         boolean formatterDisabled = false;
-        for (CollectedStatement statement : statements) {
+        for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
+            CollectedStatement statement = statements[stmtIdx];
 
             // Format the statement
             StatementType type = statement.getType();
@@ -155,6 +164,8 @@ public class RpgleFormatter {
             List<String> stmtOutput = new ArrayList<>();
             if (type == StatementType.OTHER) {
                 stmtOutput.addAll(statement.getOriginalStatements());
+            } else if (type == StatementType.COMMENT && suppressComment[stmtIdx]) {
+                stmtOutput.add("");
             } else {
                 for (String embeddedComment : statement.getEmbeddedComments()) {
                     stmtOutput.add(embeddedComment);

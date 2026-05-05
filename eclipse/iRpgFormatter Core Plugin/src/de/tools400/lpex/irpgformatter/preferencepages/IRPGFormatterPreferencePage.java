@@ -86,6 +86,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Button executeIbmFormatterCheckbox;
     private Button executeIrpgFormatterCheckbox;
     private Button formatOnSaveCheckbox;
+    private Button removeEmptyCommentLinesCheckbox;
 
     private KeywordEditor dataTypesEditor;
     private KeywordEditor declarationTypesEditor;
@@ -190,6 +191,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setReplacePiName(replacePiNameCheckbox.getSelection());
         config.setRemoveEndProcName(removeEndProcNameCheckbox.getSelection());
         config.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
+        config.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         config.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()));
         config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
@@ -401,6 +403,21 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOnSaveCheckbox.setLayoutData(createCheckboxGridData());
     }
 
+    private void createExperimentalSettingsGroup(Composite parent) {
+
+        Group group = createSubGroup(parent, Messages.Label_Experimental_Settings);
+
+        SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
+
+        // Remove empty comment lines
+        removeEmptyCommentLinesCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_empty_comment_lines,
+            Messages.Tooltip_Remove_empty_comment_lines);
+        removeEmptyCommentLinesCheckbox.setLayoutData(createCheckboxGridData());
+        removeEmptyCommentLinesCheckbox.addSelectionListener(previewUpdater);
+
+        removeEmptyCommentLinesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines.");
+    }
+
     private void createImportExportButtons(Composite parent) {
 
         Composite buttonComposite = new Composite(parent, SWT.NONE);
@@ -527,6 +544,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
         data.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
         data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
+        data.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
         data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
         data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
@@ -562,6 +580,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         executeIbmFormatterCheckbox.setSelection(data.isExecuteIbmFormatter());
         executeIrpgFormatterCheckbox.setSelection(data.isExecuteIrpgFormatter());
         formatOnSaveCheckbox.setSelection(data.isFormatOnSave());
+        removeEmptyCommentLinesCheckbox.setSelection(data.isRemoveEmptyCommentLines());
 
         // Map settings (only apply if present in profile)
         Map<String, String> dataTypes = data.getDataTypes();
@@ -654,6 +673,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // General settings group
         createGeneralSettingsGroup(container);
 
+        // Experimental settings group
+        createExperimentalSettingsGroup(container);
+
         // Save actions group
         createSaveActionsGroup(container);
 
@@ -671,6 +693,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         loadIbmPreferences();
 
         formatOnSaveCheckbox.setSelection(preferences.isFormatOnSave());
+        removeEmptyCommentLinesCheckbox.setSelection(preferences.isRemoveEmptyCommentLines());
         useConstKeywordCheckbox.setSelection(preferences.isUseConstKeyword());
         putDelemiterBeforeParameterCheckbox.setSelection(preferences.isDelimiterBeforeParameter());
         parameterSpacingStyleCombo.select(preferences.getParameterSpacingStyle().ordinal());
@@ -711,6 +734,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private void storePreferences() {
 
         preferences.setFormatOnSave(formatOnSaveCheckbox.getSelection());
+        preferences.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         preferences.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
         preferences.setDelimiterBeforeParameter(putDelemiterBeforeParameterCheckbox.getSelection());
         String style = parameterSpacingStyleCombo.getText();
@@ -742,6 +766,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         // Reset format on save
         formatOnSaveCheckbox.setSelection(preferences.getDefaultFormatOnSave());
+        removeEmptyCommentLinesCheckbox.setSelection(preferences.getDefaultRemoveEmptyCommentLines());
 
         // Reset use const keyword
         useConstKeywordCheckbox.setSelection(preferences.getDefaultUseConstKeyword());
