@@ -153,7 +153,7 @@ public class FormatLpexSourceAction implements LpexAction {
         String[] details = new String[errors.size()];
         for (int i = 0; i < errors.size(); i++) {
             FormatError error = errors.get(i);
-            details[i] = Messages.bind(Messages.Error_Line_A_message_B, error.getStartLineNumber() + 1, error.getMessage());
+            details[i] = Messages.bind(Messages.Error_Line_A_message_B, error.getStartLineNumber(), error.getMessage());
         }
 
         UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_formatted_with_N_errors, errors.size()), details);
