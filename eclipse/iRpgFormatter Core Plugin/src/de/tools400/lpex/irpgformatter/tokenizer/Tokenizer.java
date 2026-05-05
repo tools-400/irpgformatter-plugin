@@ -260,7 +260,7 @@ public class Tokenizer implements RpgleSourceConstants {
         String name = null;
         StringBuilder parameters = new StringBuilder();
         boolean insideParameters = false;
-        // boolean supportsNoArgs = (type != TokenType.FUNCTION);
+        int bracketDepth = 0;
 
         String currentChar;
 
@@ -270,16 +270,29 @@ public class Tokenizer implements RpgleSourceConstants {
             currentChar = line.substring(i, i + 1);
 
             if (OPEN_BRACKET.equals(currentChar)) {
-                // Get keyword name and start collecting parameters
-                name = line.substring(0, i);
-                insideParameters = true;
+                if (!insideParameters) {
+                    // Get keyword name and start collecting parameters
+                    name = line.substring(0, i);
+                    insideParameters = true;
+                    bracketDepth = 1;
+                } else {
+                    // Nested open bracket inside parameters (e.g. dim(%elem(...)))
+                    parameters.append(currentChar);
+                    bracketDepth++;
+                }
                 continue;
             }
 
             if (insideParameters) {
                 if (CLOSE_BRACKET.equals(currentChar)) {
-                    i++;
-                    break;
+                    bracketDepth--;
+                    if (bracketDepth == 0) {
+                        i++;
+                        break;
+                    } else {
+                        // Nested close bracket — keep collecting
+                        parameters.append(currentChar);
+                    }
                 } else {
                     // Collect keyword parameters
                     parameters.append(currentChar);

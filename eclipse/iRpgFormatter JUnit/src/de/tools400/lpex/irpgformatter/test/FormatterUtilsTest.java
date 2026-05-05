@@ -589,4 +589,27 @@ public class FormatterUtilsTest extends AbstractTestCase {
         assertEquals("  : *omit)", results[1]);
     }
 
+    // --- regression: keyword with nested BIF argument ---
+
+    /**
+     * Regression test: a keyword whose argument is a BIF call must render the
+     * full BIF expression — not just the BIF name — in the formatted output.
+     * Before the fix, dim(%elem(g_handleList.hFile)) produced the broken output
+     * dim(%elem(%elemg_handleList.hFile) ).
+     */
+    @Test
+    public void buildParameters_keyword_with_nested_bif() throws RpgleFormatterException {
+        IToken[] tokens = getTokenizer().tokenize("dim(%elem(g_handleList.hFile))");
+        String parameters = getFormatterUtils().buildParameters(tokens[0].getChildren());
+        assertEquals("%elem(g_handleList.hFile)", parameters);
+    }
+
+    @Test
+    public void format_keyword_with_nested_bif() throws RpgleFormatterException {
+        IToken[] tokens = getTokenizer().tokenize("dim(%elem(g_handleList.hFile));");
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 90);
+        assertEquals(1, results.length);
+        assertEquals("dim(%elem(g_handleList.hFile));", results[0]);
+    }
+
 }

@@ -252,4 +252,30 @@ public class TokenizerTest extends AbstractTestCase {
         }
         assertEquals(line.length(), rawLength);
     }
+
+    /**
+     * Regression test: a keyword whose argument is itself a BIF call.
+     * Before the fix, dim(%elem(g_handleList.hFile)) was mis-tokenized,
+     * duplicating the inner BIF name in the output.
+     */
+    @Test
+    public void test_keyword_with_nested_bif_argument() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("dim(%elem(g_handleList.hFile));");
+        assertTrue("Expected exactly 2 tokens", tokens.length == 2);
+
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
+        assertEquals("dim", tokens[0].getValue());
+        assertTrue("Expected exactly 1 child token", tokens[0].getNumChildren() == 1);
+
+        IToken elemToken = tokens[0].getChild(0);
+        assertEquals(TokenType.FUNCTION, elemToken.getType());
+        assertEquals("%elem", elemToken.getValue());
+        assertTrue("Expected exactly 1 child token", elemToken.getNumChildren() == 1);
+
+        assertEquals(TokenType.OTHER, elemToken.getChild(0).getType());
+        assertEquals("g_handleList.hFile", elemToken.getChild(0).getValue());
+
+        assertEquals(TokenType.EOL, tokens[1].getType());
+    }
 }

@@ -596,7 +596,9 @@ public class FormatterUtils implements RpgleSourceConstants {
     private String formatParameter(IToken token) {
 
         String parameter = token.getValue();
-        if (token.getType() == TokenType.KEYWORD) {
+        if (token.getType() == TokenType.FUNCTION) {
+            return parameter + OPEN_BRACKET + buildParameters(token.getChildren()) + CLOSE_BRACKET;
+        } else if (token.getType() == TokenType.KEYWORD) {
             parameter = formattingRules.formatKeyword(parameter);
         } else if (token.getType() == TokenType.DATA_TYPE) {
             parameter = formattingRules.formatDataType(parameter);
