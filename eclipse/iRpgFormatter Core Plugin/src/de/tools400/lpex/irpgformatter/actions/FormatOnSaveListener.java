@@ -66,8 +66,7 @@ public final class FormatOnSaveListener {
     private static void executeFormatter(LpexView view, IRpgleInput input) throws RpgleFormatterException {
 
         RpgleFormatter formatter = new RpgleFormatter();
-        int sourceLength = LpexViewUtils.getMaxLineLength(view);
-        formatter.setSourceLength(sourceLength);
+        formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
 
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 

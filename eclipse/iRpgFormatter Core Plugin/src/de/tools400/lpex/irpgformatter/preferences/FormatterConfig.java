@@ -228,7 +228,7 @@ public class FormatterConfig {
 
         FormatterConfig config = new FormatterConfig();
         config.indent = prefs.getIndent();
-        config.maxLineWidth = prefs.getMaxLineWidth();
+        config.maxLineWidth = prefs.getEndColumn();
         config.maxNameLength = prefs.getMaxNameLength();
         config.minLiteralLength = prefs.getMinNameLength();
         config.alignSubFields = prefs.isAlignSubFields();

@@ -155,27 +155,7 @@ public final class Preferences implements RpgleSourceConstants {
         return endColumnStr;
     }
 
-    public int getEndColumn(int currentSourceLength) {
-
-        int length;
-
-        String strLength = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
-        if ("*MAX".equals(strLength)) {
-            return currentSourceLength;
-        }
-
-        if (StringUtils.isNullOrEmpty(strLength)) {
-            length = ibmPreferenceStore.getInt("RPGLE.FORMATTING.end");
-        } else {
-            length = Integer.parseInt(strLength);
-        }
-
-        length = Math.min(length, currentSourceLength);
-
-        return length;
-    }
-
-    public int getMaxLineWidth() {
+    public int getEndColumn() {
 
         String strLength = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
         if ("*MAX".equals(strLength)) {

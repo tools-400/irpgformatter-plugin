@@ -83,8 +83,17 @@ public final class LpexViewUtils {
         return isSourceLine;
     }
 
+    /**
+     * Returns the physical record length for source members, or
+     * <code>Integer.MAX_VALUE</code> for stream files (where LPEX reports
+     * "default" instead of a number).
+     */
     public static int getMaxLineLength(LpexView view) {
-        return view.queryInt("save.textLimit");
+        String raw = view.query("save.textLimit");
+        if (raw == null || "default".equals(raw)) {
+            return Integer.MAX_VALUE;
+        }
+        return Integer.parseInt(raw);
     }
 
     /**

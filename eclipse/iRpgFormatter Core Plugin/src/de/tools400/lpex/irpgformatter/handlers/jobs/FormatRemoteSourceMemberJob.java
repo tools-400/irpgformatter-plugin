@@ -38,6 +38,7 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatRemoteSourceMemberJob extends Job {
 
+    private Preferences preferences;
     private SourceMember[] sourceMembers;
     private RpgleFormatter formatter;
     private IFormatRemoteSourceMembersPostRun postRun;
@@ -50,9 +51,9 @@ public class FormatRemoteSourceMemberJob extends Job {
     public FormatRemoteSourceMemberJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
         super(Messages.Job_Formatting_remote_source_members);
 
+        this.preferences = Preferences.getInstance();
         this.sourceMembers = sourceMembers;
         this.formatter = new RpgleFormatter();
-        this.formatter.setSourceLength(80);
         this.postRun = postRun;
 
         this.errors = new LinkedList<>();
@@ -149,8 +150,8 @@ public class FormatRemoteSourceMemberJob extends Job {
 
     private void executeFormatter(SourceMember sourceMember, IRpgleInput input) throws Exception, RpgleFormatterException {
 
-        formatter.setSourceLength(sourceMember.getRecordLength());
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+        formatter.setSourceLength(sourceMember.getSourceLength());
+        int defaultIndent = preferences.getStartColumn() - 1;
 
         monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);
