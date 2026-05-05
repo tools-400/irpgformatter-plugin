@@ -1,6 +1,20 @@
 **free
+//
+// ================================
+// Remove empty comment lines.
+//
+// The previous comment line will
+// not be removed, as it is part of
+// a comment block.
+// The below empty comments will be
+// removed.
+// ================================
+//
 DCL-PROC myProc export;
+  //
   // Replace dcl-pi name with *N.
+  // Remove empty comment lines before dcl-pi.
+  //
   DCL-PI myProc Pointer ExtProc('myProc');
     // Put delimiter before parameter.
     procedureName VARCHAR(256) OPTIONS(*VARSIZE: *Nopass : *Omit);
@@ -8,7 +22,7 @@ DCL-PROC myProc export;
     // Sort const/value to end.
     message const Options(*nopass) like(message_t);
   END-PI;
-
+  //
   // Break before keyword.
   DCL-PR myPrototype EXTPROC('MODULE_myPrototype');
     mySubField1 VARCHAR(10);

@@ -417,14 +417,14 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         removeEmptyCommentLinesCheckbox.setLayoutData(createCheckboxGridData());
         removeEmptyCommentLinesCheckbox.addSelectionListener(previewUpdater);
 
-        removeEmptyCommentLinesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines.");
-
         // Remove empty lines before dcl-pi
-        removeEmptyLinesBeforeDclPiCheckbox = UIUtils.createCheckbox(group,
-            Messages.Label_Remove_empty_lines_before_dcl_pi,
+        removeEmptyLinesBeforeDclPiCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
             Messages.Tooltip_Remove_empty_lines_before_dcl_pi);
         removeEmptyLinesBeforeDclPiCheckbox.setLayoutData(createCheckboxGridData());
         removeEmptyLinesBeforeDclPiCheckbox.addSelectionListener(previewUpdater);
+
+        removeEmptyCommentLinesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines.");
+        removeEmptyLinesBeforeDclPiCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines before dcl-pi.");
     }
 
     private void createImportExportButtons(Composite parent) {
