@@ -24,9 +24,11 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
-import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
+import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyCommentLinesRule;
+import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyLinesBeforeDclPiRule;
 import de.tools400.lpex.irpgformatter.rules.statements.SortConstValueToEndRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
@@ -43,6 +45,8 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * </p>
  */
 public class RpgleFormatter {
+
+    public static final int DEFAULT_END_COLUMN = 100;
 
     private static final String SOURCE_TYPE_RPGLE = "RPGLE";
     private static final String SOURCE_TYPE_SQLRPGLE = "SQLRPGLE";
@@ -62,17 +66,20 @@ public class RpgleFormatter {
     private final Tokenizer tokenizer;
     private final FormatConstKeywordRule formatConstKeywordRule;
     private final SortConstValueToEndRule sortConstValueToEndRule;
+    private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
+    private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
 
     public RpgleFormatter(FormatterConfig config) {
         this.config = config;
-        this.endColumn = config.getEndColumn(100);
         this.formatterUtils = new FormatterUtils(config);
         this.tokenizer = new Tokenizer(config);
         this.formatConstKeywordRule = new FormatConstKeywordRule(config);
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
+        this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
+        this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
     }
 
     public RpgleFormatter() {
@@ -100,6 +107,27 @@ public class RpgleFormatter {
         return config;
     }
 
+    /**
+     * Sets the effective end column from the physical source length.
+     * <p>
+     * The resulting end column is
+     * {@code min(configuredMaxLineWidth, sourceLength)}, so the formatter never
+     * exceeds either the physical record boundary or the user-configured
+     * maximum line width.
+     * <p>
+     * Callers are responsible for passing the right value:
+     * <ul>
+     * <li><b>Source members</b> — pass the physical SRCDTA field length (e.g.
+     * {@code SourceMember.getSourceLength()} or
+     * {@code LpexViewUtils.computeSourceLength()}).</li>
+     * <li><b>Stream files</b> — pass {@link #DEFAULT_END_COLUMN}, because
+     * stream files have no physical record limit and the configured max line
+     * width is applied via the {@code min()} above.</li>
+     * </ul>
+     *
+     * @param sourceLength physical source length, or
+     *        {@link #DEFAULT_END_COLUMN} for stream files
+     */
     public void setSourceLength(int sourceLength) {
         this.endColumn = config.getEndColumn(sourceLength);
     }
@@ -129,9 +157,18 @@ public class RpgleFormatter {
         int startLineNumber = input.getStartLineNumber();
         CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber);
 
-        // Step 2: Process each statement
+        // Step 2: Pre-compute which comment lines should be suppressed (output
+        // as blank)
+        boolean[] suppressComment = config.isRemoveEmptyCommentLines() ? removeEmptyCommentLinesRule.apply(statements)
+            : new boolean[statements.length];
+
+        boolean[] suppressBeforeDclPi = config.isRemoveEmptyLinesBeforeDclPi() ? removeEmptyLinesBeforeDclPiRule.apply(statements)
+            : new boolean[statements.length];
+
+        // Step 3: Process each statement
         boolean formatterDisabled = false;
-        for (CollectedStatement statement : statements) {
+        for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
+            CollectedStatement statement = statements[stmtIdx];
 
             // Format the statement
             StatementType type = statement.getType();
@@ -155,6 +192,10 @@ public class RpgleFormatter {
             List<String> stmtOutput = new ArrayList<>();
             if (type == StatementType.OTHER) {
                 stmtOutput.addAll(statement.getOriginalStatements());
+            } else if (suppressBeforeDclPi[stmtIdx] && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
+                // stmtOutput remains empty → line is completely removed
+            } else if (type == StatementType.COMMENT && suppressComment[stmtIdx]) {
+                stmtOutput.add("");
             } else {
                 for (String embeddedComment : statement.getEmbeddedComments()) {
                     stmtOutput.add(embeddedComment);
@@ -188,8 +229,8 @@ public class RpgleFormatter {
     /**
      * Returns the list of statements that could not be formatted during the
      * last {@link #format(IRpgleInput, int)} call. The corresponding original
-     * source lines are still present in the formatted result; this list is
-     * the only place where the underlying error information is exposed.
+     * source lines are still present in the formatted result; this list is the
+     * only place where the underlying error information is exposed.
      *
      * @return an unmodifiable list of formatting errors (empty if all
      *         statements were formatted successfully)
@@ -331,7 +372,7 @@ public class RpgleFormatter {
     private List<String> formatCtlOpt(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.CTL_OPT);
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
     }
@@ -345,7 +386,7 @@ public class RpgleFormatter {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_C);
         tokens = formatConstKeywordRule.apply(tokens);
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
     }
@@ -364,7 +405,7 @@ public class RpgleFormatter {
             }
             tokens = new FormatPiNameRule(procName, config.isReplacePiName()).apply(tokens);
         }
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
     }
@@ -386,7 +427,7 @@ public class RpgleFormatter {
     private List<String> formatDclStatement(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
     }
@@ -396,11 +437,11 @@ public class RpgleFormatter {
      */
     private List<String> formatSubField(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
-        int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, endColumn);
+        int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, ensureEndColumn());
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_SUBF);
         tokens = sortConstValueToEndRule.apply(tokens);
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn, subFieldAlignCol);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn(), subFieldAlignCol);
 
         return Arrays.asList(results);
     }
@@ -418,8 +459,17 @@ public class RpgleFormatter {
             String procName = (procStmt != null) ? getProcName(procStmt) : null;
             tokens = new FormatEndProcNameRule(procName, config.isRemoveEndProcName()).apply(tokens);
         }
-        String[] results = formatterUtils.formatTokens("", tokens, indent, endColumn);
+        String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
+    }
+
+    private int ensureEndColumn() throws RpgleFormatterException {
+
+        if (endColumn <= 1) {
+            throw new RpgleFormatterException("End column not set.");
+        }
+
+        return endColumn;
     }
 }

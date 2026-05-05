@@ -51,21 +51,22 @@ Consider mapping a **User Key Action** to the `iRPGFormatter.Format` **User Acti
 
 ### General Settings
 
-| Setting                              | Default          | Description                                                                                |
-| ------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------ |
-| **Use const() keyword**              | Off              | Wrap constant values in `const()` for DCL-C statements                                     |
-| **Put delimiter before parameter**   | Off              | Place colon delimiter before parameter instead of after                                    |
-| **Parameter spacing**                | Before parameter | Spacing around colon between keyword parameters                                            |
-| **Align sub-fields/parameters**      | On               | Align keywords within blocks at a common column                                            |
-| **Break name on case change**        | Off              | Break long names at camelCase boundaries                                                   |
-| **Break before keyword**             | Off              | Break line before keyword when parameters don't fit                                        |
-| **Sort const/value to end**          | Off              | Move `const()`/`value()` keyword to the end of the statement                               |
-| **Replace dcl-pi name with \*N**     | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name   |
-| **Remove end-proc name**             | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC |
-| **Unindent compiler directives**     | On               | Force compiler directives to column 1; when off, keep their indentation                    |
-| **Maximum name length**              | 60               | Max characters for a name or literal before it is split with `...`                         |
-| **Minimum name length**              | 20               | Min characters that must remain on a line when splitting long names                        |
-| **Execute iRPG formatter**           | On               | Run the iRPGFormatter to apply iRPG formatting rules                                       |
+| Setting                            | Default          | Description                                                                                  |
+| ---------------------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| **Use const() keyword**            | Off              | Wrap constant values in `const()` for DCL-C statements                                       |
+| **Put delimiter before parameter** | Off              | Place colon delimiter before parameter instead of after                                      |
+| **Parameter spacing**              | Before parameter | Spacing around colon between keyword parameters                                              |
+| **Align sub-fields/parameters**    | On               | Align keywords within blocks at a common column                                              |
+| **Break name on case change**      | Off              | Break long names at camelCase boundaries                                                     |
+| **Break before keyword**           | Off              | Break line before keyword when parameters don't fit                                          |
+| **Sort const/value to end**        | Off              | Move `const()`/`value()` keyword to the end of the statement                                 |
+| **Replace dcl-pi name with \*N**   | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name     |
+| **Remove end-proc name**           | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC   |
+| **Remove empty comment lines**     | Off              | Remove standalone `//` lines that serve no structural purpose (see [Comment Block Handling]) |
+| **Unindent compiler directives**   | On               | Force compiler directives to column 1; when off, keep their indentation                      |
+| **Maximum name length**            | 60               | Max characters for a name or literal before it is split with `...`                           |
+| **Minimum name length**            | 20               | Min characters that must remain on a line when splitting long names                          |
+| **Execute iRPG formatter**         | On               | Run the iRPGFormatter to apply iRPG formatting rules                                         |
 
 ### Save Actions
 
@@ -99,18 +100,18 @@ Partial profiles are supported: if the XML file does not contain all settings, o
 
 The formatter processes the following RPGLE statement types:
 
-| Statement Type      | Examples                                             | Formatted?                |
-| ------------------- | ---------------------------------------------------- | ------------------------- |
-| Control options     | `ctl-opt`                                            | Yes                       |
-| Declarations        | `dcl-s`, `dcl-f`, `dcl-c`                            | Yes                       |
-| Block openers       | `dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-proc`, `dcl-enum` | Yes                       |
-| Subfields           | Fields/parameters within blocks                      | Yes                       |
-| Block closers       | `end-ds`, `end-pr`, `end-pi`, `end-proc`, `end-enum` | Yes                       |
-| Compiler directives | `/copy`, `/include`, `/if`, `/define`                | Yes (keyword casing only) |
-| Free directive      | `**free`                                             | Yes (casing only)         |
-| Comments            | `// ...`                                             | No (preserved as-is)      |
-| Blank lines         | (empty lines)                                        | No (preserved)            |
-| Other statements    | `if`, `for`, `return`, etc.                          | No (preserved as-is)      |
+| Statement Type      | Examples                                             | Formatted?                               |
+| ------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| Control options     | `ctl-opt`                                            | Yes                                      |
+| Declarations        | `dcl-s`, `dcl-f`, `dcl-c`                            | Yes                                      |
+| Block openers       | `dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-proc`, `dcl-enum` | Yes                                      |
+| Subfields           | Fields/parameters within blocks                      | Yes                                      |
+| Block closers       | `end-ds`, `end-pr`, `end-pi`, `end-proc`, `end-enum` | Yes                                      |
+| Compiler directives | `/copy`, `/include`, `/if`, `/define`                | Yes (keyword casing only)                |
+| Free directive      | `**free`                                             | Yes (casing only)                        |
+| Comments            | `// ...`                                             | Partially (see [Comment Block Handling]) |
+| Blank lines         | (empty lines)                                        | No (preserved)                           |
+| Other statements    | `if`, `for`, `return`, etc.                          | No (preserved as-is)                     |
 
 ### Keyword Casing
 
@@ -221,12 +222,12 @@ The spacing around colons between keyword parameters is configurable:
 
 When a DCL-PI sits inside a DCL-PROC, RPGLE allows its name to be either repeated from the procedure or replaced by the placeholder `*N`. The formatter rewrites the DCL-PI name based on **Replace dcl-pi name with \*N**:
 
-| Setting | DCL-PI inside DCL-PROC contains... | Result            |
-| ------- | ---------------------------------- | ----------------- |
-| On      | a name (e.g. `myProc`)             | rewritten to `*N` |
-| On      | `*N`                               | left as `*N`      |
+| Setting | DCL-PI inside DCL-PROC contains... | Result                                |
+| ------- | ---------------------------------- | ------------------------------------- |
+| On      | a name (e.g. `myProc`)             | rewritten to `*N`                     |
+| On      | `*N`                               | left as `*N`                          |
 | Off     | `*N`                               | restored to the parent procedure name |
-| Off     | a name                             | left unchanged    |
+| Off     | a name                             | left unchanged                        |
 
 A standalone DCL-PI without a DCL-PROC parent is never touched.
 
@@ -244,13 +245,13 @@ end-proc;
 
 The optional name on `end-proc` is governed by **Remove end-proc name**:
 
-| Setting | END-PROC contains...           | Result                                                       |
-| ------- | ------------------------------ | ------------------------------------------------------------ |
-| On      | a name                         | name removed (`end-proc;`)                                   |
-| On      | no name                        | left as `end-proc;`                                          |
-| Off     | no name                        | the matching procedure name is inserted                      |
-| Off     | a divergent name (e.g. typo)   | overwritten with the procedure name from the matching DCL-PROC |
-| Off     | the matching name              | left unchanged                                               |
+| Setting | END-PROC contains...         | Result                                                         |
+| ------- | ---------------------------- | -------------------------------------------------------------- |
+| On      | a name                       | name removed (`end-proc;`)                                     |
+| On      | no name                      | left as `end-proc;`                                            |
+| Off     | no name                      | the matching procedure name is inserted                        |
+| Off     | a divergent name (e.g. typo) | overwritten with the procedure name from the matching DCL-PROC |
+| Off     | the matching name            | left unchanged                                                 |
 
 ### Compiler Directives
 
@@ -277,6 +278,73 @@ dcl-s myVar3 char(30);         // formatted normally
 - If `@formatter:off` is used without a corresponding `@formatter:on`, the rest of the file remains unformatted
 - The directive lines themselves are always preserved as-is
 
+### Comment Block Handling
+
+> **Note:** The following rules are implemented in `RemoveEmptyCommentLinesRule`
+> (package `rules/statements`). When adding new comment-formatting behaviour,
+> implement a corresponding `*Rule` class and integrate it via `IStatementListRule`.
+
+When **Remove empty comment lines** is enabled, standalone `//` lines (empty
+comments) are removed unless they serve a structural purpose.
+
+**Structural markers** protect the comment block they belong to:
+
+| Marker type       | Examples                                           |
+| ----------------- | -------------------------------------------------- |
+| Separator lines   | `//---`, `//===`, `// - - -`, `// = = =`           |
+| ILEDoc delimiters | `///` (exactly three slashes, optional whitespace) |
+
+A 3-step algorithm is applied to the full statement list before formatting:
+
+1. Mark every empty `//` line for suppression.
+2. When a structural marker is found, scan **backward**: restore each suppressed
+   empty comment as long as the immediately preceding line is also a comment.
+3. From the code line found in step 2, scan **forward**: re-suppress leading
+   empty `//` lines until the first non-empty comment.
+
+**Example — separator line protects the block:**
+
+```rpgle
+// before formatting:
+dcl-c MY_CONST '123';
+//
+// Comment block
+//---
+dcl-pr cipher extproc('_CIPHER');
+
+// after formatting (Remove empty comment lines = On):
+dcl-c MY_CONST '123';
+
+// Comment block
+//---
+dcl-pr cipher extproc('_CIPHER');
+```
+
+**Example — ILEDoc block:**
+
+```rpgle
+// before formatting:
+dcl-c MY_CONST '123';
+//
+///
+/// Procedure description.
+/// @param parm1 The first parameter.
+///
+dcl-proc myProc;
+
+// after formatting (Remove empty comment lines = On):
+dcl-c MY_CONST '123';
+
+///
+/// Procedure description.
+/// @param parm1 The first parameter.
+///
+dcl-proc myProc;
+```
+
+Lines inside a `///...///` ILEDoc block are never touched regardless of the
+setting.
+
 ### Error Handling
 
 If the formatter encounters an error while formatting a statement, the original unformatted lines are preserved and the formatter continues with the next statement.
@@ -292,6 +360,6 @@ The plug-in interface is available in:
 - Dutch
 - Italian
 
-# See Also
+## See Also
 
-* [iRpgFormatter Update Site](https://github.com/tools-400/irpgformatter)
+- [iRpgFormatter Update Site](https://github.com/tools-400/irpgformatter)

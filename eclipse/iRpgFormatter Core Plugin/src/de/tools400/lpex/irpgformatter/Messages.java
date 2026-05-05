@@ -41,6 +41,9 @@ public class Messages extends NLS {
     public static String Label_Execute_iRPG_formatter;
     public static String Label_Save_Actions;
     public static String Label_Format_on_save;
+    public static String Label_Experimental_Settings;
+    public static String Label_Remove_empty_comment_lines;
+    public static String Label_Remove_empty_lines_before_dcl_pi;
     public static String Label_Settings;
     public static String Label_Data_Types;
     public static String Label_Declaration_Types;
@@ -111,6 +114,8 @@ public class Messages extends NLS {
     public static String Tooltip_Execute_IBM_formatter;
     public static String Tooltip_Execute_iRPG_formatter;
     public static String Tooltip_Format_on_save;
+    public static String Tooltip_Remove_empty_comment_lines;
+    public static String Tooltip_Remove_empty_lines_before_dcl_pi;
     public static String Tooltip_View_Edit_raw_code;
     public static String Tooltip_Custom_preview_contents;
     public static String Tooltip_Show_whitespaces;

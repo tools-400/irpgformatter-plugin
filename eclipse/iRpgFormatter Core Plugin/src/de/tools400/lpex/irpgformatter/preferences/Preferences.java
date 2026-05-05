@@ -50,6 +50,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String REPLACE_PI_NAME = "replacePiName";
     private static final String REMOVE_END_PROC_NAME = "removeEndProcName";
     private static final String UNINDENT_COMPILER_DIRECTIVES = "unindentCompilerDirectives";
+    private static final String REMOVE_EMPTY_COMMENT_LINES = "removeEmptyCommentLines";
+    private static final String REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "removeEmptyLinesBeforeDclPi";
     private static final String MAX_NAME_LENGTH = "maxNameLength";
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
@@ -79,6 +81,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_REPLACE_PI_NAME = true;
     private static final boolean DEFAULT_REMOVE_END_PROC_NAME = true;
     private static final boolean DEFAULT_UNINDENT_COMPILER_DIRECTIVES = true;
+    private static final boolean DEFAULT_REMOVE_EMPTY_COMMENT_LINES = false;
+    private static final boolean DEFAULT_REMOVE_EMPTY_LINES_BEFORE_DCL_PI = false;
     private static final int DEFAULT_MAX_NAME_LENGTH = 60;
     private static final int DEFAULT_MIN_NAME_LENGTH = 10;
     private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 35;
@@ -151,27 +155,7 @@ public final class Preferences implements RpgleSourceConstants {
         return endColumnStr;
     }
 
-    public int getEndColumn(int currentSourceLength) {
-
-        int length;
-
-        String strLength = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
-        if ("*MAX".equals(strLength)) {
-            return currentSourceLength;
-        }
-
-        if (StringUtils.isNullOrEmpty(strLength)) {
-            length = ibmPreferenceStore.getInt("RPGLE.FORMATTING.end");
-        } else {
-            length = Integer.parseInt(strLength);
-        }
-
-        length = Math.min(length, currentSourceLength);
-
-        return length;
-    }
-
-    public int getMaxLineWidth() {
+    public int getEndColumn() {
 
         String strLength = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
         if ("*MAX".equals(strLength)) {
@@ -302,6 +286,26 @@ public final class Preferences implements RpgleSourceConstants {
 
     public void setUnindentCompilerDirectives(boolean enabled) {
         preferenceStore.setValue(UNINDENT_COMPILER_DIRECTIVES, enabled);
+    }
+
+    public boolean isRemoveEmptyCommentLines() {
+        return preferenceStore.getBoolean(REMOVE_EMPTY_COMMENT_LINES);
+    }
+
+    public void setRemoveEmptyCommentLines(boolean enabled) {
+        preferenceStore.setValue(REMOVE_EMPTY_COMMENT_LINES, enabled);
+    }
+
+    public boolean isRemoveEmptyLinesBeforeDclPi() {
+        return preferenceStore.getBoolean(REMOVE_EMPTY_LINES_BEFORE_DCL_PI);
+    }
+
+    public void setRemoveEmptyLinesBeforeDclPi(boolean enabled) {
+        preferenceStore.setValue(REMOVE_EMPTY_LINES_BEFORE_DCL_PI, enabled);
+    }
+
+    public boolean getDefaultRemoveEmptyLinesBeforeDclPi() {
+        return DEFAULT_REMOVE_EMPTY_LINES_BEFORE_DCL_PI;
     }
 
     public boolean isExecuteIbmFormatter() {
@@ -451,6 +455,8 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(REPLACE_PI_NAME, getDefaultReplacePiName());
         preferenceStore.setDefault(REMOVE_END_PROC_NAME, getDefaultRemoveEndProcName());
         preferenceStore.setDefault(UNINDENT_COMPILER_DIRECTIVES, getDefaultUnindentCompilerDirectives());
+        preferenceStore.setDefault(REMOVE_EMPTY_COMMENT_LINES, getDefaultRemoveEmptyCommentLines());
+        preferenceStore.setDefault(REMOVE_EMPTY_LINES_BEFORE_DCL_PI, getDefaultRemoveEmptyLinesBeforeDclPi());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, getDefaultExecuteIbmFormatter());
         preferenceStore.setDefault(EXECUTE_IRPG_FORMATTER, getDefaultExecuteIrpgFormatter());
         preferenceStore.setDefault(FORMAT_ON_SAVE, getDefaultFormatOnSave());
@@ -515,6 +521,10 @@ public final class Preferences implements RpgleSourceConstants {
 
     public boolean getDefaultUnindentCompilerDirectives() {
         return DEFAULT_UNINDENT_COMPILER_DIRECTIVES;
+    }
+
+    public boolean getDefaultRemoveEmptyCommentLines() {
+        return DEFAULT_REMOVE_EMPTY_COMMENT_LINES;
     }
 
     public boolean getDefaultExecuteIbmFormatter() {

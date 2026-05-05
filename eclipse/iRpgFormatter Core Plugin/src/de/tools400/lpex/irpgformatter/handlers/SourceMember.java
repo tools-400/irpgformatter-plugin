@@ -55,7 +55,7 @@ public class SourceMember {
         return sourceType;
     }
 
-    public int getRecordLength() throws Exception {
+    public int getSourceLength() throws Exception {
 
         AS400 system = IBMiConnection.getConnection(profileName, connectionName).getAS400ToolboxObject();
         int sourceLength = IBMiUtils.getSourceLength(system, libraryName, fileName);

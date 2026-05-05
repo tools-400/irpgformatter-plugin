@@ -32,6 +32,7 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatStreamFileJob extends Job {
 
+    private Preferences preferences;
     private IFile[] files;
     private RpgleFormatter formatter;
     private IFormatStreamFilesPostRun postRun;
@@ -44,6 +45,7 @@ public class FormatStreamFileJob extends Job {
     public FormatStreamFileJob(IFile[] files, IFormatStreamFilesPostRun postRun) {
         super(Messages.Job_Formatting_stream_files);
 
+        this.preferences = Preferences.getInstance();
         this.files = files;
         this.formatter = new RpgleFormatter();
         this.postRun = postRun;
@@ -124,7 +126,7 @@ public class FormatStreamFileJob extends Job {
 
     private void executeFormatter(IFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
 
-        formatter.setSourceLength(Preferences.getInstance().getEndColumn(100));
+        formatter.setSourceLength(RpgleFormatter.DEFAULT_END_COLUMN);
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 
         monitor.subTask(Messages.SubTask_Formatting);

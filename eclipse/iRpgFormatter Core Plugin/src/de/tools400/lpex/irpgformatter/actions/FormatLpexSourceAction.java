@@ -99,8 +99,7 @@ public class FormatLpexSourceAction implements LpexAction {
         boolean executeIrpgFormatter = Preferences.getInstance().isExecuteIrpgFormatter();
 
         RpgleFormatter formatter = new RpgleFormatter();
-        int sourceLength = LpexViewUtils.getMaxLineLength(view);
-        formatter.setSourceLength(sourceLength);
+        formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
 
         int endLine = -1;
         saveCursorPosition(view);
@@ -145,9 +144,9 @@ public class FormatLpexSourceAction implements LpexAction {
     }
 
     /**
-     * Shows the standard error-details dialog summarizing the failed
-     * statements and logs any unexpected underlying exceptions to the
-     * Eclipse error log so that they are not silently swallowed.
+     * Shows the standard error-details dialog summarizing the failed statements
+     * and logs any unexpected underlying exceptions to the Eclipse error log so
+     * that they are not silently swallowed.
      */
     private void reportFormattingErrors(List<FormatError> errors) {
 
@@ -157,8 +156,7 @@ public class FormatLpexSourceAction implements LpexAction {
             details[i] = Messages.bind(Messages.Error_Line_A_message_B, error.getStartLineNumber() + 1, error.getMessage());
         }
 
-        UIUtils.displayErrorDetailsDialog(
-            Messages.bind(Messages.Error_Source_formatted_with_N_errors, errors.size()), details);
+        UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_formatted_with_N_errors, errors.size()), details);
 
         // Unexpected underlying exceptions still go to the Eclipse error log
         // for post-mortem analysis. LineOverflowException-style errors carry

@@ -1015,14 +1015,16 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  x char(1);",
             "  longFieldName char(50);",
             "  y int(10);",
+            "  *N graph(10);",
             "end-ds;"
         ),0).toLines();
         // @formatter:on
-        assertEquals(5, result.length);
+        assertEquals(6, result.length);
         // Longest name: "longFieldName" = 13 chars, alignColumn = 14
         assertEquals("  x             char(1);", result[1]);
         assertEquals("  longFieldName char(50);", result[2]);
         assertEquals("  y             int(10);", result[3]);
+        assertEquals("  *n            graph(10);", result[4]);
     }
 
     @Test
