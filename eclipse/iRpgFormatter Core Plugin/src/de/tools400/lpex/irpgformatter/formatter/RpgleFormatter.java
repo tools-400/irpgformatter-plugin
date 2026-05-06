@@ -277,8 +277,8 @@ public class RpgleFormatter {
             result.add(freeSpecialWord);
             break;
         case COMMENT:
-            // Format with indent
-            result.addAll(formatComment(statement, indent));
+            // Keep original line
+            result.addAll(formatKeepOriginal(statement));
             break;
         case COMPILER_DIRECTIVE:
             // Format with indent
@@ -319,7 +319,7 @@ public class RpgleFormatter {
             break;
         case OTHER:
         default:
-            // Format with indent
+            // Keep original line
             result.addAll(formatKeepOriginal(statement));
             break;
         }
@@ -335,19 +335,6 @@ public class RpgleFormatter {
         List<String> lines = statement.getOriginalStatements();
 
         return lines;
-    }
-
-    /**
-     * Formats a line comment.
-     */
-    private List<String> formatComment(CollectedStatement statement, int indent) {
-
-        List<String> result = new ArrayList<>();
-
-        String formatted = statement.getStatement().trim();
-        result.add(StringUtils.spaces(indent) + formatted);
-
-        return result;
     }
 
     /**

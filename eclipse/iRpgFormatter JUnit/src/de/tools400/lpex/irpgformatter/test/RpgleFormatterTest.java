@@ -135,6 +135,56 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("end-pr;", result[4]);
     }
 
+    /**
+     * Regression test: a standalone comment with no indentation inside a
+     * dcl-proc must not get the proc's indent level added to it.
+     * Before the fix, formatComment() trimmed the line and prepended
+     * the calculated indent (2 spaces), turning "// comment" into
+     * "  // comment".
+     */
+    @Test
+    public void format_standalone_comment_inside_proc_preserves_no_indentation() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-proc myProc;",
+            "// section comment",
+            "  dcl-s myVar char(10);",
+            "end-proc;"
+        ), 0).toLines();
+        // @formatter:on
+
+        assertEquals(4, result.length);
+        assertEquals("dcl-proc myProc;", result[0]);
+        assertEquals("// section comment", result[1]);
+        assertEquals("  dcl-s myVar char(10);", result[2]);
+        assertEquals("end-proc;", result[3]);
+    }
+
+    /**
+     * Regression test: a standalone comment with custom indentation inside a
+     * dcl-proc must keep its original indentation unchanged.
+     * Before the fix, formatComment() trimmed and re-indented the comment
+     * using the formatter's calculated indent level, replacing the user's
+     * 4 spaces with the proc-level 2 spaces.
+     */
+    @Test
+    public void format_standalone_comment_inside_proc_preserves_custom_indentation() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-proc myProc;",
+            "    // comment with 4 spaces",
+            "  dcl-s myVar char(10);",
+            "end-proc;"
+        ), 0).toLines();
+        // @formatter:on
+
+        assertEquals(4, result.length);
+        assertEquals("dcl-proc myProc;", result[0]);
+        assertEquals("    // comment with 4 spaces", result[1]);
+        assertEquals("  dcl-s myVar char(10);", result[2]);
+        assertEquals("end-proc;", result[3]);
+    }
+
     @Test
     public void format_line_comment_of_continued_line() throws RpgleFormatterException {
         // @formatter:off
