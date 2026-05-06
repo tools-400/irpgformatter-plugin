@@ -254,6 +254,57 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     /**
+     * Regression test: a keyword argument that is a string literal containing
+     * an open parenthesis. Before the fix, the '(' inside the literal was
+     * counted as a bracket, corrupting the parameter extraction.
+     */
+    @Test
+    public void test_keyword_literal_with_open_parenthesis() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("const('(');");
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
+        assertEquals("const", tokens[0].getValue());
+        assertTrue("Expected exactly 1 child token", tokens[0].getNumChildren() == 1);
+        assertEquals(TokenType.LITERAL, tokens[0].getChild(0).getType());
+        assertEquals("'('", tokens[0].getChild(0).getValue());
+        assertEquals(TokenType.EOL, tokens[1].getType());
+    }
+
+    /**
+     * Regression test: a keyword argument that is a string literal containing
+     * a close parenthesis. Before the fix, the ')' inside the literal was
+     * counted as a bracket, corrupting the parameter extraction.
+     */
+    @Test
+    public void test_keyword_literal_with_close_parenthesis() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("const(')');");
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
+        assertEquals("const", tokens[0].getValue());
+        assertTrue("Expected exactly 1 child token", tokens[0].getNumChildren() == 1);
+        assertEquals(TokenType.LITERAL, tokens[0].getChild(0).getType());
+        assertEquals("')'", tokens[0].getChild(0).getValue());
+        assertEquals(TokenType.EOL, tokens[1].getType());
+    }
+
+    /**
+     * Regression test: a keyword argument that is a string literal for a
+     * single-quote character (''''). Before the fix, parseLiteral broke at the
+     * first two quotes and the parameter was split into two tokens.
+     */
+    @Test
+    public void test_keyword_literal_single_quote_constant() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("const('''');");
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
+        assertEquals("const", tokens[0].getValue());
+        assertTrue("Expected exactly 1 child token", tokens[0].getNumChildren() == 1);
+        assertEquals(TokenType.LITERAL, tokens[0].getChild(0).getType());
+        assertEquals("''''", tokens[0].getChild(0).getValue());
+        assertEquals(TokenType.EOL, tokens[1].getType());
+    }
+
+    /**
      * Regression test: a keyword whose argument is itself a BIF call.
      * Before the fix, dim(%elem(g_handleList.hFile)) was mis-tokenized,
      * duplicating the inner BIF name in the output.

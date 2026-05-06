@@ -220,14 +220,18 @@ public class Tokenizer implements RpgleSourceConstants {
             } else {
                 nextChar = null;
             }
+
+            // Track string literal boundaries when collecting parameters
             if (SINGLE_QUOTE.equals(currentChar)) {
-                if (SINGLE_QUOTE.equals(nextChar)) {
-                    // skip second single quote in a row
+                if (!insideLiteral) {
+                    // Opening quote
+                    insideLiteral = true;
+                } else if (SINGLE_QUOTE.equals(nextChar)) {
+                    // Escaped single quote inside literal — skip next quote
                     i++;
                 } else {
-                    insideLiteral = !insideLiteral;
-                }
-                if (!insideLiteral) {
+                    // Closing quote
+                    insideLiteral = false;
                     i++;
                     break;
                 }
@@ -260,32 +264,52 @@ public class Tokenizer implements RpgleSourceConstants {
         String name = null;
         StringBuilder parameters = new StringBuilder();
         boolean insideParameters = false;
+        boolean insideLiteral = false;
         int bracketDepth = 0;
 
         String currentChar;
+        String nextChar;
 
         int i;
         for (i = 0; i < line.length(); i++) {
 
             currentChar = line.substring(i, i + 1);
+            nextChar = (i < line.length() - 1) ? line.substring(i + 1, i + 2) : null;
 
-            if (OPEN_BRACKET.equals(currentChar)) {
-                if (!insideParameters) {
-                    // Get keyword name and start collecting parameters
-                    name = line.substring(0, i);
-                    insideParameters = true;
-                    bracketDepth = 1;
+            // Track string literal boundaries when collecting parameters
+            if (insideParameters && SINGLE_QUOTE.equals(currentChar)) {
+                parameters.append(currentChar);
+                if (!insideLiteral) {
+                    // Opening quote
+                    insideLiteral = true;
+                } else if (SINGLE_QUOTE.equals(nextChar)) {
+                    // Escaped single quote inside literal — skip next quote
+                    i++;
+                    parameters.append(nextChar);
                 } else {
-                    // Nested open bracket inside parameters (e.g.
-                    // dim(%elem(...)))
-                    parameters.append(currentChar);
-                    bracketDepth++;
+                    // Closing quote
+                    insideLiteral = false;
                 }
                 continue;
             }
 
-            if (insideParameters) {
-                if (CLOSE_BRACKET.equals(currentChar)) {
+            if (!insideLiteral) {
+                if (OPEN_BRACKET.equals(currentChar)) {
+                    if (!insideParameters) {
+                        // Get keyword name and start collecting parameters
+                        name = line.substring(0, i);
+                        insideParameters = true;
+                        bracketDepth = 1;
+                    } else {
+                        // Nested open bracket inside parameters (e.g.
+                        // dim(%elem(...)))
+                        parameters.append(currentChar);
+                        bracketDepth++;
+                    }
+                    continue;
+                }
+
+                if (insideParameters && CLOSE_BRACKET.equals(currentChar)) {
                     bracketDepth--;
                     if (bracketDepth == 0) {
                         i++;
@@ -294,10 +318,13 @@ public class Tokenizer implements RpgleSourceConstants {
                         // Nested close bracket — keep collecting
                         parameters.append(currentChar);
                     }
-                } else {
-                    // Collect keyword parameters
-                    parameters.append(currentChar);
+                    continue;
                 }
+            }
+
+            if (insideParameters) {
+                // Collect keyword parameters
+                parameters.append(currentChar);
             }
 
             // Keyword without parameters
