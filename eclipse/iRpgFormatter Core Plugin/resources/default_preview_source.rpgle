@@ -1,13 +1,13 @@
 **free
 //
 // ================================
-// Remove empty comment lines.
+//  Remove empty comment lines.
 //
-// The previous comment line will
-// not be removed, as it is part of
-// a comment block.
-// The below empty comments will be
-// removed.
+//  The previous comment line will
+//  not be removed, as it is part
+//  of a comment block.
+//  The below empty comments lines
+//  will be removed.
 // ================================
 //
 DCL-PROC myProc export;
