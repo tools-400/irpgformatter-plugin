@@ -16,13 +16,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.services.clientserver.messages.SystemMessageException;
+import org.eclipse.swt.widgets.Display;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
@@ -86,6 +89,9 @@ public class FormatRemoteSourceMemberJob extends Job {
                 count++;
             }
 
+        } catch (BatchAbortedException e) {
+            // user declined connection dialog — stop processing remaining
+            // members
         } catch (Exception e) {
             ExceptionUtils.handleBatchException(e);
         }
@@ -100,7 +106,7 @@ public class FormatRemoteSourceMemberJob extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(SourceMember sourceMember) throws RpgleFormatterException, Exception {
+    private void executeFormatter(SourceMember sourceMember) throws BatchAbortedException, Exception {
 
         try {
 
@@ -109,6 +115,7 @@ public class FormatRemoteSourceMemberJob extends Job {
             IBMiConnection connection = IBMiConnection.getConnection(profileName, connectionName);
 
             monitor.subTask(Messages.SubTask_Checking_availability);
+            ensureConnected(connection);
             ensureWritable(connection, sourceMember);
 
             monitor.subTask(Messages.SubTask_Reading);
@@ -123,13 +130,39 @@ public class FormatRemoteSourceMemberJob extends Job {
             if (validationError != null) {
                 errors.add(new MemberError(sourceMember, validationError));
             } else {
-                executeFormatter(sourceMember, input);
+                executeFormatter(sourceMember, input, connection);
             }
 
+        } catch (BatchAbortedException e) {
+            throw e;
         } catch (Exception e) {
             MemberError memberError = new MemberError(sourceMember, e.getLocalizedMessage());
             errors.add(memberError);
         }
+    }
+
+    private void ensureConnected(IBMiConnection connection) throws BatchAbortedException, SystemMessageException {
+
+        if (connection.isConnected()) {
+            return;
+        }
+
+        final boolean[] userWantsConnect = { false };
+
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                userWantsConnect[0] = MessageDialog.openQuestion(Display.getDefault().getActiveShell(), Messages.Title_Connection_offline,
+                    Messages.bind(Messages.Question_Connection_A_is_offline_connect, connection.getConnectionName()));
+            }
+        });
+
+        if (!userWantsConnect[0]) {
+            throw new BatchAbortedException();
+        }
+
+        // throws SystemMessageException on failure
+        connection.connect();
     }
 
     private void ensureWritable(IBMiConnection connection, SourceMember sourceMember)
@@ -148,7 +181,8 @@ public class FormatRemoteSourceMemberJob extends Job {
         }
     }
 
-    private void executeFormatter(SourceMember sourceMember, IRpgleInput input) throws Exception, RpgleFormatterException {
+    private void executeFormatter(SourceMember sourceMember, IRpgleInput input, IBMiConnection connection)
+        throws BatchAbortedException, Exception, RpgleFormatterException {
 
         formatter.setSourceLength(sourceMember.getSourceLength());
         int defaultIndent = preferences.getStartColumn() - 1;
@@ -157,6 +191,7 @@ public class FormatRemoteSourceMemberJob extends Job {
         FormattedResult result = formatter.format(input, defaultIndent);
 
         monitor.subTask(Messages.SubTask_Writing);
+        ensureConnected(connection);
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formatted.add(sourceMember);

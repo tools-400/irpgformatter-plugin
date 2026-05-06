@@ -38,31 +38,39 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
     }
 
     private void ensureDownloaded() throws RpgleFormatterException {
+
         if (cachedLines != null) {
             return;
         }
 
         try {
-            editableMember.download(monitor);
+
+            if (!editableMember.download(monitor)) {
+                throw new RpgleFormatterException(Messages.bind(Messages.Error_Download_failed_A, getName()));
+            }
+
+            editableMember.closeStream();
+
             IFile localFile = editableMember.getLocalResource();
 
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(localFile.getContents(), "UTF-8")); //$NON-NLS-1$
+            List<String> lines = new ArrayList<>();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(localFile.getContents(), "UTF-8")); //$NON-NLS-1$
 
             try {
-                List<String> lines = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    lines.add(StringUtils.trimR(line.substring(12))); // strip seq. number and date
+                    lines.add(StringUtils.trimR(line.substring(12)));
                 }
-                cachedLines = lines.toArray(new String[lines.size()]);
             } finally {
                 reader.close();
             }
 
+            cachedLines = lines.toArray(new String[lines.size()]);
+
+        } catch (RpgleFormatterException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RpgleFormatterException(
-                Messages.bind(Messages.Error_Failed_reading_file_A, getName()), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, getName()), e);
         }
     }
 

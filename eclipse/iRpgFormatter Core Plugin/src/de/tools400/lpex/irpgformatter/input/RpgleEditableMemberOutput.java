@@ -12,17 +12,10 @@ import java.io.ByteArrayInputStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.preference.IPreferenceStore;
 
-import com.ibm.etools.iseries.comm.interfaces.ISeriesHostObjectLock;
-import com.ibm.etools.iseries.rse.ui.IBMiRSEPlugin;
 import com.ibm.etools.iseries.rse.ui.resources.QSYSEditableRemoteSourceFileMember;
-import com.ibm.etools.iseries.services.qsys.api.IQSYSMember;
-import com.ibm.etools.iseries.subsystems.qsys.resources.QSYSRemoteMemberTransfer;
 
-import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.DateUtils;
@@ -43,6 +36,22 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
 
     @Override
     public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+        updateLocalFile(result);
+        return true;
+    }
+
+    /**
+     * Writes the formatted source lines to the local Eclipse workspace file.
+     * <p>
+     * The call to {@code IFile.setContents()} fires an Eclipse , which is
+     * picked up by RDi's {@code QSYSTempFileListener}. That listener then
+     * uploads the local file to the IBM i member automatically — no explicit
+     * upload call is needed here.
+     *
+     * @param result the formatted source to write
+     * @throws RpgleFormatterException if the local file cannot be written
+     */
+    private void updateLocalFile(FormattedResult result) throws RpgleFormatterException {
 
         try {
 
@@ -62,69 +71,9 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
             ByteArrayInputStream stream = new ByteArrayInputStream(content.toString().getBytes("UTF-8")); //$NON-NLS-1$
             localFile.setContents(stream, true, false, monitor);
 
-            // Upload local file to remote member
-            String localPath = editableMember.getDownloadPath();
-
-            QSYSRemoteMemberTransfer.acquireLock(localPath);
-
-            try {
-
-                String lockMessage = getMemberLockMessage();
-                if (lockMessage != null) {
-                    // Member is held open by another user/job — abort
-                    // before the upload, surfaced via FileLockedException
-                    // with the detailed lock message (job/user/number) so
-                    // the user can see who's holding the lock.
-                    throw new FileLockedException(editableMember.getMember().getAbsoluteName(), lockMessage);
-                }
-
-                QSYSRemoteMemberTransfer memberTransfer = new QSYSRemoteMemberTransfer(editableMember.getMember(), localPath);
-
-                IPreferenceStore prefStore = IBMiRSEPlugin.getDefault().getPreferenceStore();
-                int startSeqNum = prefStore.getInt("com.ibm.etools.systems.editor.reseq.start");
-                int incrSeqNum = prefStore.getInt("com.ibm.etools.systems.editor.reseq.incr");
-                boolean insertSequenceNumbersIfRequired = true;
-
-                memberTransfer.upload(insertSequenceNumbersIfRequired, startSeqNum, incrSeqNum);
-
-            } finally {
-                QSYSRemoteMemberTransfer.releaseLock(localPath);
-            }
-
-            return true;
-
-        } catch (FileLockedException e) {
-            // Pass the detailed lock message through unchanged — wrapping
-            // it would replace it with the generic "Failed writing file"
-            // text and the user would never see who holds the lock.
-            throw new RpgleFormatterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, editableMember.getMember().getAbsoluteName()), e);
         }
     }
 
-    /**
-     * Returns a human-readable description of the lock currently held on the
-     * member, or {@code null} if the member is not locked. Errors while
-     * querying the lock are logged to the Eclipse error log; the method then
-     * returns {@code null} so that the upload may still proceed (failing
-     * later with the actual transfer error if appropriate).
-     */
-    private String getMemberLockMessage() {
-
-        try {
-
-            ISeriesHostObjectLock lock = editableMember.queryLocks();
-            if (lock == null) {
-                return null;
-            }
-            IQSYSMember member = editableMember.getMember();
-            return Messages.bind(Messages.Error_Member_locked_by_job_A, new Object[] { member.getLibrary(),
-                member.getFile(), member.getName(), lock.getJobName(), lock.getJobUser(), lock.getJobNumber() });
-
-        } catch (Exception e) {
-            IRpgleFormatterPlugin.logError("Failed to query member lock info.", e);
-            return null;
-        }
-    }
 }
