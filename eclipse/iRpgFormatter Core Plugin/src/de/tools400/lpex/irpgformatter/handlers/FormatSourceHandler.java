@@ -8,6 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.handlers;
 
+import java.util.EnumSet;
+import java.util.Iterator;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -21,76 +24,85 @@ import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.utils.UIUtils;
+
 public class FormatSourceHandler extends AbstractHandler {
 
     private FormatRemoteMemberHandler remoteSourceHandler = new FormatRemoteMemberHandler();
     private FormatLocalStreamFileHandler localStreamFileHandler = new FormatLocalStreamFileHandler();
     private FormatRemoteStreamFileHandler remoteStreamFileHandler = new FormatRemoteStreamFileHandler();
 
+    private enum Category {
+        LOCAL,
+        IFS_REMOTE,
+        QSYS_REMOTE
+    }
+
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         ISelection selection = HandlerUtil.getCurrentSelection(event);
 
-        if (selection instanceof IStructuredSelection) {
+        if (!(selection instanceof IStructuredSelection)) {
+            return null;
+        }
 
-            IStructuredSelection structuredSelection = (IStructuredSelection)selection;
+        IStructuredSelection structuredSelection = (IStructuredSelection)selection;
 
-            if (isStreamFileSelection(structuredSelection) || isLocalFileSelection(structuredSelection)) {
-                localStreamFileHandler.execute(event);
-            } else if (isRemoteStreamFileSelection(structuredSelection) || isRemoteStreamFileFilterSelection(structuredSelection)) {
-                remoteStreamFileHandler.execute(event);
-            } else {
-                remoteSourceHandler.execute(event);
-            }
+        EnumSet<Category> categories = EnumSet.noneOf(Category.class);
+        Iterator<?> iterator = structuredSelection.iterator();
+        while (iterator.hasNext()) {
+            categories.add(classify(iterator.next()));
+        }
+
+        if (categories.size() > 1) {
+            UIUtils.displaySimpleErrorDialog(Messages.Error_Mixed_selection_not_supported);
+            return null;
+        }
+
+        if (categories.contains(Category.LOCAL)) {
+            localStreamFileHandler.execute(event);
+        } else if (categories.contains(Category.IFS_REMOTE)) {
+            remoteStreamFileHandler.execute(event);
+        } else {
+            remoteSourceHandler.execute(event);
         }
 
         return null;
     }
 
-    private boolean isStreamFileSelection(IStructuredSelection selection) {
+    private Category classify(Object element) {
 
-        Object first = selection.getFirstElement();
-
-        if (first == null) {
-            return false;
-        }
-
-        if (first instanceof AbstractRemoteFile) {
-            AbstractRemoteFile remoteFile = (AbstractRemoteFile)first;
+        if (element instanceof AbstractRemoteFile) {
+            AbstractRemoteFile remoteFile = (AbstractRemoteFile)element;
             String subsystemId = remoteFile.getParentRemoteFileSubSystem().getConfigurationId();
-            if ("local.files".equals(subsystemId)) {
-                return true;
+            if ("local.files".equals(subsystemId)) { //$NON-NLS-1$
+                return Category.LOCAL;
             }
+            return Category.IFS_REMOTE;
         }
 
-        return false;
-    }
-
-    private boolean isLocalFileSelection(IStructuredSelection selection) {
-
-        Object first = selection.getFirstElement();
-        return first instanceof IFile || first instanceof IContainer;
-    }
-
-    private boolean isRemoteStreamFileSelection(IStructuredSelection selection) {
-
-        Object first = selection.getFirstElement();
-        return first instanceof IRemoteFile;
-    }
-
-    private boolean isRemoteStreamFileFilterSelection(IStructuredSelection selection) {
-
-        Object first = selection.getFirstElement();
-        if (!(first instanceof SystemFilterReference)) {
-            return false;
+        if (element instanceof IFile || element instanceof IContainer) {
+            return Category.LOCAL;
         }
-        SystemFilterReference ref = (SystemFilterReference)first;
-        Object provider = ref.getFilterPoolReferenceManager().getProvider();
-        if (!(provider instanceof SubSystem)) {
-            return false;
+
+        if (element instanceof IRemoteFile) {
+            return Category.IFS_REMOTE;
         }
-        String configId = ((SubSystem)provider).getConfigurationId();
-        return "com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem".equals(configId);
+
+        if (element instanceof SystemFilterReference) {
+            SystemFilterReference ref = (SystemFilterReference)element;
+            Object provider = ref.getFilterPoolReferenceManager().getProvider();
+            if (provider instanceof SubSystem) {
+                String configId = ((SubSystem)provider).getConfigurationId();
+                if ("com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem".equals(configId)) { //$NON-NLS-1$
+                    return Category.IFS_REMOTE;
+                }
+            }
+            return Category.QSYS_REMOTE;
+        }
+
+        return Category.QSYS_REMOTE;
     }
 }

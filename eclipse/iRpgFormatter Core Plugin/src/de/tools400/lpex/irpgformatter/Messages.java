@@ -188,6 +188,7 @@ public class Messages extends NLS {
     public static String Error_Download_failed_A;
 
     public static String Error_Format_on_library_level_not_supported_A;
+    public static String Error_Mixed_selection_not_supported;
 
     static {
         // initialize resource bundle

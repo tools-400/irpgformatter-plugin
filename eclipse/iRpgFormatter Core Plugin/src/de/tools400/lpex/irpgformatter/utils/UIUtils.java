@@ -8,11 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.utils;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -27,7 +24,6 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
-import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 
 public class UIUtils {
@@ -44,23 +40,19 @@ public class UIUtils {
         return PlatformUI.getWorkbench().getDisplay();
     }
 
-    public static void displayErrorDialog(String message, String[] errorDetails) {
-
-        MultiStatus multiStatus = new MultiStatus(IRpgleFormatterPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
-
-        for (String detail : errorDetails) {
-            multiStatus.add(new Status(IStatus.ERROR, IRpgleFormatterPlugin.PLUGIN_ID, detail));
-        }
-
-        ErrorDialog.openError(getShell(), Messages.E_R_R_O_R, message, multiStatus);
+    /**
+     * Application-wide entry point for showing a simple error dialog.
+     */
+    public static void displaySimpleErrorDialog(String message) {
+        MessageDialog.openError(getShell(), Messages.E_R_R_O_R, message);
     }
 
     /**
-     * Application-wide entry point for showing an error message together with
-     * a scrollable list of detail entries. All callers that want the standard
-     * iRPGFormatter look-and-feel for such dialogs should use this method;
-     * the underlying dialog implementation can then be swapped centrally
-     * without touching call sites.
+     * Application-wide entry point for showing an error message together with a
+     * scrollable list of detail entries. All callers that want the standard
+     * iRPGFormatter look-and-feel for such dialogs should use this method; the
+     * underlying dialog implementation can then be swapped centrally without
+     * touching call sites.
      */
     public static void displayErrorDetailsDialog(String message, String[] errorDetails) {
         displayErrorDetailsTitleAreaDialog(message, errorDetails);
@@ -74,8 +66,8 @@ public class UIUtils {
     /**
      * Application-wide entry point for showing a master/detail error dialog
      * (table of resources on top, error details of the selected row at the
-     * bottom). Use when errors naturally group by resource — e.g. one group
-     * per source member containing the statement-level errors.
+     * bottom). Use when errors naturally group by resource — e.g. one group per
+     * source member containing the statement-level errors.
      */
     public static void displayErrorDetailsDialog(String message, ErrorGroup[] errorGroups) {
         displayMemberErrorsDialog(message, errorGroups);
@@ -86,7 +78,8 @@ public class UIUtils {
         dialog.open();
     }
 
-    public static void displayErrorDetailsMessageDialog(String message, String[] errorDetails) {
+    @SuppressWarnings("unused")
+    private static void displayErrorDetailsMessageDialog(String message, String[] errorDetails) {
         ErrorDetailsMessageDialog dialog = new ErrorDetailsMessageDialog(getShell(), message, errorDetails);
         dialog.open();
     }
