@@ -31,8 +31,16 @@ public class QSYSRemoteObjectPropertyTester extends PropertyTester {
         if (anExpectedValue instanceof String) {
             String expectedValue = (String)anExpectedValue;
             if (PROPERTY_TYPE.equals(aProperty)) {
+                // Item type, e.g.
+                // QSYSRemoteLibrary = *LIB
+                // QSYSRemoteSourceFile = *FILE
+                // QSYSRemoteSourceMember = RPGLE, SQLRPGLE
                 return expectedValue.equalsIgnoreCase(remoteObject.getType());
             } else if (PROPERTY_SUBTYPE.equals(aProperty)) {
+                // Item sub type, e.g.:
+                // QSYSRemoteLibrary = PROD (always)
+                // QSYSRemoteSourceFile = PF-SRC
+                // QSYSRemoteSourceMember = SRC
                 return expectedValue.equalsIgnoreCase(remoteObject.getSubType());
             }
         }

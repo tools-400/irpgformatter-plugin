@@ -16,7 +16,7 @@
             id="de.tools400.lpex.irpgformatter.expressions.QSYSRemoteObjectPropertyTester"
             namespace="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief"
             properties="type,subtype"
-            type="java.lang.Object">
+            type="com.ibm.etools.iseries.comm.interfaces.ISeriesHostObjectBrief">
         </propertyTester>
 
         <propertyTester
@@ -24,7 +24,23 @@
             id="de.tools400.lpex.irpgformatter.expressions.SystemFilterReferencesPropertyTester"
             namespace="de.tools400.lpex.irpgformatter.expressions.systemfilterreference"
             properties="type,subsystem"
-            type="java.lang.Object">
+            type="org.eclipse.rse.core.filters.SystemFilterReference">
+        </propertyTester>
+
+        <propertyTester
+            class="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester"
+            id="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester.remote"
+            namespace="de.tools400.lpex.irpgformatter.expressions.file"
+            properties="extension,isDirectory,isFile"
+            type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+        </propertyTester>
+
+        <propertyTester
+            class="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester"
+            id="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester.workspace"
+            namespace="de.tools400.lpex.irpgformatter.expressions.file"
+            properties="extension"
+            type="org.eclipse.core.resources.IFile">
         </propertyTester>
 
    </extension>
@@ -131,43 +147,69 @@
                      checkEnabled="false">
                   <iterate
                         ifEmpty="false"
-                        operator="and">
-                     <adapt
-                           type="com.ibm.etools.iseries.comm.interfaces.ISeriesHostObjectBrief">
-                        <or>
+                        operator="or">
+                     <or>
+                        <!-- ================== -->
+                        <!--  QSYS File System  -->
+                        <!-- ================== -->
+                        <adapt
+                              type="org.eclipse.rse.core.filters.SystemFilterReference">
                            <test
-                                 property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.subtype"
-                                 value="SRC">
+                                 property="de.tools400.lpex.irpgformatter.expressions.systemfilterreference.subsystem"
+                                 value="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSObjectSubSystem">
                            </test>
-                           <and>
+                        </adapt>
+                        <adapt
+                              type="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceFile"/>
+                        <adapt
+                              type="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember">
+                           <or>
                               <test
                                     property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.type"
-                                    value="*FILE">
+                                    value="RPGLE">
                               </test>
-                              <or>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.type"
+                                    value="SQLRPGLE">
+                              </test>
+                           </or>
+                        </adapt>
+                        <!-- ================= -->
+                        <!--  IFS File System  -->
+                        <!-- ================= -->
+                        <adapt
+                              type="org.eclipse.rse.core.filters.SystemFilterReference">
+                           <test
+                                 property="de.tools400.lpex.irpgformatter.expressions.systemfilterreference.subsystem"
+                                 value="com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem">
+                           </test>
+                        </adapt>
+                        <adapt
+                              type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+                           <or>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.file.isDirectory"
+                                    value="true">
+                              </test>
+                              <and>
                                  <test
-                                       property="de.tools400.lpex.irpgformatter.expressions.hostobjectbrief.subtype"
-                                       value="PF-SRC">
+                                       property="de.tools400.lpex.irpgformatter.expressions.file.isFile"
+                                       value="true">
                                  </test>
-                              </or>
-                           </and>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </visibleWhen>
-            </command>
-
-            <command
-                  commandId="de.tools400.lpex.irpgformatter.commands.format"
-                  label="%Label_formatCommand"
-                  style="push">
-               <visibleWhen
-                     checkEnabled="false">
-                  <iterate
-                        ifEmpty="false"
-                        operator="or">
-                     <adapt
-                           type="org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile"/>
+                                 <or>
+                                    <test
+                                          property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                          value="RPGLE">
+                                    </test>
+                                    <test
+                                          property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                          value="SQLRPGLE">
+                                    </test>
+                                 </or>
+                              </and>
+                           </or>
+                        </adapt>
+                     </or>
                   </iterate>
                </visibleWhen>
             </command>
@@ -218,10 +260,24 @@
                         ifEmpty="false"
                         operator="or">
                      <or>
+                        <!-- ================== -->
+                        <!--  All File Systems  -->
+                        <!-- ================== -->
                         <adapt
-                              type="org.eclipse.core.resources.IFile"/>
+                              type="org.eclipse.core.resources.IFolder"/>
                         <adapt
-                              type="org.eclipse.core.resources.IContainer"/>
+                              type="org.eclipse.core.resources.IFile">
+                           <or>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                    value="RPGLE">
+                              </test>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                    value="SQLRPGLE">
+                              </test>
+                           </or>
+                        </adapt>
                      </or>
                   </iterate>
                </visibleWhen>
