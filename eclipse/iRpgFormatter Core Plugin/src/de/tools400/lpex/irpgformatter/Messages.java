@@ -187,6 +187,8 @@ public class Messages extends NLS {
     public static String Title_Connection_offline;
     public static String Error_Download_failed_A;
 
+    public static String Error_Format_on_library_level_not_supported_A;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

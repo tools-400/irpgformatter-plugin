@@ -21,7 +21,7 @@ import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileErro
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatStreamFilesPostRun;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
-public class FormatStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
+public class FormatLocalStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -39,7 +39,7 @@ public class FormatStreamFileHandler extends AbstractFormatHandler implements IF
 
     private IFile[] resolveStreamFiles(IStructuredSelection selection) {
 
-        StreamFileResolver resolver = new StreamFileResolver();
+        LocalStreamFileResolver resolver = new LocalStreamFileResolver();
         IFile[] files = resolver.resolveStreamFiles(selection);
 
         return files;

@@ -34,12 +34,18 @@ import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember;
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 
-public class SourceMembersResolver {
+public class RemoteMembersResolver {
 
     private List<Object> sourceMembers;
+    private List<String> unsupportedLibraries;
 
-    public SourceMembersResolver() {
+    public RemoteMembersResolver() {
         this.sourceMembers = new LinkedList<>();
+        this.unsupportedLibraries = new LinkedList<>();
+    }
+
+    public String[] getUnsupportedLibraries() {
+        return unsupportedLibraries.toArray(new String[unsupportedLibraries.size()]);
     }
 
     public SourceMember[] resolveSourceMembers(Object element) {
@@ -56,21 +62,15 @@ public class SourceMembersResolver {
 
             } else if ((element instanceof IQSYSResource)) {
 
-                if ((element instanceof IQSYSResource)) {
+                IHost host = ((IRemoteObjectContextProvider)element).getRemoteObjectContext().getObjectSubsystem().getHost();
+                addElement(host, element);
 
-                    IHost host = ((IRemoteObjectContextProvider)element).getRemoteObjectContext().getObjectSubsystem().getHost();
-                    // Host: GFD400
-                    addElement(host, element);
+            } else if ((element instanceof SystemFilterReference)) {
 
-                } else if ((element instanceof SystemFilterReference)) {
-
-                    SystemFilterReference systemFilterReference = (SystemFilterReference)element;
-                    IHost host = ((SubSystem)systemFilterReference.getFilterPoolReferenceManager().getProvider()).getHost();
-                    // Host: GFD400
-                    SystemFilterReference filterReference = (SystemFilterReference)element;
-                    String[] _filterStrings = filterReference.getReferencedFilter().getFilterStrings();
-                    addElementsFromFilterString(host, _filterStrings);
-                }
+                SystemFilterReference systemFilterReference = (SystemFilterReference)element;
+                IHost host = ((SubSystem)systemFilterReference.getFilterPoolReferenceManager().getProvider()).getHost();
+                String[] filterStrings = systemFilterReference.getReferencedFilter().getFilterStrings();
+                addElementsFromFilterString(host, filterStrings);
             }
 
         } catch (Exception e) {
@@ -80,20 +80,7 @@ public class SourceMembersResolver {
         return sourceMembers.toArray(new SourceMember[sourceMembers.size()]);
     }
 
-    private void addElement(IHost host, Object element) throws Exception {
-
-        if ((ResourceTypeUtil.isLibrary(element))) {
-            String library = getLibraryName(element);
-            addElementsFromLibrary(host, library);
-        } else if ((ResourceTypeUtil.isSourceFile(element))) {
-            String library = getLibraryName(element);
-            String file = getFileName(element);
-            addElementsFromSourceFile(host, library, file);
-        } else if (ResourceTypeUtil.isSrcMember(element)) {
-            addSourceMember(host, element);
-        }
-    }
-
+    @SuppressWarnings("unused")
     private void addElementsFromLibrary(IHost host, String library) throws Exception {
 
         Object[] sourceFiles = null;
@@ -155,6 +142,19 @@ public class SourceMembersResolver {
         }
     }
 
+    private void addElement(IHost host, Object element) throws Exception {
+
+        if ((ResourceTypeUtil.isLibrary(element))) {
+            unsupportedLibraries.add(getLibraryName(element));
+        } else if ((ResourceTypeUtil.isSourceFile(element))) {
+            String library = getLibraryName(element);
+            String file = getFileName(element);
+            addElementsFromSourceFile(host, library, file);
+        } else if (ResourceTypeUtil.isSrcMember(element)) {
+            addSourceMember(host, element);
+        }
+    }
+
     private void addSourceMember(IHost host, Object element) {
 
         String profileName = IBMiConnection.getConnection(host).getConnectionName();
@@ -182,6 +182,7 @@ public class SourceMembersResolver {
      * Filter string producers
      */
 
+    @SuppressWarnings("unused")
     protected String produceLibraryFilterString(String library) {
 
         ISeriesObjectFilterString objectFilterString = new ISeriesObjectFilterString();
@@ -198,6 +199,7 @@ public class SourceMembersResolver {
      * Object information provider
      */
 
+    @SuppressWarnings("unused")
     protected boolean isLibrary(Object object) {
         return ResourceTypeUtil.isLibrary(object);
     }
@@ -214,7 +216,7 @@ public class SourceMembersResolver {
      * Resource attributes
      */
 
-    protected String getLibraryName(Object resource) {
+    private String getLibraryName(Object resource) {
         if (resource instanceof QSYSRemoteSourceMember) {
             return ((QSYSRemoteSourceMember)resource).getLibrary();
         } else if (resource instanceof IQSYSObject) {
@@ -224,7 +226,7 @@ public class SourceMembersResolver {
         }
     }
 
-    protected String getFileName(Object resource) {
+    private String getFileName(Object resource) {
         if (resource instanceof IQSYSMember) {
             return ((IQSYSMember)resource).getFile();
         } else if (resource instanceof IQSYSFile) {
@@ -234,7 +236,7 @@ public class SourceMembersResolver {
         }
     }
 
-    protected String getMemberName(Object resource) {
+    private String getMemberName(Object resource) {
         if (resource instanceof IQSYSMember) {
             return ((IQSYSMember)resource).getName();
         } else {
@@ -242,7 +244,7 @@ public class SourceMembersResolver {
         }
     }
 
-    protected String getMemberType(Object resource) {
+    private String getMemberType(Object resource) {
         if (resource instanceof IQSYSMember) {
             return ((IQSYSMember)resource).getType();
         } else {

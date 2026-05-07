@@ -13,6 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.rse.core.filters.SystemFilterReference;
+import org.eclipse.rse.subsystems.files.core.servicesubsystem.FileServiceSubSystem;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFileSubSystem;
 
@@ -47,14 +49,33 @@ public class RemoteStreamFileResolver {
             } else {
                 addFileIfSupported(remoteFile);
             }
+        } else if (element instanceof SystemFilterReference) {
+            resolveFilterReference((SystemFilterReference)element);
         }
     }
 
-    private void addFileIfSupported(IRemoteFile file) {
+    private void resolveFilterReference(SystemFilterReference ref) {
 
-        String extension = FileUtils.getExtension(file.getName());
-        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
-            files.add(file);
+        try {
+            Object provider = ref.getFilterPoolReferenceManager().getProvider();
+            if (!(provider instanceof FileServiceSubSystem)) {
+                return;
+            }
+            FileServiceSubSystem subSystem = (FileServiceSubSystem)provider;
+            String[] filterStrings = ref.getReferencedFilter().getFilterStrings();
+            for (String filterString : filterStrings) {
+                Object[] children = subSystem.resolveFilterString(filterString, null);
+                if (children == null) {
+                    continue;
+                }
+                for (Object child : children) {
+                    if (child instanceof IRemoteFile) {
+                        resolveElement(child);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Ignore inaccessible filters
         }
     }
 
@@ -72,6 +93,14 @@ public class RemoteStreamFileResolver {
             }
         } catch (Exception e) {
             // Ignore inaccessible directories
+        }
+    }
+
+    private void addFileIfSupported(IRemoteFile file) {
+
+        String extension = FileUtils.getExtension(file.getName());
+        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
+            files.add(file);
         }
     }
 }

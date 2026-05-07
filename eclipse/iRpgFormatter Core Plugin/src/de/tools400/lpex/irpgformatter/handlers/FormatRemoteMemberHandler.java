@@ -22,8 +22,6 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteMemberHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
 
-    public static final String ID = "de.tools400.lpex.irpgformatter.commands.format";
-
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
@@ -31,19 +29,26 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
 
         if (selection instanceof IStructuredSelection) {
 
-            SourceMember[] sourceMembers = resolveSourceMembers(selection);
-            scheduleFormatterJob(sourceMembers);
+            RemoteMembersResolver resolver = new RemoteMembersResolver();
+            SourceMember[] sourceMembers = resolver.resolveSourceMembers(selection);
+
+            String[] unsupportedLibraries = resolver.getUnsupportedLibraries();
+            if (unsupportedLibraries.length > 0) {
+                ErrorGroup[] groups = new ErrorGroup[unsupportedLibraries.length];
+                for (int i = 0; i < unsupportedLibraries.length; i++) {
+                    String detail = Messages.bind(Messages.Error_Format_on_library_level_not_supported_A, unsupportedLibraries[i]);
+                    groups[i] = new ErrorGroup(unsupportedLibraries[i], new String[] { detail });
+                }
+                String header = Messages.bind(Messages.Error_Format_on_library_level_not_supported_A, ""); //$NON-NLS-1$
+                displayErrorDialog(header, groups);
+            }
+
+            if (sourceMembers.length > 0) {
+                scheduleFormatterJob(sourceMembers);
+            }
         }
 
         return null;
-    }
-
-    private SourceMember[] resolveSourceMembers(ISelection selection) {
-
-        SourceMembersResolver resolver = new SourceMembersResolver();
-        SourceMember[] sourceMembers = resolver.resolveSourceMembers(selection);
-
-        return sourceMembers;
     }
 
     private void scheduleFormatterJob(SourceMember[] sourceMembers) {

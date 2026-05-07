@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -28,12 +29,12 @@ import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 
-public class StreamFileResolver {
+public class LocalStreamFileResolver {
 
     private List<IFile> files;
     private Set<Object> unsupportedResources;
 
-    public StreamFileResolver() {
+    public LocalStreamFileResolver() {
         this.files = new LinkedList<>();
         this.unsupportedResources = new HashSet<Object>();
     }
@@ -61,28 +62,20 @@ public class StreamFileResolver {
             }
         } else if (element instanceof IFile) {
             addFileIfSupported((IFile)element);
-        } else if (element instanceof IContainer) {
-            addFilesFromContainer((IContainer)element);
+        } else if (element instanceof IFolder) {
+            addFilesFromContainer((IFolder)element);
         } else if (element instanceof IAdaptable) {
             IResource resource = ((IAdaptable)element).getAdapter(IResource.class);
             if (resource instanceof IFile) {
                 addFileIfSupported((IFile)resource);
-            } else if (resource instanceof IContainer) {
-                addFilesFromContainer((IContainer)resource);
+            } else if (resource instanceof IFolder) {
+                addFilesFromContainer((IFolder)resource);
             }
         } else {
             if (!unsupportedResources.contains(element)) {
                 IRpgleFormatterPlugin.logWarning("Unsupported local file object type: " + element.getClass().getName());
                 unsupportedResources.add(element);
             }
-        }
-    }
-
-    private void addFileIfSupported(IFile file) {
-
-        String extension = file.getFileExtension();
-        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
-            files.add(file);
         }
     }
 
@@ -99,6 +92,14 @@ public class StreamFileResolver {
             }
         } catch (CoreException e) {
             // Ignore inaccessible resources
+        }
+    }
+
+    private void addFileIfSupported(IFile file) {
+
+        String extension = file.getFileExtension();
+        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
+            files.add(file);
         }
     }
 }
