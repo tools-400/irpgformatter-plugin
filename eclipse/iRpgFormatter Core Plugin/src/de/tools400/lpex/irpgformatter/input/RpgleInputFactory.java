@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -72,6 +74,18 @@ public class RpgleInputFactory {
     }
 
     /**
+     * Creates an {@link IRpgleInput} from a local filesystem file (outside any
+     * Eclipse workspace project), e.g. a file selected via an RSE Local Files
+     * filter.
+     *
+     * @param file the local filesystem file
+     * @return an IRpgleInput for the local file
+     */
+    public static IRpgleInput createFromJavaIoFile(File file) {
+        return new RpgleJavaIoFileInput(file);
+    }
+
+    /**
      * Creates an {@link IRpgleInput} from a remote IFS stream file.
      *
      * @param system the AS400 connection
@@ -80,26 +94,6 @@ public class RpgleInputFactory {
      */
     public static IRpgleInput createFromRemoteStreamFile(AS400 system, String path) {
         return new RpgleRemoteStreamFileInput(system, path);
-    }
-
-    /**
-     * Creates an {@link IRpgleInput} from a remote IBM i source member.
-     *
-     * @param connectionName - the remote connection name
-     * @param library - the remote library
-     * @param file - the remote source file
-     * @param member - the remote source member
-     * @return an IRpgleInput for the remote member
-     * @throws RpgleFormatterException if the connection cannot be established
-     */
-    public static IRpgleInput createFromJT400RemoteMember(IBMiConnection connection, String library, String file, String member)
-        throws RpgleFormatterException {
-        try {
-            AS400 system = connection.getAS400ToolboxObject();
-            return new RpgleRemoteMemberInput(system, library, file, member);
-        } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, library + "/" + file + "(" + member + ")"), e);
-        }
     }
 
     /**
@@ -114,17 +108,14 @@ public class RpgleInputFactory {
      * @return an IRpgleInput for the remote member
      * @throws RpgleFormatterException if the member cannot be resolved
      */
-    public static IRpgleInput createFromEditableRemoteMember(IBMiConnection connection, String library, String file,
-        String member, IProgressMonitor monitor) throws RpgleFormatterException {
+    public static IRpgleInput createFromEditableRemoteMember(IBMiConnection connection, String library, String file, String member,
+        IProgressMonitor monitor) throws RpgleFormatterException {
         try {
             IQSYSMember qsysMember = connection.getMember(library, file, member, null);
-            QSYSEditableRemoteSourceFileMember editableMember =
-                new QSYSEditableRemoteSourceFileMember(qsysMember);
+            QSYSEditableRemoteSourceFileMember editableMember = new QSYSEditableRemoteSourceFileMember(qsysMember);
             return new RpgleEditableMemberInput(editableMember, monitor);
         } catch (Exception e) {
-            throw new RpgleFormatterException(
-                Messages.bind(Messages.Error_Failed_reading_file_A,
-                    library + "/" + file + "(" + member + ")"), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, library + "/" + file + "(" + member + ")"), e);
         }
     }
 }
