@@ -17,6 +17,8 @@ public class SystemFilterReferencesPropertyTester extends PropertyTester {
 
     public static final String PROPERTY_SUBSYSTEM = "subsystem";
 
+    public static final String PROPERTY_SUBSYSTEM_CONFIG_ID = "subsystemConfigId";
+
     public static final String PROPERTY_TYPE = "type";
 
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {
@@ -32,6 +34,9 @@ public class SystemFilterReferencesPropertyTester extends PropertyTester {
             String actualValue = null;
             if (PROPERTY_SUBSYSTEM.equals(aProperty)) {
                 actualValue = filter.getSubSystem().getClass().getName();
+            }
+            if (PROPERTY_SUBSYSTEM_CONFIG_ID.equals(aProperty)) {
+                actualValue = filter.getSubSystem().getConfigurationId();
             }
             if (PROPERTY_TYPE.equals(aProperty)) {
                 actualValue = filter.getReferencedFilter().getType();

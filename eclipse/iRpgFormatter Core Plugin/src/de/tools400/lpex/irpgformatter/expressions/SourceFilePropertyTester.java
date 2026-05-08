@@ -11,6 +11,7 @@ package de.tools400.lpex.irpgformatter.expressions;
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 public class SourceFilePropertyTester extends PropertyTester {
@@ -23,7 +24,20 @@ public class SourceFilePropertyTester extends PropertyTester {
 
     public static final String PROPERTY_IS_FILE = "isFile";
 
+    public static final String PROPERTY_SUBSYSTEM_CONFIG_ID = "subsystemConfigId";
+
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {
+
+        if (PROPERTY_SUBSYSTEM_CONFIG_ID.equals(aProperty)) {
+            if (!(anExpectedValue instanceof String)) {
+                return false;
+            }
+            if (aReceiver instanceof AbstractRemoteFile) {
+                String configId = ((AbstractRemoteFile)aReceiver).getParentRemoteFileSubSystem().getConfigurationId();
+                return ((String)anExpectedValue).equalsIgnoreCase(configId);
+            }
+            return false;
+        }
 
         if (PROPERTY_EXTENSION.equals(aProperty)) {
             if (!(anExpectedValue instanceof String)) {

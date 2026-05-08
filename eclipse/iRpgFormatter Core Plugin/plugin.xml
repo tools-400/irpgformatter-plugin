@@ -23,7 +23,7 @@
             class="de.tools400.lpex.irpgformatter.expressions.SystemFilterReferencesPropertyTester"
             id="de.tools400.lpex.irpgformatter.expressions.SystemFilterReferencesPropertyTester"
             namespace="de.tools400.lpex.irpgformatter.expressions.systemfilterreference"
-            properties="type,subsystem"
+            properties="type,subsystem,subsystemConfigId"
             type="org.eclipse.rse.core.filters.SystemFilterReference">
         </propertyTester>
 
@@ -31,8 +31,8 @@
             class="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester"
             id="de.tools400.lpex.irpgformatter.expressions.SourceFilePropertyTester.remote"
             namespace="de.tools400.lpex.irpgformatter.expressions.file"
-            properties="extension,isDirectory,isFile"
-            type="com.ibm.etools.iseries.subsystems.ifs.files.IFSRemoteFile">
+            properties="extension,isDirectory,isFile,subsystemConfigId"
+            type="org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile">
         </propertyTester>
 
         <propertyTester
@@ -208,6 +208,47 @@
                                  </or>
                               </and>
                            </or>
+                        </adapt>
+                        <!-- =================== -->
+                        <!--  Local File System  -->
+                        <!-- =================== -->
+                        <adapt
+                              type="org.eclipse.rse.core.filters.SystemFilterReference">
+                           <test
+                                 property="de.tools400.lpex.irpgformatter.expressions.systemfilterreference.subsystemConfigId"
+                                 value="local.files">
+                           </test>
+                        </adapt>
+                        <adapt
+                              type="org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile">
+                           <and>
+                              <test
+                                    property="de.tools400.lpex.irpgformatter.expressions.file.subsystemConfigId"
+                                    value="local.files">
+                              </test>
+                              <or>
+                                 <test
+                                       property="de.tools400.lpex.irpgformatter.expressions.file.isDirectory"
+                                       value="true">
+                                 </test>
+                                 <and>
+                                    <test
+                                          property="de.tools400.lpex.irpgformatter.expressions.file.isFile"
+                                          value="true">
+                                    </test>
+                                    <or>
+                                       <test
+                                             property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                             value="RPGLE">
+                                       </test>
+                                       <test
+                                             property="de.tools400.lpex.irpgformatter.expressions.file.extension"
+                                             value="SQLRPGLE">
+                                       </test>
+                                    </or>
+                                 </and>
+                              </or>
+                           </and>
                         </adapt>
                      </or>
                   </iterate>

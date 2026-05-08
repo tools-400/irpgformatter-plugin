@@ -18,13 +18,9 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
@@ -52,23 +48,19 @@ public class LocalStreamFileResolver {
 
     private void resolveElement(Object element) {
 
-        if (element instanceof AbstractRemoteFile) {
-            AbstractRemoteFile remoteFile = (AbstractRemoteFile)element;
-            String path = remoteFile.getHostFile().getAbsolutePath();
-            IPath location = new Path(path);
-            IFile workspaceFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(location);
-            if (workspaceFile != null) {
-                addFileIfSupported(workspaceFile);
-            }
-        } else if (element instanceof IFile) {
+        if (element instanceof IFile) {
+            // IFile (Project Explorer)
             addFileIfSupported((IFile)element);
         } else if (element instanceof IFolder) {
+            // IFolder (Project Explorer)
             addFilesFromContainer((IFolder)element);
         } else if (element instanceof IAdaptable) {
             IResource resource = ((IAdaptable)element).getAdapter(IResource.class);
             if (resource instanceof IFile) {
+                // IAdaptable -> IFile
                 addFileIfSupported((IFile)resource);
             } else if (resource instanceof IFolder) {
+                // IAdaptable -> IFolder
                 addFilesFromContainer((IFolder)resource);
             }
         } else {

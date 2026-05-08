@@ -19,9 +19,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
-import org.eclipse.rse.core.subsystems.SubSystem;
 import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
+import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFileSubSystem;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -31,10 +31,12 @@ public class FormatSourceHandler extends AbstractHandler {
 
     private FormatRemoteMemberHandler remoteMemberHandler = new FormatRemoteMemberHandler();
     private FormatLocalStreamFileHandler localStreamFileHandler = new FormatLocalStreamFileHandler();
+    private FormatJavaIoStreamFileHandler javaIoStreamFileHandler = new FormatJavaIoStreamFileHandler();
     private FormatRemoteStreamFileHandler remoteStreamFileHandler = new FormatRemoteStreamFileHandler();
 
     private enum Category {
         LOCAL,
+        LOCAL_FS,
         IFS_REMOTE,
         QSYS_REMOTE
     }
@@ -62,10 +64,16 @@ public class FormatSourceHandler extends AbstractHandler {
         }
 
         if (categories.contains(Category.LOCAL)) {
+            // local elements of Eclipse projects
             localStreamFileHandler.execute(event);
+        } else if (categories.contains(Category.LOCAL_FS)) {
+            // local elements of non-Eclipse projects
+            javaIoStreamFileHandler.execute(event);
         } else if (categories.contains(Category.IFS_REMOTE)) {
+            // remote stream files
             remoteStreamFileHandler.execute(event);
         } else {
+            // remote members
             remoteMemberHandler.execute(event);
         }
 
@@ -76,9 +84,9 @@ public class FormatSourceHandler extends AbstractHandler {
 
         if (element instanceof AbstractRemoteFile) {
             AbstractRemoteFile remoteFile = (AbstractRemoteFile)element;
-            String subsystemId = remoteFile.getParentRemoteFileSubSystem().getConfigurationId();
-            if ("local.files".equals(subsystemId)) { //$NON-NLS-1$
-                return Category.LOCAL;
+            String configId = remoteFile.getParentRemoteFileSubSystem().getConfigurationId();
+            if ("local.files".equals(configId)) { //$NON-NLS-1$
+                return Category.LOCAL_FS;
             }
             return Category.IFS_REMOTE;
         }
@@ -94,11 +102,12 @@ public class FormatSourceHandler extends AbstractHandler {
         if (element instanceof SystemFilterReference) {
             SystemFilterReference ref = (SystemFilterReference)element;
             Object provider = ref.getFilterPoolReferenceManager().getProvider();
-            if (provider instanceof SubSystem) {
-                String subsystemClass = provider.getClass().getName();
-                if ("com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem".equals(subsystemClass)) { //$NON-NLS-1$
-                    return Category.IFS_REMOTE;
+            if (provider instanceof IRemoteFileSubSystem) {
+                String configId = ((IRemoteFileSubSystem)provider).getConfigurationId();
+                if ("local.files".equals(configId)) { //$NON-NLS-1$
+                    return Category.LOCAL_FS;
                 }
+                return Category.IFS_REMOTE;
             }
             return Category.QSYS_REMOTE;
         }
