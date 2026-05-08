@@ -17,8 +17,8 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob.MemberError;
-import de.tools400.lpex.irpgformatter.handlers.resolvers.RemoteMembersResolver;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteSourceMembersPostRun;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.RemoteMembersResolver;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteMemberHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
@@ -31,7 +31,7 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
         if (selection instanceof IStructuredSelection) {
 
             RemoteMembersResolver resolver = new RemoteMembersResolver();
-            SourceMember[] sourceMembers = resolver.resolveSourceMembers(selection);
+            SourceMember[] sourceMembers = resolver.resolveRemoteMembers((IStructuredSelection)selection);
 
             String[] unsupportedLibraries = resolver.getUnsupportedLibraries();
             if (unsupportedLibraries.length > 0) {

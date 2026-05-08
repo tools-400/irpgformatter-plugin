@@ -39,7 +39,7 @@ public class LocalStreamFileResolver {
         this.unsupportedResources = new HashSet<Object>();
     }
 
-    public IFile[] resolveStreamFiles(IStructuredSelection selection) {
+    public IFile[] resolveLocalStreamFiles(IStructuredSelection selection) {
 
         Iterator<?> iterator = selection.iterator();
         while (iterator.hasNext()) {

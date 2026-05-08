@@ -49,19 +49,22 @@ public class RemoteMembersResolver {
         return unsupportedLibraries.toArray(new String[unsupportedLibraries.size()]);
     }
 
-    public SourceMember[] resolveSourceMembers(Object element) {
+    public SourceMember[] resolveRemoteMembers(IStructuredSelection selection) {
+
+        Iterator<?> iterator = selection.iterator();
+        while (iterator.hasNext()) {
+            Object element = iterator.next();
+            resolveElement(element);
+        }
+
+        return sourceMembers.toArray(new SourceMember[sourceMembers.size()]);
+    }
+
+    private void resolveElement(Object element) {
 
         try {
 
-            if ((element instanceof IStructuredSelection)) {
-
-                Iterator<?> iterator = ((IStructuredSelection)element).iterator();
-                while (iterator.hasNext()) {
-                    Object elementItem = iterator.next();
-                    resolveSourceMembers(elementItem);
-                }
-
-            } else if ((element instanceof IQSYSResource)) {
+            if ((element instanceof IQSYSResource)) {
 
                 IHost host = ((IRemoteObjectContextProvider)element).getRemoteObjectContext().getObjectSubsystem().getHost();
                 addElement(host, element);
@@ -78,7 +81,6 @@ public class RemoteMembersResolver {
             IRpgleFormatterPlugin.logError("Failed to resolve source members.", e);
         }
 
-        return sourceMembers.toArray(new SourceMember[sourceMembers.size()]);
     }
 
     @SuppressWarnings("unused")

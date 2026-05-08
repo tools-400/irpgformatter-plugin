@@ -41,7 +41,7 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
     private IFile[] resolveStreamFiles(IStructuredSelection selection) {
 
         LocalStreamFileResolver resolver = new LocalStreamFileResolver();
-        IFile[] files = resolver.resolveStreamFiles(selection);
+        IFile[] files = resolver.resolveLocalStreamFiles(selection);
 
         return files;
     }
