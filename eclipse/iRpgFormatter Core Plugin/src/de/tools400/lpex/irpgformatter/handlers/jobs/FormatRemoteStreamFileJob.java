@@ -37,7 +37,6 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatRemoteStreamFileJob extends Job {
 
-    private Preferences preferences;
     private IRemoteFile[] files;
     private RpgleFormatter formatter;
     private IFormatRemoteStreamFilesPostRun postRun;
@@ -50,7 +49,7 @@ public class FormatRemoteStreamFileJob extends Job {
     public FormatRemoteStreamFileJob(IRemoteFile[] files, IFormatRemoteStreamFilesPostRun postRun) {
         super(Messages.Job_Formatting_remote_stream_files);
 
-        this.preferences = Preferences.getInstance();
+        Preferences.getInstance();
         this.files = files;
         this.formatter = new RpgleFormatter();
         this.postRun = postRun;
