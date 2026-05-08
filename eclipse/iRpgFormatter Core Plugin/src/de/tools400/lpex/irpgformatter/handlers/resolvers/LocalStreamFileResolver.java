@@ -8,11 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.handlers.resolvers;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -22,17 +20,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 
 public class LocalStreamFileResolver {
 
     private List<IFile> files;
-    private Set<Object> unsupportedResources;
 
     public LocalStreamFileResolver() {
         this.files = new LinkedList<>();
-        this.unsupportedResources = new HashSet<Object>();
     }
 
     public IFile[] resolveLocalStreamFiles(IStructuredSelection selection) {
@@ -62,11 +57,6 @@ public class LocalStreamFileResolver {
             } else if (resource instanceof IFolder) {
                 // IAdaptable -> IFolder
                 addFilesFromContainer((IFolder)resource);
-            }
-        } else {
-            if (!unsupportedResources.contains(element)) {
-                IRpgleFormatterPlugin.logWarning("Unsupported local file object type: " + element.getClass().getName());
-                unsupportedResources.add(element);
             }
         }
     }
