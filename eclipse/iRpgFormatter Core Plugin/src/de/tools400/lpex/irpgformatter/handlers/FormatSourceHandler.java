@@ -29,7 +29,7 @@ import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public class FormatSourceHandler extends AbstractHandler {
 
-    private FormatRemoteMemberHandler remoteSourceHandler = new FormatRemoteMemberHandler();
+    private FormatRemoteMemberHandler remoteMemberHandler = new FormatRemoteMemberHandler();
     private FormatLocalStreamFileHandler localStreamFileHandler = new FormatLocalStreamFileHandler();
     private FormatRemoteStreamFileHandler remoteStreamFileHandler = new FormatRemoteStreamFileHandler();
 
@@ -66,7 +66,7 @@ public class FormatSourceHandler extends AbstractHandler {
         } else if (categories.contains(Category.IFS_REMOTE)) {
             remoteStreamFileHandler.execute(event);
         } else {
-            remoteSourceHandler.execute(event);
+            remoteMemberHandler.execute(event);
         }
 
         return null;
@@ -95,8 +95,8 @@ public class FormatSourceHandler extends AbstractHandler {
             SystemFilterReference ref = (SystemFilterReference)element;
             Object provider = ref.getFilterPoolReferenceManager().getProvider();
             if (provider instanceof SubSystem) {
-                String configId = ((SubSystem)provider).getConfigurationId();
-                if ("com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem".equals(configId)) { //$NON-NLS-1$
+                String subsystemClass = provider.getClass().getName();
+                if ("com.ibm.etools.iseries.subsystems.ifs.files.IFSFileServiceSubSystem".equals(subsystemClass)) { //$NON-NLS-1$
                     return Category.IFS_REMOTE;
                 }
             }

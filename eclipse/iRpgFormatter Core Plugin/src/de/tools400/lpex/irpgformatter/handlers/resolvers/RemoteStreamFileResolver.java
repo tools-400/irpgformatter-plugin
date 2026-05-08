@@ -45,8 +45,10 @@ public class RemoteStreamFileResolver {
         if (element instanceof IRemoteFile) {
             IRemoteFile remoteFile = (IRemoteFile)element;
             if (remoteFile.isDirectory()) {
+                // Verzeichnis
                 addFilesFromDirectory(remoteFile);
             } else {
+                // einfache Datei
                 addFileIfSupported(remoteFile);
             }
         } else if (element instanceof SystemFilterReference) {
