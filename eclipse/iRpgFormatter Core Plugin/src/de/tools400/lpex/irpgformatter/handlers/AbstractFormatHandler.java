@@ -16,7 +16,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.handlers.jobs.IErrorObject;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 

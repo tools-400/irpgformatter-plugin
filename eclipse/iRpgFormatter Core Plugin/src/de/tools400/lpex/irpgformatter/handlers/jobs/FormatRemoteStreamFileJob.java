@@ -28,6 +28,7 @@ import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
