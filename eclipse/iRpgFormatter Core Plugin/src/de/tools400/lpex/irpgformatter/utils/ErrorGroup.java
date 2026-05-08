@@ -9,10 +9,10 @@
 package de.tools400.lpex.irpgformatter.utils;
 
 /**
- * A labeled group of error detail messages, used by master/detail error
- * dialogs (e.g. one group per source member, with the statement-level errors
- * inside). The label typically identifies the affected resource (member,
- * file, ...), the details describe what went wrong inside that resource.
+ * A labeled group of error detail messages, used by master/detail error dialogs
+ * (e.g. one group per source member, with the statement-level errors inside).
+ * The label typically identifies the affected resource (member, file, ...), the
+ * details describe what went wrong inside that resource.
  */
 public class ErrorGroup {
 
@@ -29,6 +29,9 @@ public class ErrorGroup {
     }
 
     public String[] getDetails() {
+        if (details == null) {
+            return new String[0];
+        }
         return details;
     }
 
