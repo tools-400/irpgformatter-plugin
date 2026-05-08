@@ -25,8 +25,6 @@ public class SourceFilePropertyTester extends PropertyTester {
 
     public boolean test(Object aReceiver, String aProperty, Object[] anArgs, Object anExpectedValue) {
 
-        System.out.println("SourceFilePropertyTester: " + anExpectedValue);
-
         if (PROPERTY_EXTENSION.equals(aProperty)) {
             if (!(anExpectedValue instanceof String)) {
                 return false;

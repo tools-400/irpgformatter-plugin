@@ -105,10 +105,7 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
      */
     public static void logError(String message, Throwable e) {
         if (plugin == null) {
-            System.err.println(message);
-            if (e != null) {
-                e.printStackTrace();
-            }
+            logToConsole("ERROR", message, e);
             return;
         }
         plugin.getLog().log(new Status(Status.ERROR, PLUGIN_ID, message, e));
@@ -122,10 +119,17 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
      */
     public static void logWarning(String message) {
         if (plugin == null) {
-            System.out.println(String.format("WARN: %s", message));
+            logToConsole("WARN", message, null);
             return;
         }
         plugin.getLog().log(new Status(Status.WARNING, PLUGIN_ID, message));
+    }
+
+    private static void logToConsole(String level, String message, Throwable e) {
+        System.out.println(String.format("%s: %s", level, message));
+        if (e != null) {
+            e.printStackTrace();
+        }
     }
 
     @Override
