@@ -56,6 +56,7 @@ public class UIUtils {
      */
     public static void displayErrorDetailsDialog(String message, String[] errorDetails) {
         displayErrorDetailsTitleAreaDialog(message, errorDetails);
+        // displayErrorDetailsMessageDialog(message, errorDetails);
     }
 
     public static void displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails) {
@@ -73,7 +74,7 @@ public class UIUtils {
         displayMemberErrorsDialog(message, errorGroups);
     }
 
-    public static void displayMemberErrorsDialog(String message, ErrorGroup[] errorGroups) {
+    private static void displayMemberErrorsDialog(String message, ErrorGroup[] errorGroups) {
         MemberErrorsDialog dialog = new MemberErrorsDialog(getShell(), message, errorGroups);
         dialog.open();
     }
