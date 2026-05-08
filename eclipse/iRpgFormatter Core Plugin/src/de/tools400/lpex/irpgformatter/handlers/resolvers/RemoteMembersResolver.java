@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.lpex.irpgformatter.handlers;
+package de.tools400.lpex.irpgformatter.handlers.resolvers;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -33,6 +33,7 @@ import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 
 public class RemoteMembersResolver {
 

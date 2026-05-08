@@ -18,6 +18,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.LocalStreamFileResolver;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatStreamFilesPostRun;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 

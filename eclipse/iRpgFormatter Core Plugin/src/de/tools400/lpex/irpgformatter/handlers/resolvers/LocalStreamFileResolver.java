@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/cpl-v10.html
  *******************************************************************************/
 
-package de.tools400.lpex.irpgformatter.handlers;
+package de.tools400.lpex.irpgformatter.handlers.resolvers;
 
 import java.util.HashSet;
 import java.util.Iterator;

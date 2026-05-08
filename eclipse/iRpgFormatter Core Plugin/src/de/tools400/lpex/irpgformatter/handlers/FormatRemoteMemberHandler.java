@@ -17,6 +17,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob.MemberError;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.RemoteMembersResolver;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteSourceMembersPostRun;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
