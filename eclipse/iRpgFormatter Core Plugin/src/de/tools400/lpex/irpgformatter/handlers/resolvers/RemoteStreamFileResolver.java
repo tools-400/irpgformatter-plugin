@@ -19,8 +19,15 @@ import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFileSubSystem;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.handlers.FormatRemoteStreamFileHandler;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
+/**
+ * Flattens an RSE Local Files selection (single files, directories, or filter
+ * references) into an array of {@link IRemoteFile} pointing at the underlying
+ * disk paths. Used by {@link FormatRemoteStreamFileHandler} for files displayed
+ * in the <i>Remote Systems</i> view.
+ */
 public class RemoteStreamFileResolver {
 
     private List<IRemoteFile> files;

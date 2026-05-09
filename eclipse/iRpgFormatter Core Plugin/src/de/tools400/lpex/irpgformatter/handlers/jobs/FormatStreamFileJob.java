@@ -88,7 +88,7 @@ public class FormatStreamFileJob extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.run(formatted.toArray(new IFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
+            postRun.postRun(formatted.toArray(new IFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
                 statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
         }
 

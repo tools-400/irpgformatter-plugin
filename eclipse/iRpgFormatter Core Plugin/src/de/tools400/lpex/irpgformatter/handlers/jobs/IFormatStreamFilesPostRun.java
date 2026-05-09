@@ -21,5 +21,5 @@ public interface IFormatStreamFilesPostRun {
      * @param statementErrors written files that nevertheless contain
      *        individual statement-level errors; one group per affected file
      */
-    public void run(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
+    public void postRun(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
 }

@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.actions.FormatLpexSourceAction;
+import de.tools400.lpex.irpgformatter.handlers.AbstractFormatHandler;
 
 public class UIUtils {
 
@@ -53,6 +55,8 @@ public class UIUtils {
      * iRPGFormatter look-and-feel for such dialogs should use this method; the
      * underlying dialog implementation can then be swapped centrally without
      * touching call sites.
+     * <p>
+     * Used by the {@link FormatLpexSourceAction}.
      */
     public static void displayErrorDetailsDialog(String message, String[] errorDetails) {
         displayErrorDetailsTitleAreaDialog(message, errorDetails);
@@ -64,24 +68,22 @@ public class UIUtils {
         dialog.open();
     }
 
+    @SuppressWarnings("unused")
+    private static void displayErrorDetailsMessageDialog(String message, String[] errorDetails) {
+        ErrorDetailsMessageDialog dialog = new ErrorDetailsMessageDialog(getShell(), message, errorDetails);
+        dialog.open();
+    }
+
     /**
      * Application-wide entry point for showing a master/detail error dialog
      * (table of resources on top, error details of the selected row at the
      * bottom). Use when errors naturally group by resource — e.g. one group per
      * source member containing the statement-level errors.
+     * <p>
+     * Used by all handlers inheriting from {@link AbstractFormatHandler}.
      */
     public static void displayErrorDetailsDialog(String message, ErrorGroup[] errorGroups) {
-        displayMemberErrorsDialog(message, errorGroups);
-    }
-
-    private static void displayMemberErrorsDialog(String message, ErrorGroup[] errorGroups) {
         MemberErrorsDialog dialog = new MemberErrorsDialog(getShell(), message, errorGroups);
-        dialog.open();
-    }
-
-    @SuppressWarnings("unused")
-    private static void displayErrorDetailsMessageDialog(String message, String[] errorDetails) {
-        ErrorDetailsMessageDialog dialog = new ErrorDetailsMessageDialog(getShell(), message, errorDetails);
         dialog.open();
     }
 

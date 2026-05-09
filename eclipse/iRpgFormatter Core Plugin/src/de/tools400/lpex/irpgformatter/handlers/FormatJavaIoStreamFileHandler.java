@@ -32,14 +32,19 @@ public class FormatJavaIoStreamFileHandler extends AbstractFormatHandler impleme
 
         if (selection instanceof IStructuredSelection) {
 
-            File[] files = resolveStreamFiles((IStructuredSelection)selection);
-            scheduleFormatterJob(files);
+            File[] files = resolveLocalStreamFiles((IStructuredSelection)selection);
+
+            if (files.length > 0) {
+                scheduleFormatterJob(files);
+            } else {
+                displayNoValidEntriesFoundError();
+            }
         }
 
         return null;
     }
 
-    private File[] resolveStreamFiles(IStructuredSelection selection) {
+    private File[] resolveLocalStreamFiles(IStructuredSelection selection) {
 
         JavaIoStreamFileResolver resolver = new JavaIoStreamFileResolver();
         File[] files = resolver.resolveStreamFiles(selection);
@@ -54,12 +59,12 @@ public class FormatJavaIoStreamFileHandler extends AbstractFormatHandler impleme
     }
 
     /**
-     * Callback of the formatter job. Called at the end of the formatter.
-     * Both write-level and statement-level errors are presented together
-     * in the master/detail dialog.
+     * Callback of the formatter job. Called at the end of the formatter. Both
+     * write-level and statement-level errors are presented together in the
+     * master/detail dialog.
      */
     @Override
-    public void run(File[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
+    public void postRun(File[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
 
         if (errors.length == 0 && statementErrors.length == 0) {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));

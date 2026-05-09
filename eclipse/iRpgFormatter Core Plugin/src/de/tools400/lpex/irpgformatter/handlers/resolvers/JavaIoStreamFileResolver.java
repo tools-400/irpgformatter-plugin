@@ -20,13 +20,14 @@ import org.eclipse.rse.subsystems.files.core.servicesubsystem.FileServiceSubSyst
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.handlers.FormatJavaIoStreamFileHandler;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Flattens an RSE Local Files selection (single files, directories, or
- * filter references) into an array of {@link java.io.File} pointing at
- * the underlying disk paths. Used by {@link FormatJavaIoStreamFileJob}
- * for files that are not part of any Eclipse workspace project.
+ * Flattens an RSE Local Files selection (single files, directories, or filter
+ * references) into an array of {@link File} pointing at the underlying disk
+ * paths. Used by {@link FormatJavaIoStreamFileHandler} for files that are not
+ * part of any Eclipse workspace project.
  */
 public class JavaIoStreamFileResolver {
 

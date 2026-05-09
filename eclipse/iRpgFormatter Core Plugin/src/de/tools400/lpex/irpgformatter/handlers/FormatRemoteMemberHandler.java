@@ -30,26 +30,24 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
 
         if (selection instanceof IStructuredSelection) {
 
-            RemoteMembersResolver resolver = new RemoteMembersResolver();
-            SourceMember[] sourceMembers = resolver.resolveRemoteMembers((IStructuredSelection)selection);
-
-            String[] unsupportedLibraries = resolver.getUnsupportedLibraries();
-            if (unsupportedLibraries.length > 0) {
-                ErrorGroup[] groups = new ErrorGroup[unsupportedLibraries.length];
-                for (int i = 0; i < unsupportedLibraries.length; i++) {
-                    String detail = Messages.bind(Messages.Error_Format_on_library_level_not_supported_A, unsupportedLibraries[i]);
-                    groups[i] = new ErrorGroup(unsupportedLibraries[i], new String[] { detail });
-                }
-                String header = Messages.bind(Messages.Error_Format_on_library_level_not_supported_A, ""); //$NON-NLS-1$
-                displayErrorDialog(header, groups);
-            }
+            SourceMember[] sourceMembers = resolveRemoteMembers((IStructuredSelection)selection);
 
             if (sourceMembers.length > 0) {
                 scheduleFormatterJob(sourceMembers);
+            } else {
+                displayNoValidEntriesFoundError();
             }
         }
 
         return null;
+    }
+
+    private SourceMember[] resolveRemoteMembers(IStructuredSelection selection) {
+
+        RemoteMembersResolver resolver = new RemoteMembersResolver();
+        SourceMember[] sourceMembers = resolver.resolveRemoteMembers((IStructuredSelection)selection);
+
+        return sourceMembers;
     }
 
     private void scheduleFormatterJob(SourceMember[] sourceMembers) {
@@ -60,9 +58,8 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
 
     /**
      * Callback of the formatter job. Called at the end of the formatter. Both
-     * write-level errors (member could not be written at all) and
-     * statement-level errors (member written, but individual statements
-     * unchanged) are presented together in the master/detail dialog.
+     * write-level and statement-level errors are presented together in the
+     * master/detail dialog.
      */
     @Override
     public void postRun(SourceMember[] formatted, MemberError[] errors, ErrorGroup[] statementErrors) {

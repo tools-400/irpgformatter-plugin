@@ -21,5 +21,5 @@ public interface IFormatJavaIoStreamFilesPostRun {
      * @param statementErrors written files that nevertheless contain
      *        individual statement-level errors; one group per affected file
      */
-    public void run(File[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
+    public void postRun(File[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
 }

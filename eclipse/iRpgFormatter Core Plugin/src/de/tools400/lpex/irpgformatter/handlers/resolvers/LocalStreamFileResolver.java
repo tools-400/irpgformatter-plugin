@@ -21,7 +21,14 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.handlers.FormatLocalStreamFileHandler;
 
+/**
+ * Flattens an RSE Local Files selection (single files, directories, or filter
+ * references) into an array of {@link IFile} pointing at the underlying disk
+ * paths. Used by {@link FormatLocalStreamFileHandler} for files that are part
+ * of a Eclipse workspace project.
+ */
 public class LocalStreamFileResolver {
 
     private List<IFile> files;

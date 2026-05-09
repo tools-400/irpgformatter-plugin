@@ -32,11 +32,15 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         job.schedule();
     }
 
+    protected void displayNoValidEntriesFoundError() {
+        UIUtils.displaySimpleErrorDialog(Messages.Error_No_valid_entries_found);
+    }
+
     /**
      * Shows the unified master/detail error dialog. Both write-level errors
-     * (one resource per group, one detail line) and statement-level errors
-     * (one resource per group, multiple detail lines) are presented in the
-     * same dialog so the user only deals with one window.
+     * (one resource per group, one detail line) and statement-level errors (one
+     * resource per group, multiple detail lines) are presented in the same
+     * dialog so the user only deals with one window.
      */
     protected void displayErrorDialog(String message, ErrorGroup[] groups) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
@@ -50,9 +54,9 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
     }
 
     /**
-     * Converts write-level error objects (one error message per resource)
-     * into the {@link ErrorGroup} representation used by the master/detail
-     * dialog, so they can be displayed alongside statement-level errors.
+     * Converts write-level error objects (one error message per resource) into
+     * the {@link ErrorGroup} representation used by the master/detail dialog,
+     * so they can be displayed alongside statement-level errors.
      */
     protected static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
         ErrorGroup[] groups = new ErrorGroup[errors.length];

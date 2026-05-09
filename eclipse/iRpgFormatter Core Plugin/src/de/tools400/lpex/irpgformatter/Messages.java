@@ -143,6 +143,7 @@ public class Messages extends NLS {
     public static String Error_A_declaration_type_with_key_A_already_exists;
     public static String Error_A_keyword_with_key_A_already_exists;
     public static String Error_A_special_word_with_key_A_already_exists;
+    public static String Error_No_valid_entries_found;
 
     public static String Label_Export;
     public static String Label_Import;
@@ -187,7 +188,6 @@ public class Messages extends NLS {
     public static String Title_Connection_offline;
     public static String Error_Download_failed_A;
 
-    public static String Error_Format_on_library_level_not_supported_A;
     public static String Error_Mixed_selection_not_supported;
 
     static {

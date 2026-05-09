@@ -33,20 +33,21 @@ import com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.handlers.FormatRemoteMemberHandler;
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 
+/**
+ * Flattens an RSE Local Files selection (single files, directories, or filter
+ * references) into an array of {@link IQSYSMember} pointing at the underlying
+ * disk paths. Used by {@link FormatRemoteMemberHandler} for files displayed in
+ * the <i>Remote Systems</i> view.
+ */
 public class RemoteMembersResolver {
 
     private List<Object> sourceMembers;
-    private List<String> unsupportedLibraries;
 
     public RemoteMembersResolver() {
         this.sourceMembers = new LinkedList<>();
-        this.unsupportedLibraries = new LinkedList<>();
-    }
-
-    public String[] getUnsupportedLibraries() {
-        return unsupportedLibraries.toArray(new String[unsupportedLibraries.size()]);
     }
 
     public SourceMember[] resolveRemoteMembers(IStructuredSelection selection) {
@@ -65,12 +66,9 @@ public class RemoteMembersResolver {
         try {
 
             if ((element instanceof IQSYSResource)) {
-
                 IHost host = ((IRemoteObjectContextProvider)element).getRemoteObjectContext().getObjectSubsystem().getHost();
                 addElement(host, element);
-
             } else if ((element instanceof SystemFilterReference)) {
-
                 SystemFilterReference systemFilterReference = (SystemFilterReference)element;
                 IHost host = ((SubSystem)systemFilterReference.getFilterPoolReferenceManager().getProvider()).getHost();
                 String[] filterStrings = systemFilterReference.getReferencedFilter().getFilterStrings();
@@ -83,15 +81,12 @@ public class RemoteMembersResolver {
 
     }
 
-    @SuppressWarnings("unused")
     private void addElementsFromLibrary(IHost host, String library) throws Exception {
 
         Object[] sourceFiles = null;
 
         String objectFilterString = produceLibraryFilterString(library);
-
         sourceFiles = resolveFilterString(host, objectFilterString.toString());
-
         if ((sourceFiles == null) || (sourceFiles.length == 0)) {
             return;
         }
@@ -102,7 +97,6 @@ public class RemoteMembersResolver {
         }
 
         for (int idx2 = 0; idx2 < sourceFiles.length; idx2++) {
-
             Object element = sourceFiles[idx2];
             if (isSourceFile(element)) {
                 addElementsFromSourceFile(host, getLibraryName(element), getFileName(element));
@@ -148,7 +142,8 @@ public class RemoteMembersResolver {
     private void addElement(IHost host, Object element) throws Exception {
 
         if ((ResourceTypeUtil.isLibrary(element))) {
-            unsupportedLibraries.add(getLibraryName(element));
+            String library = getLibraryName(element);
+            addElementsFromLibrary(host, library);
         } else if ((ResourceTypeUtil.isSourceFile(element))) {
             String library = getLibraryName(element);
             String file = getFileName(element);

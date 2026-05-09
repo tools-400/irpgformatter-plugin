@@ -21,5 +21,5 @@ public interface IFormatRemoteStreamFilesPostRun {
      * @param statementErrors written files that nevertheless contain
      *        individual statement-level errors; one group per affected file
      */
-    public void run(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
+    public void postRun(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors);
 }

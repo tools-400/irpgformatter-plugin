@@ -18,8 +18,8 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob.FileError;
-import de.tools400.lpex.irpgformatter.handlers.resolvers.RemoteStreamFileResolver;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatRemoteStreamFilesPostRun;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.RemoteStreamFileResolver;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteStreamFileHandler extends AbstractFormatHandler implements IFormatRemoteStreamFilesPostRun {
@@ -32,7 +32,13 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
         if (selection instanceof IStructuredSelection) {
 
             IRemoteFile[] files = resolveRemoteStreamFiles((IStructuredSelection)selection);
-            scheduleFormatterJob(files);
+
+            if (files.length > 0) {
+                scheduleFormatterJob(files);
+            } else {
+                displayNoValidEntriesFoundError();
+            }
+
         }
 
         return null;
@@ -53,12 +59,12 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
     }
 
     /**
-     * Callback of the formatter job. Called at the end of the formatter.
-     * Both write-level and statement-level errors are presented together
-     * in the master/detail dialog.
+     * Callback of the formatter job. Called at the end of the formatter. Both
+     * write-level and statement-level errors are presented together in the
+     * master/detail dialog.
      */
     @Override
-    public void run(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
+    public void postRun(IRemoteFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
 
         if (errors.length == 0 && statementErrors.length == 0) {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));

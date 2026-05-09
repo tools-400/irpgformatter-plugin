@@ -18,8 +18,8 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
-import de.tools400.lpex.irpgformatter.handlers.resolvers.LocalStreamFileResolver;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatStreamFilesPostRun;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.LocalStreamFileResolver;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatLocalStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
@@ -31,14 +31,19 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
 
         if (selection instanceof IStructuredSelection) {
 
-            IFile[] files = resolveStreamFiles((IStructuredSelection)selection);
-            scheduleFormatterJob(files);
+            IFile[] files = resolveLocalStreamFiles((IStructuredSelection)selection);
+
+            if (files.length > 0) {
+                scheduleFormatterJob(files);
+            } else {
+                displayNoValidEntriesFoundError();
+            }
         }
 
         return null;
     }
 
-    private IFile[] resolveStreamFiles(IStructuredSelection selection) {
+    private IFile[] resolveLocalStreamFiles(IStructuredSelection selection) {
 
         LocalStreamFileResolver resolver = new LocalStreamFileResolver();
         IFile[] files = resolver.resolveLocalStreamFiles(selection);
@@ -53,12 +58,12 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
     }
 
     /**
-     * Callback of the formatter job. Called at the end of the formatter.
-     * Both write-level and statement-level errors are presented together
-     * in the master/detail dialog.
+     * Callback of the formatter job. Called at the end of the formatter. Both
+     * write-level and statement-level errors are presented together in the
+     * master/detail dialog.
      */
     @Override
-    public void run(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
+    public void postRun(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
 
         if (errors.length == 0 && statementErrors.length == 0) {
             displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));

@@ -160,6 +160,8 @@
                            </test>
                         </adapt>
                         <adapt
+                              type="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteLibrary"/>
+                        <adapt
                               type="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceFile"/>
                         <adapt
                               type="com.ibm.etools.iseries.subsystems.qsys.objects.QSYSRemoteSourceMember">

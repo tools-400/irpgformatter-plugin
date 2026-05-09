@@ -92,7 +92,7 @@ public class FormatRemoteStreamFileJob extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.run(formatted.toArray(new IRemoteFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
+            postRun.postRun(formatted.toArray(new IRemoteFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
                 statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
         }
 
