@@ -75,6 +75,10 @@ public class FormatRemoteStreamFileJob extends Job {
 
             while (count < totalNumberOfFiles) {
 
+                if (monitor.isCanceled()) {
+                    break;
+                }
+
                 IRemoteFile file = files[count];
 
                 monitor.setTaskName(file.getAbsolutePath());

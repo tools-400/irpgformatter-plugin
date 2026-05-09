@@ -71,6 +71,10 @@ public class FormatStreamFileJob extends Job {
 
             while (count < totalNumberOfFiles) {
 
+                if (monitor.isCanceled()) {
+                    break;
+                }
+
                 IFile file = files[count];
 
                 monitor.setTaskName(file.getFullPath().toString());

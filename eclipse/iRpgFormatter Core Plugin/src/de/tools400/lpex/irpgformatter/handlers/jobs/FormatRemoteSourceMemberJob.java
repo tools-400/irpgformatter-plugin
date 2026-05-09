@@ -80,6 +80,10 @@ public class FormatRemoteSourceMemberJob extends Job {
 
             while (count < totalNumberOfMembers) {
 
+                if (monitor.isCanceled()) {
+                    break;
+                }
+
                 SourceMember sourceMember = sourceMembers[count];
 
                 monitor.setTaskName(sourceMember.toString());

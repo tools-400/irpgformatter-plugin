@@ -71,6 +71,10 @@ public class FormatJavaIoStreamFileJob extends Job {
 
             while (count < totalNumberOfFiles) {
 
+                if (monitor.isCanceled()) {
+                    break;
+                }
+
                 File file = files[count];
 
                 monitor.setTaskName(file.getAbsolutePath());
