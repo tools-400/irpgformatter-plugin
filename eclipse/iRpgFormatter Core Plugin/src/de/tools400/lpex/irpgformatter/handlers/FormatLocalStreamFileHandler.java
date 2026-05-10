@@ -8,12 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.handlers;
 
-import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob;
@@ -24,34 +21,19 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatLocalStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
 
+    private IFile[] files;
+
     @Override
-    public Object execute(ExecutionEvent event) throws ExecutionException {
-
-        ISelection selection = HandlerUtil.getCurrentSelection(event);
-
-        if (selection instanceof IStructuredSelection) {
-
-            IFile[] files = resolveLocalStreamFiles((IStructuredSelection)selection);
-
-            if (files.length > 0) {
-                scheduleFormatterJob(files);
-            } else {
-                displayNoValidEntriesFoundError();
-            }
-        }
-
-        return null;
-    }
-
-    private IFile[] resolveLocalStreamFiles(IStructuredSelection selection) {
+    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
 
         LocalStreamFileResolver resolver = new LocalStreamFileResolver();
-        IFile[] files = resolver.resolveLocalStreamFiles(selection);
+        files = resolver.resolveLocalStreamFiles(selection);
 
-        return files;
+        return files.length;
     }
 
-    private void scheduleFormatterJob(IFile[] files) {
+    @Override
+    protected void scheduleFormatterJob() {
 
         FormatStreamFileJob job = new FormatStreamFileJob(files, this);
         job.schedule();
@@ -85,6 +67,8 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
         if (writeErrors == 0 && statementErrorFiles > 0) {
             return Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B, formatted, statementErrorFiles);
         }
+
+        // both write errors and statement errors present
         return Messages.bind(Messages.Error_A_files_formatted_B_failed_C_with_statement_errors,
             new Object[] { formatted, writeErrors, statementErrorFiles });
     }

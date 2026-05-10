@@ -8,11 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.handlers;
 
-import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteSourceMemberJob;
@@ -23,36 +20,21 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteMemberHandler extends AbstractFormatHandler implements IFormatRemoteSourceMembersPostRun {
 
+    private SourceMember[] members;
+
     @Override
-    public Object execute(ExecutionEvent event) throws ExecutionException {
-
-        ISelection selection = HandlerUtil.getCurrentSelection(event);
-
-        if (selection instanceof IStructuredSelection) {
-
-            SourceMember[] sourceMembers = resolveRemoteMembers((IStructuredSelection)selection);
-
-            if (sourceMembers.length > 0) {
-                scheduleFormatterJob(sourceMembers);
-            } else {
-                displayNoValidEntriesFoundError();
-            }
-        }
-
-        return null;
-    }
-
-    private SourceMember[] resolveRemoteMembers(IStructuredSelection selection) {
+    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
 
         RemoteMembersResolver resolver = new RemoteMembersResolver();
-        SourceMember[] sourceMembers = resolver.resolveRemoteMembers((IStructuredSelection)selection);
+        members = resolver.resolveRemoteMembers((IStructuredSelection)selection);
 
-        return sourceMembers;
+        return members.length;
     }
 
-    private void scheduleFormatterJob(SourceMember[] sourceMembers) {
+    @Override
+    protected void scheduleFormatterJob() {
 
-        FormatRemoteSourceMemberJob job = new FormatRemoteSourceMemberJob(sourceMembers, this);
+        FormatRemoteSourceMemberJob job = new FormatRemoteSourceMemberJob(members, this);
         job.schedule();
     }
 
@@ -84,6 +66,7 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
         if (writeErrors == 0 && statementErrorMembers > 0) {
             return Messages.bind(Messages.Error_A_members_formatted_with_statement_errors_B, formatted, statementErrorMembers);
         }
+
         // both write errors and statement errors present
         return Messages.bind(Messages.Error_A_files_formatted_B_failed_C_with_statement_errors,
             new Object[] { formatted, writeErrors, statementErrorMembers });

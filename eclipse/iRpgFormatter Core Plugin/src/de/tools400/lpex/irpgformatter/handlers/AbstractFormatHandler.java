@@ -9,10 +9,15 @@
 package de.tools400.lpex.irpgformatter.handlers;
 
 import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -20,6 +25,28 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public abstract class AbstractFormatHandler extends AbstractHandler {
+
+    @Override
+    public Object execute(ExecutionEvent event) throws ExecutionException {
+
+        ISelection selection = HandlerUtil.getCurrentSelection(event);
+
+        if (selection instanceof IStructuredSelection) {
+            int count = resolveItems((IStructuredSelection)selection);
+            if (count > 0) {
+                scheduleFormatterJob();
+            } else {
+                displayNoValidEntriesFoundError();
+            }
+
+        }
+
+        return null;
+    }
+
+    protected abstract int resolveItems(IStructuredSelection selection) throws ExecutionException;
+
+    protected abstract void scheduleFormatterJob();
 
     protected void displaySuccessDialog(String message) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {

@@ -8,12 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.handlers;
 
-import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatRemoteStreamFileJob;
@@ -24,35 +21,19 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
 public class FormatRemoteStreamFileHandler extends AbstractFormatHandler implements IFormatRemoteStreamFilesPostRun {
 
+    private IRemoteFile[] files;
+
     @Override
-    public Object execute(ExecutionEvent event) throws ExecutionException {
-
-        ISelection selection = HandlerUtil.getCurrentSelection(event);
-
-        if (selection instanceof IStructuredSelection) {
-
-            IRemoteFile[] files = resolveRemoteStreamFiles((IStructuredSelection)selection);
-
-            if (files.length > 0) {
-                scheduleFormatterJob(files);
-            } else {
-                displayNoValidEntriesFoundError();
-            }
-
-        }
-
-        return null;
-    }
-
-    private IRemoteFile[] resolveRemoteStreamFiles(IStructuredSelection selection) {
+    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
 
         RemoteStreamFileResolver resolver = new RemoteStreamFileResolver();
-        IRemoteFile[] files = resolver.resolveRemoteStreamFiles(selection);
+        files = resolver.resolveRemoteStreamFiles(selection);
 
-        return files;
+        return files.length;
     }
 
-    private void scheduleFormatterJob(IRemoteFile[] files) {
+    @Override
+    protected void scheduleFormatterJob() {
 
         FormatRemoteStreamFileJob job = new FormatRemoteStreamFileJob(files, this);
         job.schedule();
@@ -86,6 +67,8 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
         if (writeErrors == 0 && statementErrorFiles > 0) {
             return Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B, formatted, statementErrorFiles);
         }
+
+        // both write errors and statement errors present
         return Messages.bind(Messages.Error_A_files_formatted_B_failed_C_with_statement_errors,
             new Object[] { formatted, writeErrors, statementErrorFiles });
     }
