@@ -33,7 +33,6 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatStreamFileJob extends Job {
 
-    private Preferences preferences;
     private IFile[] files;
     private RpgleFormatter formatter;
     private IFormatStreamFilesPostRun postRun;
@@ -46,7 +45,6 @@ public class FormatStreamFileJob extends Job {
     public FormatStreamFileJob(IFile[] files, IFormatStreamFilesPostRun postRun) {
         super(Messages.Job_Formatting_stream_files);
 
-        this.preferences = Preferences.getInstance();
         this.files = files;
         this.formatter = new RpgleFormatter();
         this.postRun = postRun;
@@ -99,7 +97,7 @@ public class FormatStreamFileJob extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(IFile file) throws RpgleFormatterException, Exception {
+    private void executeFormatter(IFile file) throws Exception, RpgleFormatterException {
 
         try {
 

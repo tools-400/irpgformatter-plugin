@@ -30,7 +30,6 @@ import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
@@ -42,7 +41,6 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 public class FormatRemoteSourceMemberJob extends Job {
 
-    private Preferences preferences;
     private SourceMember[] sourceMembers;
     private RpgleFormatter formatter;
     private IFormatRemoteSourceMembersPostRun postRun;
@@ -55,7 +53,6 @@ public class FormatRemoteSourceMemberJob extends Job {
     public FormatRemoteSourceMemberJob(SourceMember[] sourceMembers, IFormatRemoteSourceMembersPostRun postRun) {
         super(Messages.Job_Formatting_remote_source_members);
 
-        this.preferences = Preferences.getInstance();
         this.sourceMembers = sourceMembers;
         this.formatter = new RpgleFormatter();
         this.postRun = postRun;
@@ -111,7 +108,7 @@ public class FormatRemoteSourceMemberJob extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(SourceMember sourceMember) throws BatchAbortedException, Exception {
+    private void executeFormatter(SourceMember sourceMember) throws Exception, BatchAbortedException {
 
         try {
 
@@ -124,7 +121,6 @@ public class FormatRemoteSourceMemberJob extends Job {
             ensureWritable(connection, sourceMember);
 
             monitor.subTask(Messages.SubTask_Reading);
-
             String library = sourceMember.getLibraryName();
             String file = sourceMember.getFileName();
             String member = sourceMember.getMemberName();
@@ -186,17 +182,15 @@ public class FormatRemoteSourceMemberJob extends Job {
         }
     }
 
-    private void executeFormatter(SourceMember sourceMember, IRpgleInput input, IBMiConnection connection)
-        throws BatchAbortedException, Exception, RpgleFormatterException {
+    private void executeFormatter(SourceMember sourceMember, IRpgleInput input, IBMiConnection connection) throws Exception {
 
         formatter.setSourceLength(sourceMember.getSourceLength());
-        int defaultIndent = preferences.getStartColumn() - 1;
+        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 
         monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);
 
         monitor.subTask(Messages.SubTask_Writing);
-        ensureConnected(connection);
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formatted.add(sourceMember);

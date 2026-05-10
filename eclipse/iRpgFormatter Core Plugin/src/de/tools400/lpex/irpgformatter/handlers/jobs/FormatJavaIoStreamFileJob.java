@@ -99,7 +99,7 @@ public class FormatJavaIoStreamFileJob extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(File file) throws RpgleFormatterException, Exception {
+    private void executeFormatter(File file) throws Exception, RpgleFormatterException {
 
         try {
 

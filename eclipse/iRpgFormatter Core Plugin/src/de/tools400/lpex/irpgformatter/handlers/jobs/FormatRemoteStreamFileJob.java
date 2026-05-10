@@ -16,13 +16,17 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.rse.services.clientserver.messages.SystemMessageException;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
+import org.eclipse.swt.widgets.Display;
 
 import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
@@ -103,7 +107,7 @@ public class FormatRemoteStreamFileJob extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(IRemoteFile file) throws RpgleFormatterException, Exception {
+    private void executeFormatter(IRemoteFile file) throws Exception, BatchAbortedException {
 
         try {
 
@@ -112,6 +116,7 @@ public class FormatRemoteStreamFileJob extends Job {
             String path = file.getAbsolutePath();
 
             monitor.subTask(Messages.SubTask_Checking_availability);
+            ensureConnected(connection);
             ensureWritable(system, path);
 
             monitor.subTask(Messages.SubTask_Reading);
@@ -124,10 +129,36 @@ public class FormatRemoteStreamFileJob extends Job {
                 executeFormatter(file, input);
             }
 
+        } catch (BatchAbortedException e) {
+            throw e;
         } catch (Exception e) {
             FileError memberError = new FileError(file, e.getLocalizedMessage());
             errors.add(memberError);
         }
+    }
+
+    private void ensureConnected(IBMiConnection connection) throws BatchAbortedException, SystemMessageException {
+
+        if (connection.isConnected()) {
+            return;
+        }
+
+        final boolean[] userWantsConnect = { false };
+
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                userWantsConnect[0] = MessageDialog.openQuestion(Display.getDefault().getActiveShell(), Messages.Title_Connection_offline,
+                    Messages.bind(Messages.Question_Connection_A_is_offline_connect, connection.getConnectionName()));
+            }
+        });
+
+        if (!userWantsConnect[0]) {
+            throw new BatchAbortedException();
+        }
+
+        // throws SystemMessageException on failure
+        connection.connect();
     }
 
     private void ensureWritable(AS400 system, String path) throws IOException, FileLockedException {
@@ -141,7 +172,6 @@ public class FormatRemoteStreamFileJob extends Job {
     private void executeFormatter(IRemoteFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
 
         formatter.setSourceLength(RpgleFormatter.DEFAULT_END_COLUMN);
-
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 
         monitor.subTask(Messages.SubTask_Formatting);
