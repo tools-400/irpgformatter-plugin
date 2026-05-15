@@ -166,27 +166,46 @@ public class RpgleFormatter {
             : new boolean[statements.length];
 
         // Step 3: Process each statement
-        boolean formatterDisabled = false;
+        boolean formatterCompileTimeArrayOnly = false;
+        boolean formatterTemporarilyDisabled = false;
+
         for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
             CollectedStatement statement = statements[stmtIdx];
 
-            // Format the statement
+            // Format only compile time array statements after the first compile
+            // time array has been processed
             StatementType type = statement.getType();
+            if (type == StatementType.COMPILE_TIME_ARRAY) {
+                formatterCompileTimeArrayOnly = true;
+            }
 
             // Check for formatter directive
             int directive = getFormatterDirective(statement, type);
             if (directive != 0) {
                 results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(),
                     statement.getOriginalStatements().toArray(new String[0])));
-                formatterDisabled = (directive == -1);
+                formatterTemporarilyDisabled = (directive == -1);
                 continue;
             }
 
-            // If formatter is disabled, output original lines unchanged
-            if (formatterDisabled) {
-                results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(),
-                    statement.getOriginalStatements().toArray(new String[0])));
-                continue;
+            boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY);
+            if (passthrough) {
+                asUnformatted(statement);
+                // If formatter is disabled, output original lines unchanged
+                // if (formatterTemporarilyDisabled) {
+                // results.add(new
+                // FormattedStatement(statement.getStartLineNumber(),
+                // statement.numLines(),
+                // statement.getOriginalStatements().toArray(new String[0])));
+                // continue;
+                // } else if (formatterCompileTimeArrayOnly) {
+                // if (type != StatementType.COMPILE_TIME_ARRAY) {
+                // results.add(new
+                // FormattedStatement(statement.getStartLineNumber(),
+                // statement.numLines(),
+                // statement.getOriginalStatements().toArray(new String[0])));
+                // continue;
+                // }
             }
 
             List<String> stmtOutput = new ArrayList<>();
@@ -220,6 +239,10 @@ public class RpgleFormatter {
         }
 
         return new FormattedResult(results.toArray(new FormattedStatement[0]));
+    }
+
+    private FormattedStatement asUnformatted(CollectedStatement stmt) {
+        return new FormattedStatement(stmt.getStartLineNumber(), stmt.numLines(), stmt.getOriginalStatements().toArray(new String[0]));
     }
 
     public int getErrorCount() {
@@ -284,6 +307,10 @@ public class RpgleFormatter {
             // Format with indent
             result.addAll(formatCompilerDirective(statement, indent));
             break;
+        case COMPILE_TIME_ARRAY:
+            // apply casing only
+            result.addAll(formatCompileTimeArray(statement, indent));
+            break;
         case CTL_OPT:
             // Format with indent
             result.addAll(formatCtlOpt(statement, indent));
@@ -345,6 +372,22 @@ public class RpgleFormatter {
         List<String> result = new ArrayList<>();
 
         String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(statement.getStatement());
+        if (config.isUnindentCompilerDirectives()) {
+            indent = 0;
+        }
+        result.add(StringUtils.spaces(indent) + formatted);
+
+        return result;
+    }
+
+    /**
+     * Formats a compile time array.
+     */
+    private List<String> formatCompileTimeArray(CollectedStatement statement, int indent) {
+
+        List<String> result = new ArrayList<>();
+
+        String formatted = formatterUtils.getFormattingRules().formatCompileTimeArray(statement.getStatement());
         if (config.isUnindentCompilerDirectives()) {
             indent = 0;
         }

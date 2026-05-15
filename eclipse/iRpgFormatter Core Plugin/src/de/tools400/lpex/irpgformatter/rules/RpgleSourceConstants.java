@@ -24,6 +24,7 @@ public interface RpgleSourceConstants {
 
     static final String COMMENT = "//";
     static final String COMPILER_DIRECTIVE = "/";
+    static final String COMPILE_TIME_ARRAY = "**";
 
     static final String SEMICOLON = ";";
 

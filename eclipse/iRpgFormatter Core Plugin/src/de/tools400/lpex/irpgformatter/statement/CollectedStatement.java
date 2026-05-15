@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.formatter.UnexpectedStatementTypeException;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
@@ -97,10 +98,14 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         return isComplete;
     }
 
+    public void enforceComplete() throws RpgleFormatterException {
+        markCompleted();
+    }
+
     public StatementType getType() throws RpgleFormatterException {
 
         if (!isComplete) {
-            throw new RpgleFormatterException("Unknown statement type. Statement is not complete.");
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Unknown_statement_type_on_line_A, startLineNumber));
         }
 
         return statementType;
@@ -116,13 +121,20 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
         if (isSingleLineStatement(line)) {
             appendLineSegment(line);
-            isComplete = true;
-            setStatementComplete();
+            // isComplete = true;
+            // setStatementComplete();
+            markCompleted();
         } else {
             if (!StringUtils.isNullOrEmpty(line)) {
                 buildStatement(line);
             }
         }
+    }
+
+    private void markCompleted() throws RpgleFormatterException {
+
+        isComplete = true;
+        setStatementComplete();
     }
 
     public String getStatement() {
@@ -161,8 +173,10 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         // **FREE directive
         // Comments
         // Compiler directives (start with /)
+        // Compile Time Arrays (start with **CDATA)
 
-        if (isEmpty() && (isFreeFormatMarker(line) || isLineComment(line) || isCompilerDirective(line) || isBlankLine(line))) {
+        if (isEmpty()
+            && (isFreeFormatMarker(line) || isLineComment(line) || isCompilerDirective(line) || isCompileTimeArray(line) || isBlankLine(line))) {
             return true;
         }
         return false;
@@ -183,6 +197,15 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
             if (trimmedLine.startsWith(COMPILER_DIRECTIVE)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private boolean isCompileTimeArray(String line) {
+
+        if (line.startsWith(COMPILE_TIME_ARRAY)) {
+            return true;
         }
 
         return false;

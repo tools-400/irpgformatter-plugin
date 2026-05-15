@@ -54,8 +54,13 @@ public class RemoveEmptyCommentLinesRule implements IStatementListRule {
         boolean inIleDoc = false;
         boolean formatterDisabled = false;
 
+        
         for (int i = 0; i < statements.length; i++) {
             StatementType type = statements[i].getType();
+            if(type==StatementType.COMPILE_TIME_ARRAY) {
+                break;
+            }
+            
             String text = statements[i].getStatement().trim();
 
             // Track @formatter:on/off regions; do not touch statements inside them

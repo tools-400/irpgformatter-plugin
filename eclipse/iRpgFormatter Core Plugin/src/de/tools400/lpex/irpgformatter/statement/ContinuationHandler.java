@@ -70,19 +70,23 @@ public final class ContinuationHandler {
         CollectedStatement currentStatement = new CollectedStatement();
         currentStatement.setStartLineNumber(startLineNumber);
 
+        boolean haveOnlySingleLineStatements = false;
         for (int i = 0; i < sourceLines.length; i++) {
             String line = sourceLines[i];
 
             currentStatement.add(line);
 
+            if (haveOnlySingleLineStatements) {
+                currentStatement.enforceComplete();
+            }
+
             // Add complete statements
             if (currentStatement.isComplete()) {
 
-                StatementType currentType = currentStatement.getType();
-
                 statements.add(currentStatement);
 
-                if (currentStatement.getType().isStartOfBLock()) {
+                StatementType currentType = currentStatement.getType();
+                if (currentType.isStartOfBLock()) {
                     int indent = parents.size() - 1;
                     currentStatement.setIndentLevel(indent);
                     parents.push(currentStatement);
@@ -106,6 +110,13 @@ public final class ContinuationHandler {
                     currentStatement.setIndentLevel(indent);
                 }
 
+                // all statements following the first compile time array are
+                // single line statements by definition
+                if (currentType == StatementType.COMPILE_TIME_ARRAY) {
+                    haveOnlySingleLineStatements = true;
+                }
+
+                // start a new statement
                 CollectedStatement parent = parents.peek();
                 currentStatement = new CollectedStatement(parent);
                 currentStatement.setStartLineNumber(startLineNumber + i + 1);

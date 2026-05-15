@@ -25,9 +25,15 @@ public class RemoveEmptyLinesBeforeDclPiRule implements IStatementListRule {
 
     @Override
     public boolean[] apply(CollectedStatement[] statements) throws RpgleFormatterException {
+
         boolean[] result = new boolean[statements.length];
         for (int i = 0; i < statements.length; i++) {
-            if (statements[i].getType() == StatementType.DCL_PI) {
+            StatementType type = statements[i].getType();
+            if (type == StatementType.COMPILE_TIME_ARRAY) {
+                break;
+            }
+
+            if (type == StatementType.DCL_PI) {
                 int j = i - 1;
                 while (j >= 0 && isEffectivelyBlank(statements[j])) {
                     result[j] = true;
@@ -35,6 +41,7 @@ public class RemoveEmptyLinesBeforeDclPiRule implements IStatementListRule {
                 }
             }
         }
+
         return result;
     }
 
