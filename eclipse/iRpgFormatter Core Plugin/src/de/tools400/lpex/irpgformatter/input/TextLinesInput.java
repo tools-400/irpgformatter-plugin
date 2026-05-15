@@ -16,8 +16,14 @@ public class TextLinesInput extends AbstractRpgleInput implements IRpgleInput {
     private final String name;
 
     public TextLinesInput(String... lines) {
-        this.lines = lines;
+
+        this.lines = new String[lines.length];
         this.name = "TextLinesInput";
+
+        // Remove line break characters
+        for (int i = 0; i < lines.length; i++) {
+            this.lines[i] = lines[i].replaceAll("\r", "").replaceAll("\n", "");
+        }
     }
 
     @Override

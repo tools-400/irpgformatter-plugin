@@ -1,4 +1,7 @@
 **free
+
+// Compile time array
+DCL-S myArray CHAR(10) DIM(2) ctdata perrcd(1);
 //
 // ================================
 //  Remove empty comment lines.
@@ -59,3 +62,6 @@ DCL-PROC myProc export;
 // Remove end-proc name.
 END-PROC myProc;
 
+** CTDATA(myArray)
+Hello
+World

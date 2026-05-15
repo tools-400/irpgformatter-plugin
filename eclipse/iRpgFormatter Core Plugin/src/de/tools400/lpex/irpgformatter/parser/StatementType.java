@@ -19,7 +19,7 @@ public enum StatementType {
     BLANK (null),
 
     /** Free-format directive (**FREE) */
-    FREE_DIRECTIVE ("^\\s*\\*\\*FREE\\b"),
+    FREE_DIRECTIVE ("^\\*\\*FREE"),
 
     /** Comment line */
     COMMENT ("^\\s*//"),
@@ -71,6 +71,9 @@ public enum StatementType {
 
     /** Subfield declaration (dcl-subf) */
     DCL_SUBF (null),
+
+    /** Subfield declaration (dcl-subf) */
+    COMPILE_TIME_ARRAY ("^[*]{2}(\\s*ctdata.*)?"),
 
     /** Other statement types (not formatted) */
     OTHER (null);

@@ -84,12 +84,17 @@ public class StatementIdentifier {
         if (StatementType.FREE_DIRECTIVE.pattern().matcher(line).find()) {
             return StatementType.FREE_DIRECTIVE;
         }
+        if (StatementType.COMPILE_TIME_ARRAY.pattern().matcher(line).find()) {
+            return StatementType.COMPILE_TIME_ARRAY;
+        }
+
         if (StatementType.COMMENT.pattern().matcher(line).find()) {
             return StatementType.COMMENT;
         }
         if (StatementType.COMPILER_DIRECTIVE.pattern().matcher(line).find()) {
             return StatementType.COMPILER_DIRECTIVE;
         }
+
         if (StatementType.CTL_OPT.pattern().matcher(line).find()) {
             return StatementType.CTL_OPT;
         }

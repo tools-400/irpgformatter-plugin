@@ -144,6 +144,7 @@ public class Messages extends NLS {
     public static String Error_A_keyword_with_key_A_already_exists;
     public static String Error_A_special_word_with_key_A_already_exists;
     public static String Error_No_valid_entries_found;
+    public static String Error_Unknown_statement_type_on_line_A;
 
     public static String Label_Export;
     public static String Label_Import;

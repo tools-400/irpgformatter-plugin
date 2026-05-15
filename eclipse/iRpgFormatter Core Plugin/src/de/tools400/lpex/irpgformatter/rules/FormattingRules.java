@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.rules;
 
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
+import de.tools400.lpex.irpgformatter.rules.casing.FormatCompileTimeArrayRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatCompilerDirectiveRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatDataTypeRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatKeywordRule;
@@ -107,6 +108,17 @@ public class FormattingRules implements RpgleSourceConstants {
     public String formatCompilerDirective(String value) {
 
         String formatted = applyRules(value, new FormatCompilerDirectiveRule(config.getKeywordCasingStyle()));
+
+        return formatted;
+    }
+
+    /**
+     * Formats compiler directive according to casing style (keeps parameters
+     * as-is).
+     */
+    public String formatCompileTimeArray(String value) {
+
+        String formatted = applyRules(value, new FormatCompileTimeArrayRule(config.getKeywordCasingStyle()));
 
         return formatted;
     }
