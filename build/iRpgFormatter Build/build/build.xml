@@ -1,6 +1,6 @@
 <!--
  * =====================================================================
- *   This Ant script helps you to create an upload the project's 
+ *   This Ant script helps you to create an upload the project's
  *   update site.
  *
  *   In order to use all features of the script, you need to
@@ -386,7 +386,6 @@
             <echo>Building IBMi library is enabled.</echo>
         </then>
         <else>
-            <property name="build.library.enabled" value="true" />
             <echo>IGNORED: Building IBMi library</echo>
         </else>
     </if>
@@ -421,7 +420,7 @@
 
     <!-- =============================================================
           Updates various files before the plug-in can be build
-          with option 'Plug-in Tools - Build Site' of 'site.xml'. 
+          with option 'Plug-in Tools - Build Site' of 'site.xml'.
          ============================================================= -->
     <target name="build" depends="checkBuildTarget, checkProjectPaths, clean, updateVersionNumber, updateHelpProject, createTagFile, refreshProjects" description="Step 2" >
 
@@ -580,12 +579,12 @@
     *   Creates the help pages.
     *   This target calls the build script of the 'Help Builder'
     *   project to create the help pages.
-    *   This target is not specific to RDi/WDSCi. It does not matter for 
+    *   This target is not specific to RDi/WDSCi. It does not matter for
     *   what target it is called.
     *
-    *   Set the build properties as shown below, if you want to update 
+    *   Set the build properties as shown below, if you want to update
     *   the help pages:
-    * 
+    *
     *     build.help.enabled=true
     *
     * ===================================================================== -->
@@ -961,14 +960,6 @@
         <mkdir dir="${temp.dir.local_updatesite}" />
         <mkdir dir="${temp.dir.local_updatesite}/features" />
         <mkdir dir="${temp.dir.local_updatesite}/plugins" />
-        <mkdir dir="${temp.dir.local_updatesite}/Server" />
-
-        <if>
-            <equals arg1="${build.help.enabled}" arg2="true" />
-            <then>
-                <copy file="${build.template.dir.web.assets}/upload_savf.cmd" todir="${temp.dir.local_updatesite}/Server" />
-            </then>
-        </if>
 
         <copy todir="${temp.dir.local_updatesite}/features" >
             <fileset dir="${site.dir}/features" />
@@ -989,6 +980,8 @@
         <if>
             <equals arg1="${build.library.enabled}" arg2="true" />
             <then>
+                <mkdir dir="${temp.dir.local_updatesite}/Server" />
+                <copy file="${build.template.dir.web.assets}/upload_savf.cmd" todir="${temp.dir.local_updatesite}/Server" />
                 <copy toDir="${temp.dir.local_updatesite}/Server" >
                     <fileset dir="${local.savefile.directory}" includes="${local.savefile.name}" />
                 </copy>
@@ -1007,7 +1000,7 @@
 
     <!--
     * =====================================================================
-    *   Creates the tag file to indicate the project's version 
+    *   Creates the tag file to indicate the project's version
     *   of the zip file.
     * ===================================================================== -->
     <target name="createTagFile" >
@@ -1134,7 +1127,7 @@
     * =====================================================================
     *   Sets the properties that are used for building your local
     *   update site.
-    *   This target uses the properties stored in 
+    *   This target uses the properties stored in
     *   'localUpdateSite.properties'.
     * ===================================================================== -->
     <target name="setLocalUpdateSiteProperties" >
@@ -1230,9 +1223,9 @@
     *   Updates the help project with the following files:
     *     - upload_savf.cmd
     *
-    *   Set the build properties as shown below, if you want to update 
+    *   Set the build properties as shown below, if you want to update
     *   the help pages:
-    * 
+    *
     *     build.help.enabled=true
     *
     * ===================================================================== -->
@@ -1304,7 +1297,7 @@
                 <echo>Updating ${build.public.project.name} PDF file ...</echo>
 
                 <!-- Use a temporary file, because for whatever reasons the
-                     Word file is updated as well. Most like this is caused 
+                     Word file is updated as well. Most like this is caused
                      by a new version of MS Word. (Raddatz, 12.9.2025) -->
                 <delete file="${project.doc.tmp}" />
                 <copyfile src="${project.doc}" dest="${project.doc.tmp}" />
@@ -1360,7 +1353,7 @@
 
     <!--
     * =====================================================================
-    *   Checks whether of not the build has been started 
+    *   Checks whether of not the build has been started
     *   for the right target.
     * ===================================================================== -->
     <target name="checkBuildTarget" >
