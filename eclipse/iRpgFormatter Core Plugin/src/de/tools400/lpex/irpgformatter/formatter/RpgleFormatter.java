@@ -190,22 +190,8 @@ public class RpgleFormatter {
 
             boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY);
             if (passthrough) {
-                asUnformatted(statement);
-                // If formatter is disabled, output original lines unchanged
-                // if (formatterTemporarilyDisabled) {
-                // results.add(new
-                // FormattedStatement(statement.getStartLineNumber(),
-                // statement.numLines(),
-                // statement.getOriginalStatements().toArray(new String[0])));
-                // continue;
-                // } else if (formatterCompileTimeArrayOnly) {
-                // if (type != StatementType.COMPILE_TIME_ARRAY) {
-                // results.add(new
-                // FormattedStatement(statement.getStartLineNumber(),
-                // statement.numLines(),
-                // statement.getOriginalStatements().toArray(new String[0])));
-                // continue;
-                // }
+                results.add(asUnformatted(statement));
+                continue;
             }
 
             List<String> stmtOutput = new ArrayList<>();
