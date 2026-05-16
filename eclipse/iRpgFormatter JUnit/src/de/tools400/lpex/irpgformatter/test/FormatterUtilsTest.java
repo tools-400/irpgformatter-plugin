@@ -618,7 +618,7 @@ public class FormatterUtilsTest extends AbstractTestCase {
      * type FUNCTION.
      */
     @Test
-    public void fooBar() throws RpgleFormatterException {
+    public void format_keyword_with_nested_bif_small_line_width() throws RpgleFormatterException {
         getFormatterConfig().setBreakBeforeKeyword(true);
         IToken[] tokens = getTokenizer().tokenize("  dcl-s pOljl0100 pointer inz(%addr(oljl0100_buffer));");
         String[] results = getFormatterUtils().formatTokens("", tokens, 0, 35);
