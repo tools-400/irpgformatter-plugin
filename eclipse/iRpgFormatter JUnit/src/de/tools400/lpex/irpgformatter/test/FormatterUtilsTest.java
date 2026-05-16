@@ -612,4 +612,18 @@ public class FormatterUtilsTest extends AbstractTestCase {
         assertEquals("dim(%elem(g_handleList.hFile));", results[0]);
     }
 
+    /**
+     * Regression test: if the maximum line width is too small,
+     * <code>FormatterUtils.breakParameter()</code> must also handle tokens of
+     * type FUNCTION.
+     */
+    @Test
+    public void fooBar() throws RpgleFormatterException {
+        getFormatterConfig().setBreakBeforeKeyword(true);
+        IToken[] tokens = getTokenizer().tokenize("  dcl-s pOljl0100 pointer inz(%addr(oljl0100_buffer));");
+        String[] results = getFormatterUtils().formatTokens("", tokens, 0, 35);
+        assertEquals(2, results.length);
+        assertEquals("dcl-s pOljl0100 pointer", results[0]);
+        assertEquals("  inz(%addr(oljl0100_buffer));", results[1]);
+    }
 }

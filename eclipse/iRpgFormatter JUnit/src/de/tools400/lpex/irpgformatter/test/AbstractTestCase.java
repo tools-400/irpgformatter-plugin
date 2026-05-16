@@ -56,17 +56,13 @@ public abstract class AbstractTestCase {
     /**
      * Sets up test mode preferences with default values.
      */
-    protected void setupPreferences() {
+    private void setupPreferences() {
 
         PreferenceStoreProvider.enableTestMode();
         Preferences.resetInstance();
         PreferenceStoreProvider.initializeTestDefaults();
         preferences = Preferences.getInstance();
         preferences.initializeDefaultPreferences();
-    }
-
-    protected Preferences getPreferences() {
-        return preferences;
     }
 
     protected FormatterUtils getFormatterUtils() {

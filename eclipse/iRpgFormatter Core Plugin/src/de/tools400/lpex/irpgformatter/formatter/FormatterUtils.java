@@ -399,6 +399,8 @@ public class FormatterUtils implements RpgleSourceConstants {
                 new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
         } else if (token.getType() == TokenType.OTHER) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix, new NullFormattingRule());
+        } else if (token.getType() == TokenType.FUNCTION) {
+            parameterParts = formatFunctionWithParameters(currentLine, token, maxLineLength);
         } else {
             throw new UnexpectedTokenException(token);
         }
