@@ -187,7 +187,13 @@ public class FormatLpexSourceAction implements LpexAction {
     }
 
     private void restoreCursorPosition(LpexView view) {
-        LpexViewUtils.setLine(view, line);
-        LpexViewUtils.setPosition(view, position);
+
+        if (line <= LpexViewUtils.getNumLines(view)) {
+            LpexViewUtils.setLine(view, line);
+            LpexViewUtils.setPosition(view, position);
+        } else {
+            LpexViewUtils.setLine(view, LpexViewUtils.getNumLines(view));
+            LpexViewUtils.setPosition(view, 1);
+        }
     }
 }
