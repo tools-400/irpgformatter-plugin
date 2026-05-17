@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.parser.BlockFinder;
 import de.tools400.lpex.irpgformatter.parser.BlockFinder.BlockRange;
 import de.tools400.lpex.irpgformatter.parser.BlockFinder.BlockType;
@@ -61,25 +62,25 @@ public class BlockFinderTest extends AbstractTestCase {
     // --- findBlockEnd tests ---
 
     @Test
-    public void findBlockEnd_fromBlockStart() {
+    public void findBlockEnd_fromBlockStart() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         assertEquals(2, BlockFinder.findBlockEnd(lines, 0));
     }
 
     @Test
-    public void findBlockEnd_fromSubfield() {
+    public void findBlockEnd_fromSubfield() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         assertEquals(2, BlockFinder.findBlockEnd(lines, 1));
     }
 
     @Test
-    public void findBlockEnd_fromBlockEnd() {
+    public void findBlockEnd_fromBlockEnd() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         assertEquals(2, BlockFinder.findBlockEnd(lines, 2));
     }
 
     @Test
-    public void findBlockEnd_notInBlock() {
+    public void findBlockEnd_notInBlock() throws RpgleFormatterException {
         String[] lines = { "dcl-s myVar char(10);", "dcl-s otherVar int;" };
         assertEquals(-1, BlockFinder.findBlockEnd(lines, 0));
     }
@@ -87,7 +88,7 @@ public class BlockFinderTest extends AbstractTestCase {
     // --- findEnclosingBlock tests ---
 
     @Test
-    public void findEnclosingBlock_dclDs() {
+    public void findEnclosingBlock_dclDs() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         BlockRange block = BlockFinder.findEnclosingBlock(lines, 1);
         assertNotNull(block);
@@ -97,7 +98,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void findEnclosingBlock_dclPr() {
+    public void findEnclosingBlock_dclPr() throws RpgleFormatterException {
         String[] lines = { "dcl-pr myProc;", "  parm1 char(10);", "end-pr;" };
         BlockRange block = BlockFinder.findEnclosingBlock(lines, 1);
         assertNotNull(block);
@@ -107,7 +108,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void findEnclosingBlock_dclPi() {
+    public void findEnclosingBlock_dclPi() throws RpgleFormatterException {
         String[] lines = { "dcl-pi myProc;", "  parm1 int;", "end-pi;" };
         BlockRange block = BlockFinder.findEnclosingBlock(lines, 1);
         assertNotNull(block);
@@ -117,7 +118,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void findEnclosingBlock_notInBlock() {
+    public void findEnclosingBlock_notInBlock() throws RpgleFormatterException {
         String[] lines = { "dcl-s myVar char(10);" };
         BlockRange block = BlockFinder.findEnclosingBlock(lines, 0);
         assertNull(block);
@@ -126,27 +127,27 @@ public class BlockFinderTest extends AbstractTestCase {
     // --- isInsideBlock tests ---
 
     @Test
-    public void isInsideBlock_subfield() {
+    public void isInsideBlock_subfield() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         assertTrue(BlockFinder.isInsideBlock(lines, 1));
     }
 
     @Test
-    public void isInsideBlock_blockStart() {
+    public void isInsideBlock_blockStart() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         // Block start line itself is NOT inside the block
         assertFalse(BlockFinder.isInsideBlock(lines, 0));
     }
 
     @Test
-    public void isInsideBlock_blockEnd() {
+    public void isInsideBlock_blockEnd() throws RpgleFormatterException {
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         // Block end line itself is NOT inside the block
         assertFalse(BlockFinder.isInsideBlock(lines, 2));
     }
 
     @Test
-    public void isInsideBlock_outsideBlock() {
+    public void isInsideBlock_outsideBlock() throws RpgleFormatterException {
         String[] lines = { "dcl-s myVar char(10);", "dcl-ds myDs;", "  field1 char(10);", "end-ds;" };
         assertFalse(BlockFinder.isInsideBlock(lines, 0));
     }
@@ -154,7 +155,7 @@ public class BlockFinderTest extends AbstractTestCase {
     // --- Selection expansion tests (simulated without LpexView) ---
 
     @Test
-    public void expandSelection_selectionStartsInsideBlock() {
+    public void expandSelection_selectionStartsInsideBlock() throws RpgleFormatterException {
         // Simulating: user selects from subfield to end-ds
         // Selection should expand to include dcl-ds
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "  field2 int;", "end-ds;" };
@@ -180,7 +181,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void expandSelection_selectionEndsInsideBlock() {
+    public void expandSelection_selectionEndsInsideBlock() throws RpgleFormatterException {
         // Simulating: user selects from dcl-ds to subfield
         // Selection should expand to include end-ds
         String[] lines = { "dcl-ds myDs;", "  field1 char(10);", "  field2 int;", "end-ds;" };
@@ -206,7 +207,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void expandSelection_selectionSpansMultipleBlocks() {
+    public void expandSelection_selectionSpansMultipleBlocks() throws RpgleFormatterException {
         String[] lines = { "dcl-ds ds1;", "  field1 char(10);", "end-ds;", "dcl-ds ds2;", "  field2 int;", "end-ds;" };
 
         // Selection from field1 (line 1) to field2 (line 4)
@@ -238,7 +239,7 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void expandSelection_noExpansionNeeded() {
+    public void expandSelection_noExpansionNeeded() throws RpgleFormatterException {
         String[] lines = { "dcl-s var1 char(10);", "dcl-s var2 int;", "dcl-s var3 packed(5:2);" };
 
         // Selection of standalone statements - no expansion needed
@@ -268,40 +269,40 @@ public class BlockFinderTest extends AbstractTestCase {
     }
 
     @Test
-    public void findEnclosingBlock_start_on_Dcl_Ds() {
+    public void findEnclosingBlock_start_on_Dcl_Ds() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         BlockRange blockRange = BlockFinder.findEnclosingBlock(lines, 7);
         assertEquals(new BlockRange(7, 7, BlockType.DCL_DS), blockRange);
     }
 
     @Test
-    public void findEnclosingBlock_start_on_Dcl_s() {
+    public void findEnclosingBlock_start_on_Dcl_s() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         BlockRange blockRange = BlockFinder.findEnclosingBlock(lines, 1);
         assertEquals(new BlockRange(0, 8, BlockType.DCL_PROC), blockRange);
     }
 
     @Test
-    public void findBlockStart_start_on_Dcl_Pr() {
+    public void findBlockStart_start_on_Dcl_Pr() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         assertEquals(2, BlockFinder.findBlockStart(lines, 2));
     }
 
     @Test
-    public void findBlockEnd_start_on_Sub_F() {
+    public void findBlockEnd_start_on_Sub_F() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         assertEquals(5, BlockFinder.findBlockEnd(lines, 3));
     }
 
     @Test
-    public void findEnclosingBlock_start_on_Sub_F() {
+    public void findEnclosingBlock_start_on_Sub_F() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         BlockRange blockRange = BlockFinder.findEnclosingBlock(lines, 3);
         assertEquals(new BlockRange(2, 5, BlockType.DCL_PR), blockRange);
     }
 
     @Test
-    public void isInsideBlock_start_on_Sub_F() {
+    public void isInsideBlock_start_on_Sub_F() throws RpgleFormatterException {
         String[] lines = createDclPrTestSource();
         assertTrue(BlockFinder.isInsideBlock(lines, 4));
     }

@@ -51,8 +51,9 @@ public class RpgleInputFactory {
      *
      * @param view the LPEX view
      * @return an appropriate IRpgleInput implementation
+     * @throws RpgleFormatterException
      */
-    public static IRpgleInput createFromSelection(LpexView view) {
+    public static IRpgleInput createFromSelection(LpexView view) throws RpgleFormatterException {
         if (LpexViewUtils.hasBlockSelection(view)) {
             int[] range = LpexViewUtils.getBlockSelectionRange(view);
             // Expand selection to include complete blocks if selection is

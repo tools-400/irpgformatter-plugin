@@ -9,9 +9,13 @@
 package de.tools400.lpex.irpgformatter.parser;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
+import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
+import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
 
-public class StatementIdentifier {
+public class StatementIdentifier implements RpgleSourceConstants {
 
     /**
      * Identifies statement type with block context awareness. If inside a block
@@ -53,18 +57,45 @@ public class StatementIdentifier {
     }
 
     /**
-     * Checks if a DCL-* statement is implicitly closed (no END-*).
+     * Checks if a DCL-* statement is implicitly closed (no <code>END-*</code>)
+     * or <code>END-*</code> in the same statement.
      * <p>
      * <ul>
-     * <li>A <code>DCL-DS</code> with a <code>LIKEDS</code> keyword has no
-     * subfields and is closed implicitly.
+     * <li>A <code>DCL-DS</code> with a <code>LIKEDS</code> keyword needs no
+     * <code>END-DS</code>.</li>
+     * <li>A <code>DCL-PI</code> with a <code>END-PI</code> in the same
+     * statement has no parameters.</li>
+     * <li>A <code>DCL-PR</code> with a <code>END-PR</code> in the same
+     * statement has no parameters.</li>
      * </ul>
+     * 
+     * @throws RpgleFormatterException
      */
-    public static boolean isImplicitlyClosedDclBlock(String line) {
+    public static boolean isSingleLineStatement(String line) throws RpgleFormatterException {
 
         StatementType type = identifyStatementType(line);
-        if (type == StatementType.DCL_DS && line.toLowerCase().contains("likeds(")) {
+        if (type == StatementType.DCL_DS && containsToken(line, TokenType.KEYWORD, "LIKEDS")) {
             return true;
+        } else if (type == StatementType.DCL_PI && containsToken(line, TokenType.DCL, "END-PI")) {
+            return true;
+        } else if (type == StatementType.DCL_PR && containsToken(line, TokenType.DCL, "END-PR")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean containsToken(String line, TokenType tokenType, String endStatement) throws RpgleFormatterException {
+
+        Tokenizer tokenizer = new Tokenizer();
+        IToken[] tokens = tokenizer.tokenize(line);
+
+        for (IToken token : tokens) {
+            if (token.getType() == tokenType) {
+                if (endStatement.equals(token.getValue().toUpperCase())) {
+                    return true;
+                }
+            }
         }
 
         return false;

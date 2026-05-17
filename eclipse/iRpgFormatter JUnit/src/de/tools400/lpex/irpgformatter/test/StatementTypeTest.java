@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -44,18 +45,42 @@ public class StatementTypeTest extends AbstractTestCase {
     public void dcl_ds() throws RpgleFormatterException {
         String line = "dcl-ds myStructure_t qualified template;";
         assertEquals(StatementType.DCL_DS, StatementIdentifier.identifyStatementType(line));
+        assertFalse(StatementIdentifier.isSingleLineStatement(line));
+    }
+
+    @Test
+    public void dcl_ds_implicitly_closed() throws RpgleFormatterException {
+        String line = "dcl-ds myStructure likeds(myStructure_t);";
+        assertEquals(StatementType.DCL_DS, StatementIdentifier.identifyStatementType(line));
+        assertTrue(StatementIdentifier.isSingleLineStatement(line));
     }
 
     @Test
     public void dcl_pr() throws RpgleFormatterException {
         String line = "dcl-pr myPrototype ind extproc('MODULE_myPrototype');";
         assertEquals(StatementType.DCL_PR, StatementIdentifier.identifyStatementType(line));
+        assertFalse(StatementIdentifier.isSingleLineStatement(line));
+    }
+
+    @Test
+    public void dcl_pr_implicitly_closed() throws RpgleFormatterException {
+        String line = "dcl-pr myPrototype ind extproc('MODULE_myPrototype') end-pr; // single line statement";
+        assertEquals(StatementType.DCL_PR, StatementIdentifier.identifyStatementType(line));
+        assertTrue(StatementIdentifier.isSingleLineStatement(line));
     }
 
     @Test
     public void dcl_pi() throws RpgleFormatterException {
         String line = "dcl-pi myProcedure ind extproc(*dclcase);";
         assertEquals(StatementType.DCL_PI, StatementIdentifier.identifyStatementType(line));
+        assertFalse(StatementIdentifier.isSingleLineStatement(line));
+    }
+
+    @Test
+    public void dcl_pi_implicitly_closed() throws RpgleFormatterException {
+        String line = "dcl-pi myProcedure ind extproc(*dclcase) end-pi; // single line statement";
+        assertEquals(StatementType.DCL_PI, StatementIdentifier.identifyStatementType(line));
+        assertTrue(StatementIdentifier.isSingleLineStatement(line));
     }
 
     @Test

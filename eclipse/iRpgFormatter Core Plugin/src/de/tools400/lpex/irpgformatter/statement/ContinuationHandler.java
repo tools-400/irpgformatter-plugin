@@ -90,8 +90,8 @@ public final class ContinuationHandler {
                     int indent = parents.size() - 1;
                     currentStatement.setIndentLevel(indent);
                     parents.push(currentStatement);
-                    // implicitly close DCL-DS statement
-                    if (StatementIdentifier.isImplicitlyClosedDclBlock(currentStatement.getStatement())) {
+                    // single line DCL-DS or DCL-PI/DCL-PR statement
+                    if (StatementIdentifier.isSingleLineStatement(currentStatement.getStatement())) {
                         parents.pop();
                     }
                 } else {

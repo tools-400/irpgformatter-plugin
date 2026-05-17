@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import com.ibm.lpex.core.LpexView;
 
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
 /**
@@ -145,8 +146,9 @@ public final class BlockFinder {
      * @param lines the source lines (0-based array)
      * @param fromLine the line index to start searching from (0-based)
      * @return the line index of the block end, or -1 if not found
+     * @throws RpgleFormatterException
      */
-    public static int findBlockEnd(String[] lines, int fromLine) {
+    public static int findBlockEnd(String[] lines, int fromLine) throws RpgleFormatterException {
 
         int nestingLevel;
         if (isBlockEnd(lines[fromLine])) {
@@ -164,7 +166,7 @@ public final class BlockFinder {
             // Check for start statements (increase nesting when going forwards)
             if (isBlockStart(line)) {
                 nestingLevel++;
-                if (StatementIdentifier.isImplicitlyClosedDclBlock(line)) {
+                if (StatementIdentifier.isSingleLineStatement(line)) {
                     nestingLevel--;
                     if (nestingLevel == 0) {
                         return i;
@@ -189,8 +191,9 @@ public final class BlockFinder {
      * @param lines the source lines (0-based array)
      * @param lineIndex the line index to find the enclosing block for (0-based)
      * @return the BlockRange, or null if not inside a block
+     * @throws RpgleFormatterException
      */
-    public static BlockRange findEnclosingBlock(String[] lines, int lineIndex) {
+    public static BlockRange findEnclosingBlock(String[] lines, int lineIndex) throws RpgleFormatterException {
 
         int startLine = findBlockStart(lines, lineIndex);
         if (startLine < 0) {
@@ -263,8 +266,9 @@ public final class BlockFinder {
      * @param lines the source lines (0-based array)
      * @param lineIndex the line index to check (0-based)
      * @return true if the line is inside a block
+     * @throws RpgleFormatterException
      */
-    public static boolean isInsideBlock(String[] lines, int lineIndex) {
+    public static boolean isInsideBlock(String[] lines, int lineIndex) throws RpgleFormatterException {
         BlockRange block = findEnclosingBlock(lines, lineIndex);
         if (block == null) {
             return false;
@@ -286,8 +290,9 @@ public final class BlockFinder {
      * @param selectionStart the first selected line (1-based)
      * @param selectionEnd the last selected line (1-based)
      * @return an int array [startLine, endLine] with 1-based line numbers
+     * @throws RpgleFormatterException
      */
-    public static int[] expandSelectionToCompleteBlocks(LpexView view, int selectionStart, int selectionEnd) {
+    public static int[] expandSelectionToCompleteBlocks(LpexView view, int selectionStart, int selectionEnd) throws RpgleFormatterException {
 
         // Read all source lines from the view
         String[] lines = readSourceLines(view);
