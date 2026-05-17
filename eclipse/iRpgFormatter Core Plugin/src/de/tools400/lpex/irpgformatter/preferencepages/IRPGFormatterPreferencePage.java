@@ -13,9 +13,9 @@ import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
@@ -56,10 +56,9 @@ import de.tools400.lpex.irpgformatter.utils.UIUtils;
 /**
  * Preference page for RPGLE Formatter settings.
  */
-public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IPropertyChangeListener {
 
     private Preferences preferences;
-    private IPreferenceStore ibmPreferenceStore;
     private IPropertyChangeListener ibmPropertyChangeListener;
 
     private PreviewPanel previewPanel;
@@ -139,18 +138,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         loadPreferences();
 
         // Listen for IBM preference changes
-        ibmPreferenceStore = PreferenceStoreProvider.getIbmPreferenceStore();
-        ibmPropertyChangeListener = new IPropertyChangeListener() {
-            @Override
-            public void propertyChange(org.eclipse.jface.util.PropertyChangeEvent event) {
-                if (event.getProperty().startsWith("RPGLE.FORMATTING.")
-                    || event.getProperty().startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
-                    loadIbmPreferences();
-                    previewPanel.formatPreview();
-                }
-            }
-        };
-        ibmPreferenceStore.addPropertyChangeListener(ibmPropertyChangeListener);
+        registerPropertyChangeListeners();
 
         // Set focus to 1. line of preview editor
         previewPanel.setFocus();
@@ -215,6 +203,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     public void dispose() {
 
         previewPanel.dispose();
+
+        disposePropertyChangeListeners();
 
         super.dispose();
     }
@@ -840,5 +830,34 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         gridData.widthHint = widthHint;
 
         return gridData;
+    }
+
+    // --------------------------------------------------------------------
+    // Property change listener - IBM Preferences (Formatter/Key Behavior)
+    // --------------------------------------------------------------------
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+
+        String property = event.getProperty();
+
+        // Start column: RPGLE.FORMATTING.start
+        // End column: RPGLE.FORMATTING.end
+        if (property.equals("RPGLE.FORMATTING.start") || property.equals("RPGLE.FORMATTING.end")
+            || property.equals("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
+
+            loadIbmPreferences();
+            previewPanel.formatPreview();
+        }
+    }
+
+    private void registerPropertyChangeListeners() {
+
+        PreferenceStoreProvider.getIbmPreferenceStore().addPropertyChangeListener(this);
+    }
+
+    private void disposePropertyChangeListeners() {
+
+        PreferenceStoreProvider.getIbmPreferenceStore().removePropertyChangeListener(this);
     }
 }

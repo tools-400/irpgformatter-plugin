@@ -12,7 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.CannotAddLineSegmentException;
+import de.tools400.lpex.irpgformatter.formatter.IncompleteStatementException;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.formatter.UnexpectedStatementTypeException;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
@@ -105,7 +106,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     public StatementType getType() throws RpgleFormatterException {
 
         if (!isComplete) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Unknown_statement_type_on_line_A, startLineNumber));
+            throw new IncompleteStatementException(startLineNumber, getStatement());
         }
 
         return statementType;
@@ -116,7 +117,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         collectedLines.add(line);
 
         if (isComplete) {
-            throw new RpgleFormatterException("Cannot add line segment. Line is already complete.");
+            throw new CannotAddLineSegmentException(getStartLineNumber());
         }
 
         if (isSingleLineStatement(line)) {
@@ -151,7 +152,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public void addChild(CollectedStatement child) throws RpgleFormatterException {
         if (child.getType() != StatementType.DCL_SUBF) {
-            throw new UnexpectedStatementTypeException(child.getType());
+            throw new UnexpectedStatementTypeException(child.getType(), getStartLineNumber(), child.getStatement());
         }
         children.add(child);
     }

@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.formatter;
 
+import de.tools400.lpex.irpgformatter.Messages;
+
 public class LineOverflowException extends RpgleFormatterException {
 
     private static final long serialVersionUID = 1L;
@@ -15,8 +17,8 @@ public class LineOverflowException extends RpgleFormatterException {
     private int startLineNumber = -1;
     private int endLineNumber = -1;
 
-    public LineOverflowException(String value) {
-        super(String.format("Line length too small for value: [%s]", value));
+    public LineOverflowException(String value, int lineNumber) {
+        super(Messages.bind(Messages.Error_Error_on_line_A_Line_too_small_for_value_A, lineNumber, value));
     }
 
     public int getStartLineNumber() {
@@ -30,13 +32,5 @@ public class LineOverflowException extends RpgleFormatterException {
     public void setLineNumbers(int startLineNumber, int endLineNumber) {
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
-    }
-
-    @Override
-    public String getMessage() {
-        if (startLineNumber >= 0) {
-            return super.getMessage() + String.format(" (lines %d-%d)", startLineNumber + 1, endLineNumber + 1);
-        }
-        return super.getMessage();
     }
 }

@@ -91,6 +91,20 @@ These settings implement new formatting rules that are still being evaluated. Th
 | **Keywords**                    | (built-in list)  | Custom keyword casing mappings                                           |
 | **Special Words**               | (built-in list)  | Custom keyword parameter casing mappings (e.g., \*NOPASS, \*OMIT)        |
 
+### Source Preview
+
+The preview pane shows a live preview of the formatted source based on the current settings. Changes in the settings are immediately reflected in the preview, allowing
+you to see the impact of your adjustments before applying them to actual source files.
+
+The colors of the preview panel are derived from the current RDi theme, ensuring a consistent look and feel with the rest of the IDE:
+
+| Color                        | Eclipse settings                                                        |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Error text color             | General -> Appearance -> Colors and Fonts -> Basics -> Error text color |
+| Current line highlight color | General -> Editors -> Text Editors -> Current line highlight            |
+| Vertical ruler color         | General -> Editors -> Text Editors -> Print margin                      |
+| Line number ruler            | General -> Editors -> Text Editors -> Line number foreground            |
+
 ### Import / Export
 
 Formatter settings can be exported to and imported from XML files. This allows sharing a common formatting profile across a team or backing up settings between workspaces.

@@ -14,13 +14,16 @@ import java.util.function.Supplier;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.MarginPainter;
-import org.eclipse.jface.text.TextViewer;
 import org.eclipse.jface.text.WhitespaceCharacterPainter;
+import org.eclipse.jface.text.source.CompositeRuler;
+import org.eclipse.jface.text.source.LineNumberRulerColumn;
+import org.eclipse.jface.text.source.SourceViewer;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.LineStyleEvent;
 import org.eclipse.swt.custom.LineStyleListener;
@@ -31,20 +34,19 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.ui.internal.WorkbenchPlugin;
-import org.eclipse.ui.internal.themes.IThemeRegistry;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.themes.IThemeManager;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
@@ -53,13 +55,14 @@ import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.utils.ColorUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 /**
  * Encapsulates the preview panel UI and formatting logic used in the
  * iRPGFormatter preference page.
  */
-public class PreviewPanel {
+public class PreviewPanel implements IPropertyChangeListener {
 
     public static final String PREVIEW_COMMENT_KEY = "previewComment";
 
@@ -68,7 +71,8 @@ public class PreviewPanel {
 
     /* UI controls */
     private Group previewGroup;
-    private TextViewer previewViewer;
+    private SourceViewer previewViewer;
+    private LineNumberRulerColumn lineNumberRuler;
     private Button viewEditButton;
     private Button customPreviewButton;
     private Button showWhitespacesCheckbox;
@@ -77,15 +81,11 @@ public class PreviewPanel {
     /* Painters and resources */
     private WhitespaceCharacterPainter whitespacePainter;
     private MarginPainter marginPainter;
-    private Color marginColor;
     private Font monoFont;
-    private Color overflowColor;
-    private Color cursorLineColor;
 
     /* State */
     private boolean isEditMode;
     private boolean isCustomContent;
-    private IDocumentListener previewDocumentListener;
     private int previewCursorLine = -1;
     private boolean isUpdatingPreview;
     private FormattedResult previousFormattedResult;
@@ -112,6 +112,8 @@ public class PreviewPanel {
         this.errorHandler = errorHandler;
 
         createPreviewPanel(parent, preferences);
+
+        registerPropertyChangeListeners();
     }
 
     // ------------------------------------------------------------------
@@ -233,6 +235,9 @@ public class PreviewPanel {
      * Disposes all resources (painters, colors, fonts) owned by this panel.
      */
     public void dispose() {
+
+        disposePropertyChangeListeners();
+
         if (whitespacePainter != null) {
             whitespacePainter.deactivate(true);
             whitespacePainter = null;
@@ -243,21 +248,21 @@ public class PreviewPanel {
             marginPainter = null;
         }
 
-        if (marginColor != null && !marginColor.isDisposed()) {
-            marginColor.dispose();
-        }
+        // if (marginColor != null && !marginColor.isDisposed()) {
+        // marginColor.dispose();
+        // }
 
-        if (overflowColor != null && !overflowColor.isDisposed()) {
-            overflowColor.dispose();
-        }
+        // if (overflowColor != null && !overflowColor.isDisposed()) {
+        // overflowColor.dispose();
+        // }
 
         if (monoFont != null && !monoFont.isDisposed()) {
             monoFont.dispose();
         }
 
-        if (cursorLineColor != null && !cursorLineColor.isDisposed()) {
-            cursorLineColor.dispose();
-        }
+        // if (cursorLineColor != null && !cursorLineColor.isDisposed()) {
+        // cursorLineColor.dispose();
+        // }
     }
 
     // ------------------------------------------------------------------
@@ -271,18 +276,32 @@ public class PreviewPanel {
         previewGroup.setLayout(new GridLayout(1, false));
         previewGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        // TextViewer for source preview
-        previewViewer = new TextViewer(previewGroup, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        // SourceViewer for source preview, with line-number ruler on the left
+        CompositeRuler ruler = new CompositeRuler();
+        lineNumberRuler = new LineNumberRulerColumn() {
+            @Override
+            public int getWidth() {
+                // Add a few pixels of padding so line numbers don't sit
+                // flush against the ruler/text boundary.
+                return super.getWidth() + 6;
+            }
+        };
+        ruler.addDecorator(0, lineNumberRuler);
+
+        previewViewer = new SourceViewer(previewGroup, ruler, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         StyledText styledText = previewViewer.getTextWidget();
         GridData viewerData = new GridData(GridData.FILL_BOTH);
         viewerData.widthHint = 400;
         viewerData.heightHint = 300;
-        styledText.setLayoutData(viewerData);
+        previewViewer.getControl().setLayoutData(viewerData);
 
-        // Set monospace font
+        // Set monospace font (also on the ruler so digit height matches code
+        // lines)
         FontData[] fontData = styledText.getFont().getFontData();
         monoFont = new Font(styledText.getDisplay(), "Courier New", fontData[0].getHeight(), SWT.NORMAL);
         styledText.setFont(monoFont);
+        lineNumberRuler.setFont(monoFont);
+        lineNumberRuler.setForeground(ColorUtils.getLineNumberColor());
 
         // Set initial content
         IDocument document = new Document(preferences.getDefaultFormatterSource());
@@ -290,7 +309,6 @@ public class PreviewPanel {
         previewViewer.setEditable(false);
 
         // Highlight cursor line (works regardless of focus)
-        cursorLineColor = getCurrentLineHighlightColor(styledText);
         styledText.addCaretListener(event -> {
             if (isUpdatingPreview) {
                 return;
@@ -304,26 +322,11 @@ public class PreviewPanel {
         styledText.addLineBackgroundListener(event -> {
             int line = styledText.getLineAtOffset(event.lineOffset);
             if (line == previewCursorLine) {
-                event.lineBackground = cursorLineColor;
+                event.lineBackground = ColorUtils.getCurrentLineHighlightColor();
             }
         });
 
-        // Document listener (placeholder for future use)
-        previewDocumentListener = new IDocumentListener() {
-            @Override
-            public void documentAboutToBeChanged(DocumentEvent event) {
-                // placeholder
-            }
-
-            @Override
-            public void documentChanged(DocumentEvent event) {
-                // placeholder
-            }
-        };
-        document.addDocumentListener(previewDocumentListener);
-
         // Highlight lines exceeding the configured line width
-        overflowColor = getErrorTextColor(styledText);
         styledText.addLineStyleListener(new LineStyleListener() {
             @Override
             public void lineGetStyle(LineStyleEvent event) {
@@ -335,16 +338,16 @@ public class PreviewPanel {
                     StyleRange range = new StyleRange();
                     range.start = event.lineOffset;
                     range.length = event.lineText.length();
-                    range.foreground = overflowColor;
+                    range.foreground = ColorUtils.getErrorTextColor();
                     event.styles = new StyleRange[] { range };
                 }
             }
         });
 
         // Margin painter (vertical ruler at line width column)
-        marginColor = new Color(styledText.getDisplay(), 192, 192, 192);
+        // marginColor = new Color(styledText.getDisplay(), 192, 192, 192);
         marginPainter = new MarginPainter(previewViewer);
-        marginPainter.setMarginRulerColor(marginColor);
+        marginPainter.setMarginRulerColor(ColorUtils.getPrintMarginColor());
         marginPainter.setMarginRulerColumn(60);
         previewViewer.addPainter(marginPainter);
 
@@ -451,11 +454,13 @@ public class PreviewPanel {
                 return;
             }
 
+            int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+
             RpgleFormatter previewFormatter = new RpgleFormatter(config);
             previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
 
             String[] unformatted = rawSource.split("\n");
-            FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), 0);
+            FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), defaultIndent);
             String[] lines = newResult.toLines();
 
             if (previewFormatter.getErrorCount() == 0) {
@@ -561,19 +566,6 @@ public class PreviewPanel {
         }
     }
 
-    private Color getErrorTextColor(StyledText styledText) {
-        // Returns "RGB {255, 0, 0}" if set to its default value.
-        IThemeRegistry themeRegistry = WorkbenchPlugin.getDefault().getThemeRegistry();
-        RGB rgb = themeRegistry.findColor("ERROR_COLOR").getValue();
-        return new Color(styledText.getDisplay(), rgb);
-    }
-
-    private Color getCurrentLineHighlightColor(StyledText styledText) {
-        IThemeRegistry themeRegistry = WorkbenchPlugin.getDefault().getThemeRegistry();
-        RGB rgb = themeRegistry.findColor("org.eclipse.ui.editors.currentLineColor").getValue();
-        return new Color(styledText.getDisplay(), rgb);
-    }
-
     private String getCurrentRawSource() {
         return isCustomContent ? rawCustomSource : rawDefaultSource;
     }
@@ -610,6 +602,74 @@ public class PreviewPanel {
     private int reduceButtonSize(int size) {
         size = size * 4 / 5;
         return size;
+    }
+
+    // ------------------------------------------------------------------
+    // Property change listener - Color Settings
+    // ------------------------------------------------------------------
+
+    private void updateColorSettings() {
+
+        // ColorUtils.clearEditorUIColors();
+
+        marginPainter.setMarginRulerColor(ColorUtils.getPrintMarginColor());
+        lineNumberRuler.setForeground(ColorUtils.getLineNumberColor());
+        formatPreview();
+        previewViewer.refresh();
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+
+        String property = event.getProperty();
+
+        // ----------------------------------------------------
+        // General -> Appearance -> Colors and Fonts -> Basics
+        // ----------------------------------------------------
+
+        if (ColorUtils.ERROR_COLOR.equals(property)) {
+            updateColorSettings();
+        }
+
+        // ----------------------------------------------------
+        // General -> Editors -> Text Editors
+        // ----------------------------------------------------
+
+        if (ColorUtils.CURRENT_LINE_COLOR.equals(property) || ColorUtils.CURRENT_LINE_COLOR.equals(property)) {
+            updateColorSettings();
+        } else if (ColorUtils.LINE_NUMBER_COLOR.equals(property) || ColorUtils.LINE_NUMBER_COLOR.equals(property)) {
+            updateColorSettings();
+        } else if (ColorUtils.PRINT_MARGIN_COLOR.equals(property) || ColorUtils.PRINT_MARGIN_COLOR.equals(property)) {
+            updateColorSettings();
+        } else if (ColorUtils.LINE_NUMBER_RULER_ENABLED.equals(property)) {
+            updateColorSettings();
+        }
+
+        // ----------------------------------------------------
+        // General -> Appearance
+        // ----------------------------------------------------
+
+        if (IThemeManager.CHANGE_CURRENT_THEME.equals(event.getProperty())) {
+            updateColorSettings();
+        }
+    }
+
+    private void registerPropertyChangeListeners() {
+
+        JFaceResources.getColorRegistry().addListener(this);
+
+        EditorsUI.getPreferenceStore().addPropertyChangeListener(this);
+
+        PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(this);
+    }
+
+    private void disposePropertyChangeListeners() {
+
+        JFaceResources.getColorRegistry().removeListener(this);
+
+        EditorsUI.getPreferenceStore().removePropertyChangeListener(this);
+
+        PlatformUI.getWorkbench().getThemeManager().removePropertyChangeListener(this);
     }
 
     // ------------------------------------------------------------------

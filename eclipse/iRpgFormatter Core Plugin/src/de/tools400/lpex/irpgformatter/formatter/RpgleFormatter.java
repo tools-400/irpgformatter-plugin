@@ -44,7 +44,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * directives according to the formatting rules defined in RPGLE-Formatter.md.
  * </p>
  */
-public class RpgleFormatter {
+public class RpgleFormatter implements ILineNumberProvider {
 
     public static final int DEFAULT_END_COLUMN = 100;
 
@@ -71,10 +71,11 @@ public class RpgleFormatter {
 
     private final List<FormatError> errors = new ArrayList<>();
     private int endColumn;
+    private CollectedStatement currentStatement;
 
     public RpgleFormatter(FormatterConfig config) {
         this.config = config;
-        this.formatterUtils = new FormatterUtils(config);
+        this.formatterUtils = new FormatterUtils(config, this);
         this.tokenizer = new Tokenizer(config);
         this.formatConstKeywordRule = new FormatConstKeywordRule(config);
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
@@ -170,58 +171,60 @@ public class RpgleFormatter {
         boolean formatterTemporarilyDisabled = false;
 
         for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
-            CollectedStatement statement = statements[stmtIdx];
+            currentStatement = statements[stmtIdx];
 
             // Format only compile time array statements after the first compile
             // time array has been processed
-            StatementType type = statement.getType();
+            StatementType type = currentStatement.getType();
             if (type == StatementType.COMPILE_TIME_ARRAY) {
                 formatterCompileTimeArrayOnly = true;
             }
 
             // Check for formatter directive
-            int directive = getFormatterDirective(statement, type);
+            int directive = getFormatterDirective(currentStatement, type);
             if (directive != 0) {
-                results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(),
-                    statement.getOriginalStatements().toArray(new String[0])));
+                results.add(new FormattedStatement(currentStatement.getStartLineNumber(), currentStatement.numLines(),
+                    currentStatement.getOriginalStatements().toArray(new String[0])));
                 formatterTemporarilyDisabled = (directive == -1);
                 continue;
             }
 
             boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY);
             if (passthrough) {
-                results.add(asUnformatted(statement));
+                results.add(asUnformatted(currentStatement));
                 continue;
             }
 
             List<String> stmtOutput = new ArrayList<>();
             if (type == StatementType.OTHER) {
-                stmtOutput.addAll(statement.getOriginalStatements());
+                stmtOutput.addAll(currentStatement.getOriginalStatements());
             } else if (suppressBeforeDclPi[stmtIdx] && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
                 // stmtOutput remains empty → line is completely removed
             } else if (type == StatementType.COMMENT && suppressComment[stmtIdx]) {
                 stmtOutput.add("");
             } else {
-                for (String embeddedComment : statement.getEmbeddedComments()) {
+                for (String embeddedComment : currentStatement.getEmbeddedComments()) {
                     stmtOutput.add(embeddedComment);
                 }
                 try {
-                    stmtOutput.addAll(formatLine(statement, type, indent));
+                    stmtOutput.addAll(formatLine(currentStatement, type, indent));
                 } catch (Exception e) {
                     Throwable unexpectedCause = null;
                     if (e instanceof LineOverflowException) {
-                        ((LineOverflowException)e).setLineNumbers(statement.getStartLineNumber(), statement.getEndLineNumber());
+                        ((LineOverflowException)e).setLineNumbers(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber());
                     } else {
                         unexpectedCause = e;
                     }
                     // Original-source fallback: keep the statement verbatim
                     // in the output so that later lines remain numbered
                     // correctly; the caller is informed via getErrors().
-                    stmtOutput.addAll(statement.getOriginalStatements());
-                    errors.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, e.getMessage(), unexpectedCause));
+                    stmtOutput.addAll(currentStatement.getOriginalStatements());
+                    errors.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type, e.getMessage(),
+                        unexpectedCause));
                 }
             }
-            results.add(new FormattedStatement(statement.getStartLineNumber(), statement.numLines(), stmtOutput.toArray(new String[0])));
+            results
+                .add(new FormattedStatement(currentStatement.getStartLineNumber(), currentStatement.numLines(), stmtOutput.toArray(new String[0])));
         }
 
         return new FormattedResult(results.toArray(new FormattedStatement[0]));
@@ -487,5 +490,10 @@ public class RpgleFormatter {
         }
 
         return endColumn;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return currentStatement.getStartLineNumber();
     }
 }

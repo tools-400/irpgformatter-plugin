@@ -144,7 +144,14 @@ public class Messages extends NLS {
     public static String Error_A_keyword_with_key_A_already_exists;
     public static String Error_A_special_word_with_key_A_already_exists;
     public static String Error_No_valid_entries_found;
-    public static String Error_Unknown_statement_type_on_line_A;
+    public static String Error_Error_on_line_A_Unknown_statement_type;
+    public static String Error_Error_on_line_A_Unexpected_error_B;
+    public static String Error_Error_on_line_A_Incomplete_statement;
+    public static String Error_Error_on_line_A_Cannot_add_line_segment_Line_is_already_complete;
+    public static String Error_Error_on_line_A_Line_too_small_for_value_A;
+    public static String Error_Error_on_line_A_Token_of_type_B_not_found;
+    public static String Error_Error_on_line_A_Unexpected_token_of_type_B;
+    public static String Error_Error_on_line_A_Unexpected_statement_of_type_B;
 
     public static String Label_Export;
     public static String Label_Import;

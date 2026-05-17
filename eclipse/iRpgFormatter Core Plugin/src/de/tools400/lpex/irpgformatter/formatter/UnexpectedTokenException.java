@@ -8,13 +8,15 @@
 
 package de.tools400.lpex.irpgformatter.formatter;
 
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 
 public class UnexpectedTokenException extends RpgleFormatterException {
 
     private static final long serialVersionUID = 1L;
 
-    public UnexpectedTokenException(IToken token) {
-        super(String.format("Unexpected token of type: %s", token != null ? token.getType().name() : "[null]"));
+    public UnexpectedTokenException(IToken token, int lineNumber) {
+        super(Messages.bind(Messages.Error_Error_on_line_A_Unexpected_token_of_type_B,
+            new Object[] { lineNumber, token != null ? token.getType().name() : "[null]", token != null ? token.getRawValue() : "[null]" }));
     }
 }

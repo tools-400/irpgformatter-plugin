@@ -9,13 +9,12 @@
 package de.tools400.lpex.irpgformatter.formatter;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.parser.StatementType;
 
-public class UnexpectedStatementTypeException extends RpgleFormatterException {
+public class CannotAddLineSegmentException extends RpgleFormatterException {
 
     private static final long serialVersionUID = 1L;
 
-    public UnexpectedStatementTypeException(StatementType statementType, int lineNumber, String statement) {
-        super(Messages.bind(Messages.Error_Error_on_line_A_Unexpected_statement_of_type_B, new Object[] { lineNumber, statementType, statement }));
+    public CannotAddLineSegmentException(int lineNumber) {
+        super(Messages.bind(Messages.Error_Error_on_line_A_Cannot_add_line_segment_Line_is_already_complete, lineNumber));
     }
 }

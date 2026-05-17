@@ -38,6 +38,8 @@ public class FormatterUtils implements RpgleSourceConstants {
     private final MinimumNameLengthRule minNameLengthRule;
     private final FormatParameterRule formatParameterRule;
 
+    private ILineNumberProvider lineNumberProvider;
+
     private interface BreakpointStrategy {
         int findBreakpoint(String text, int maxLength);
     }
@@ -60,6 +62,12 @@ public class FormatterUtils implements RpgleSourceConstants {
         this.maxNameLengthRule = new MaximumNameLengthRule(config);
         this.minNameLengthRule = new MinimumNameLengthRule(config);
         this.formatParameterRule = new FormatParameterRule(config);
+        this.lineNumberProvider = null;
+    }
+
+    public FormatterUtils(FormatterConfig config, ILineNumberProvider lineNumberProvider) {
+        this(config);
+        this.lineNumberProvider = lineNumberProvider;
     }
 
     public FormatterConfig getConfig() {
@@ -114,7 +122,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             } else if (token.getType() == TokenType.OTHER) {
                 tokenResults = formatNone(formattedLine, token, maxLength);
             } else {
-                throw new UnexpectedTokenException(token);
+                throw new UnexpectedTokenException(token, getLineNumber());
             }
 
             if (tokenResults.length == 1) {
@@ -137,7 +145,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                     if (isAlignSubFieldsEnabled) {
                         if (formattedLine.trim().length() > subFieldAlignCol) {
                             throw new UnexpectedErrorException("Cannot align sub-field. Current line length " + formattedLine.length()
-                                + " exceeds alignment column " + subFieldAlignCol + ".");
+                                + " exceeds alignment column " + subFieldAlignCol + ".", getLineNumber());
                         }
                         formattedLine = StringUtils.padR(formattedLine.trim(), subFieldAlignCol);
                     } else if (subFieldAlignCol == 0) {
@@ -222,7 +230,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             if (subIndent.length() + value.length() <= maxLineLength) {
                 parts.add(subIndent + value);
             } else {
-                throw new LineOverflowException(value);
+                throw new LineOverflowException(value, getLineNumber());
             }
         }
 
@@ -232,7 +240,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     public String[] formatFunctionWithParameters(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
 
         if (token.getType() != TokenType.FUNCTION) {
-            throw new RpgleFormatterException("Invalid token type: " + token.getType());
+            throw new UnexpectedTokenException(token, getLineNumber());
         }
 
         if (token.haveChildren()) {
@@ -245,7 +253,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     public String[] formatKeywordWithParameters(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
 
         if (token.getType() != TokenType.KEYWORD) {
-            throw new RpgleFormatterException("Invalid token type: " + token.getType());
+            throw new UnexpectedTokenException(token, getLineNumber());
         }
 
         if (token.haveChildren()) {
@@ -258,7 +266,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     public String[] formatDataTypeWithParameters(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
 
         if (token.getType() != TokenType.DATA_TYPE) {
-            throw new RpgleFormatterException("Invalid token type: " + token.getType());
+            throw new UnexpectedTokenException(token, getLineNumber());
         }
 
         if (token.haveChildren()) {
@@ -301,7 +309,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                 if (subIndent.length() + startKeyword.length() < maxLineLength) {
                     currentLine = subIndent + startKeyword;
                 } else {
-                    throw new LineOverflowException(startKeyword);
+                    throw new LineOverflowException(startKeyword, getLineNumber());
                 }
             } else {
                 if (line.length() + startKeyword.length() < maxLineLength) {
@@ -402,7 +410,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else if (token.getType() == TokenType.FUNCTION) {
             parameterParts = formatFunctionWithParameters(currentLine, token, maxLineLength);
         } else {
-            throw new UnexpectedTokenException(token);
+            throw new UnexpectedTokenException(token, getLineNumber());
         }
 
         return parameterParts;
@@ -435,7 +443,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             if (value.length() <= maxLength) {
                 parts.add(subIndent + wrappedPrefix + value + suffix);
             } else {
-                throw new LineOverflowException(value);
+                throw new LineOverflowException(value, getLineNumber());
             }
         }
 
@@ -454,7 +462,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         BreakpointStrategy strategy) throws RpgleFormatterException {
 
         if (token.getType() != TokenType.NAME && token.getType() != TokenType.LITERAL) {
-            throw new UnexpectedTokenException(token);
+            throw new UnexpectedTokenException(token, getLineNumber());
         }
 
         List<String> parts = new LinkedList<>();
@@ -520,7 +528,7 @@ public class FormatterUtils implements RpgleSourceConstants {
                 }
 
                 if (breakPoint <= 0) {
-                    throw new LineOverflowException(remaining);
+                    throw new LineOverflowException(remaining, getLineNumber());
                 }
 
                 String part = remaining.substring(0, breakPoint);
@@ -682,7 +690,7 @@ public class FormatterUtils implements RpgleSourceConstants {
             } else if (nameToken.getType() == TokenType.SPECIAL_WORD) {
                 lastNamePart = nameToken.getValue();
             } else {
-                throw new UnexpectedTokenException(nameToken);
+                throw new UnexpectedTokenException(nameToken, getLineNumber());
             }
 
             int prefixLength = 0;
@@ -712,7 +720,7 @@ public class FormatterUtils implements RpgleSourceConstants {
      * @return the name token
      * @throws RpgleFormatterException
      */
-    private static IToken getNameToken(IToken[] tokens) throws RpgleFormatterException {
+    private IToken getNameToken(IToken[] tokens) throws RpgleFormatterException {
 
         for (IToken token : tokens) {
             if (TokenType.NAME == token.getType() || isSpecialWordStarN(token)) {
@@ -720,10 +728,19 @@ public class FormatterUtils implements RpgleSourceConstants {
             }
         }
 
-        throw new TokenNotFoundException(TokenType.NAME.name());
+        throw new TokenNotFoundException(TokenType.NAME.name(), getLineNumber());
     }
 
     private static boolean isSpecialWordStarN(IToken token) {
         return TokenType.SPECIAL_WORD == token.getType() && "*N".equalsIgnoreCase(token.getValue());
+    }
+
+    private int getLineNumber() {
+
+        if (lineNumberProvider != null) {
+            return lineNumberProvider.getLineNumber();
+        }
+
+        return -1;
     }
 }

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2026 Thomas Raddatz
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
@@ -8,13 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.formatter;
 
-import de.tools400.lpex.irpgformatter.Messages;
+public interface ILineNumberProvider {
 
-public class TokenNotFoundException extends RpgleFormatterException {
+    public int getLineNumber();
 
-    private static final long serialVersionUID = 1L;
-
-    public TokenNotFoundException(String tokenId, int lineNumber) {
-        super(Messages.bind(Messages.Error_Error_on_line_A_Token_of_type_B_not_found, lineNumber, tokenId));
-    }
 }
