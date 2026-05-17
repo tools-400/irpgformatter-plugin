@@ -367,6 +367,8 @@ public class PreviewPanel implements IPropertyChangeListener {
                     // Entering edit mode: show raw/unformatted source
                     previewGroup.setText(Messages.Label_Preview_Edit);
                     previewViewer.getDocument().set(getCurrentRawSource());
+                    // Clear error message
+                    errorHandler.accept(null);
                 } else {
                     // Leaving edit mode: capture raw source, then format
                     setCurrentRawSource(previewViewer.getDocument().get());
