@@ -445,6 +445,7 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void initializeDefaultPreferences() {
+
         preferenceStore.setDefault(PARAMETER_SPACING_STYLE, getDefaultParameterSpacingStyle().name());
         preferenceStore.setDefault(USE_CONST_KEYWORD, getDefaultUseConstKeyword());
         preferenceStore.setDefault(DELIMITER_BEFORE_PARAMETER, getDefaultDelimiterBeforeParameter());
@@ -472,11 +473,14 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(CUSTOM_PREVIEW_CONTENT, getDefaultCustomPreviewContent());
         preferenceStore.setDefault(FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN, getDefaultFormatterPreviewVerticalRulerColumn());
 
-        ibmPreferenceStore.setDefault("RPGLE.FORMATTING.length", 2);
-        ibmPreferenceStore.setDefault("RPGLE.FORMATTING.start", 1);
-        ibmPreferenceStore.setDefault("RPGLE.FORMATTING.end", "*MAX");
+        if (PreferenceStoreProvider.isTestMode()) {
+            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.length", 2);
+            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.start", 1);
+            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.end", "*MAX");
 
-        ibmPreferenceStore.setDefault("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue", "endxx");
+            ibmPreferenceStore.setDefault("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue",
+                "endxx");
+        }
     }
 
     public KeywordCasingStyle getDefaultKeywordCasingStyle() {
