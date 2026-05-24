@@ -59,7 +59,6 @@ import de.tools400.lpex.irpgformatter.utils.UIUtils;
 public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IPropertyChangeListener {
 
     private Preferences preferences;
-    private IPropertyChangeListener ibmPropertyChangeListener;
 
     private PreviewPanel previewPanel;
 

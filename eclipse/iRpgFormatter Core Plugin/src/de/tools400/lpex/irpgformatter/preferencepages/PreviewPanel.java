@@ -54,6 +54,7 @@ import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
+import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ColorUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
@@ -651,8 +652,26 @@ public class PreviewPanel implements IPropertyChangeListener {
         // General -> Appearance
         // ----------------------------------------------------
 
-        if (IThemeManager.CHANGE_CURRENT_THEME.equals(event.getProperty())) {
+        if (IThemeManager.CHANGE_CURRENT_THEME.equals(property)) {
             updateColorSettings();
+        }
+
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Formatter
+        // ----------------------------------------------------
+
+        if (property.startsWith("RPGLE.FORMATTING.start") || property.startsWith("RPGLE.FORMATTING.end")) {
+            formatPreview();
+        }
+
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Key Behavior
+        // ----------------------------------------------------
+
+        if (property.startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
+            formatPreview();
         }
     }
 
@@ -663,6 +682,8 @@ public class PreviewPanel implements IPropertyChangeListener {
         EditorsUI.getPreferenceStore().addPropertyChangeListener(this);
 
         PlatformUI.getWorkbench().getThemeManager().addPropertyChangeListener(this);
+
+        PreferenceStoreProvider.getIbmPreferenceStore().addPropertyChangeListener(this);
     }
 
     private void disposePropertyChangeListeners() {
@@ -672,6 +693,8 @@ public class PreviewPanel implements IPropertyChangeListener {
         EditorsUI.getPreferenceStore().removePropertyChangeListener(this);
 
         PlatformUI.getWorkbench().getThemeManager().removePropertyChangeListener(this);
+
+        PreferenceStoreProvider.getIbmPreferenceStore().removePropertyChangeListener(this);
     }
 
     // ------------------------------------------------------------------
