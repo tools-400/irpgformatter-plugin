@@ -100,7 +100,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     public void enforceComplete() throws RpgleFormatterException {
-        markCompleted();
+        setStatementComplete();
     }
 
     public StatementType getType() throws RpgleFormatterException {
@@ -122,20 +122,12 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
         if (isSingleLineStatement(line)) {
             appendLineSegment(line);
-            // isComplete = true;
-            // setStatementComplete();
-            markCompleted();
+            setStatementComplete();
         } else {
             if (!StringUtils.isNullOrEmpty(line)) {
                 buildStatement(line);
             }
         }
-    }
-
-    private void markCompleted() throws RpgleFormatterException {
-
-        isComplete = true;
-        setStatementComplete();
     }
 
     public String getStatement() {
