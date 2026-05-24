@@ -10,9 +10,14 @@ package de.tools400.lpex.irpgformatter.rules.casing;
 
 import java.util.Map;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
 import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
+import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
+import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
 
 /**
  * Formats compiler directives, such as
@@ -38,22 +43,44 @@ public class FormatCompilerDirectiveRule extends AbstractCasingRule implements I
             return directive;
         }
 
-        KeywordCasingStyle keywordCasingStyle = getKeywordCasingStyle();
-
         String trimmed = directive.trim();
         if (!trimmed.startsWith(COMPILER_DIRECTIVE)) {
             return directive;
         }
 
-        // Find first space to separate directive from parameters
-        int spaceIndex = trimmed.indexOf(' ');
-        KeywordCasingStyle style = keywordCasingStyle;
-        if (spaceIndex > 0) {
-            String directivePart = applyDirectiveCasing(trimmed.substring(0, spaceIndex), style);
-            String parameterPart = trimmed.substring(spaceIndex);
-            return directivePart + parameterPart;
+        trimmed = trimmed.substring(1);
+
+        KeywordCasingStyle style = getKeywordCasingStyle();
+
+        Tokenizer tokenizer = new Tokenizer();
+        try {
+            IToken[] tokens = tokenizer.tokenize(trimmed);
+            StringBuilder buffer = new StringBuilder();
+            for (IToken token : tokens) {
+                TokenType type = token.getType();
+                if (buffer.length() == 0 || type == TokenType.FUNCTION || type == TokenType.KEYWORD) {
+                    buffer.append(applyDirectiveCasing(token.getValue(), style));
+                    if (token.haveChildren()) {
+                        IToken[] children = token.getChildren();
+                        buffer.append(OPEN_BRACKET);
+                        for (int i = 0; i < children.length; i++) {
+                            buffer.append(children[i].getValue());
+                            if (i < children.length - 1) {
+                                buffer.append(SPACE);
+                            }
+                        }
+                        buffer.append(CLOSE_BRACKET);
+                    }
+                } else {
+                    buffer.append(token.getValue());
+                }
+                buffer.append(SPACE);
+            }
+            return COMPILER_DIRECTIVE + buffer.toString().trim();
+        } catch (RpgleFormatterException e) {
+            IRpgleFormatterPlugin.logError("Could not tokenize compiler directive: " + directive, e);
+            return directive;
         }
-        return applyDirectiveCasing(trimmed, style);
     }
 
     /**
@@ -68,7 +95,7 @@ public class FormatCompilerDirectiveRule extends AbstractCasingRule implements I
         case FIRST_UPPER:
             // Capitalize first letter after /
             if (directive.length() > 1) {
-                return COMPILER_DIRECTIVE + Character.toUpperCase(directive.charAt(1)) + directive.substring(2).toLowerCase();
+                return Character.toUpperCase(directive.charAt(0)) + directive.substring(1).toLowerCase();
             }
             return directive;
         case LOWER_CAMEL:

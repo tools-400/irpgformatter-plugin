@@ -16,7 +16,7 @@ import org.junit.Test;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatCompilerDirectiveRule;
 
-public class FormatCompilerDirectiveRuleTest {
+public class FormatCompilerDirectiveRuleTest extends AbstractTestCase {
 
     @Test
     public void uppercase_copy() {
@@ -61,6 +61,24 @@ public class FormatCompilerDirectiveRuleTest {
     }
 
     @Test
+    public void with_comment() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWER_CAMEL);
+        assertEquals("/copy library/file.member // a comment", rule.format("/COPY library/file.member   // a comment"));
+    }
+
+    @Test
+    public void function_comment() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/IF DEFINED(MYDEF) // a comment", rule.format("/if defined(MYDEF)   // a comment"));
+    }
+
+    @Test
+    public void withoutParameters_with_comment() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/EOF // a comment", rule.format("/eof   // a comment"));
+    }
+
+    @Test
     public void directiveWithoutParameters() {
         FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
         assertEquals("/EOF", rule.format("/eof"));
@@ -99,7 +117,7 @@ public class FormatCompilerDirectiveRuleTest {
     @Test
     public void uppercase_if() {
         FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
-        assertEquals("/IF DEFINED(MYDEF)", rule.format("/if DEFINED(MYDEF)"));
+        assertEquals("/IF DEFINED(MYDEF)", rule.format("/if defined(MYDEF)"));
     }
 
     @Test

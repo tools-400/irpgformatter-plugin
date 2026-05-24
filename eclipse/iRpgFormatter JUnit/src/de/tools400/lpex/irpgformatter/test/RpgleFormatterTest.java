@@ -137,10 +137,9 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     /**
      * Regression test: a standalone comment with no indentation inside a
-     * dcl-proc must not get the proc's indent level added to it.
-     * Before the fix, formatComment() trimmed the line and prepended
-     * the calculated indent (2 spaces), turning "// comment" into
-     * "  // comment".
+     * dcl-proc must not get the proc's indent level added to it. Before the
+     * fix, formatComment() trimmed the line and prepended the calculated indent
+     * (2 spaces), turning "// comment" into " // comment".
      */
     @Test
     public void format_standalone_comment_inside_proc_preserves_no_indentation() throws RpgleFormatterException {
@@ -162,10 +161,10 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     /**
      * Regression test: a standalone comment with custom indentation inside a
-     * dcl-proc must keep its original indentation unchanged.
-     * Before the fix, formatComment() trimmed and re-indented the comment
-     * using the formatter's calculated indent level, replacing the user's
-     * 4 spaces with the proc-level 2 spaces.
+     * dcl-proc must keep its original indentation unchanged. Before the fix,
+     * formatComment() trimmed and re-indented the comment using the formatter's
+     * calculated indent level, replacing the user's 4 spaces with the
+     * proc-level 2 spaces.
      */
     @Test
     public void format_standalone_comment_inside_proc_preserves_custom_indentation() throws RpgleFormatterException {
@@ -907,7 +906,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
 
     @Test
     public void format_ifDirective() throws RpgleFormatterException {
-        String[] result = formatter.format(new TextLinesInput("/if defined(DEBUG)"), 0).toLines();
+        String[] result = formatter.format(new TextLinesInput("/If Defined(DEBUG)"), 0).toLines();
         assertEquals(1, result.length);
         assertTrue(result[0].toLowerCase().startsWith("/if"));
     }
