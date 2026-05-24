@@ -328,9 +328,18 @@ public class Tokenizer implements RpgleSourceConstants {
             }
 
             // Keyword without parameters
-            if (!insideParameters && (SPACE.equals(currentChar) || SEMICOLON.equals(currentChar))) {
-                name = line.substring(0, i);
-                break;
+            if (!insideParameters) {
+                if (SEMICOLON.equals(currentChar)) {
+                    name = line.substring(0, i);
+                    break;
+                } else if (SPACE.equals(currentChar)) {
+                    if (line.substring(i).trim().startsWith(OPEN_BRACKET)) {
+                        i = StringUtils.skipLeadingSpaces(line, i) - 1;
+                    } else {
+                        name = line.substring(0, i);
+                        break;
+                    }
+                }
             }
         }
 
@@ -592,11 +601,18 @@ public class Tokenizer implements RpgleSourceConstants {
         String currentChar;
         for (int i = 0; i < line.length(); i++) {
             currentChar = line.substring(i, i + 1);
-            if (SPACE.equals(currentChar) || SEMICOLON.equals(currentChar)) {
+            if (SPACE.equals(currentChar)) {
+                // function must have parameters
+                if (line.substring(i).trim().startsWith(OPEN_BRACKET)) {
+                    i = StringUtils.skipLeadingSpaces(line, i) - 1;
+                } else {
+                    return false;
+                }
+            } else if (SEMICOLON.equals(currentChar)) {
                 // function must have parameters
                 return false;
             } else if (OPEN_BRACKET.equals(currentChar)) {
-                function = line.substring(0, i);
+                function = line.substring(0, i).trim();
                 Set<String> keywordKeys = config.getKeywords().keySet();
                 if (!keywordKeys.contains(function.toUpperCase())) {
                     return true;
@@ -615,12 +631,20 @@ public class Tokenizer implements RpgleSourceConstants {
         String currentChar;
         for (int i = 0; i < line.length(); i++) {
             currentChar = line.substring(i, i + 1);
-            if (SPACE.equals(currentChar) || SEMICOLON.equals(currentChar)) {
+            if (SPACE.equals(currentChar)) {
+                // function must have parameters
+                if (line.substring(i).trim().startsWith(OPEN_BRACKET)) {
+                    i = StringUtils.skipLeadingSpaces(line, i) - 1;
+                } else {
+                    keyword = line.substring(0, i).trim();
+                    break;
+                }
+            } else if (SEMICOLON.equals(currentChar)) {
                 // keywords without parameters, e.g. 'nomain' or 'qualified'
-                keyword = line.substring(0, i);
+                keyword = line.substring(0, i).trim();
                 break;
             } else if (OPEN_BRACKET.equals(currentChar)) {
-                keyword = line.substring(0, i);
+                keyword = line.substring(0, i).trim();
                 break;
             }
         }

@@ -271,9 +271,9 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     /**
-     * Regression test: a keyword argument that is a string literal containing
-     * a close parenthesis. Before the fix, the ')' inside the literal was
-     * counted as a bracket, corrupting the parameter extraction.
+     * Regression test: a keyword argument that is a string literal containing a
+     * close parenthesis. Before the fix, the ')' inside the literal was counted
+     * as a bracket, corrupting the parameter extraction.
      */
     @Test
     public void test_keyword_literal_with_close_parenthesis() throws RpgleFormatterException {
@@ -305,9 +305,9 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     /**
-     * Regression test: a keyword whose argument is itself a BIF call.
-     * Before the fix, dim(%elem(g_handleList.hFile)) was mis-tokenized,
-     * duplicating the inner BIF name in the output.
+     * Regression test: a keyword whose argument is itself a BIF call. Before
+     * the fix, dim(%elem(g_handleList.hFile)) was mis-tokenized, duplicating
+     * the inner BIF name in the output.
      */
     @Test
     public void test_keyword_with_nested_bif_argument() throws RpgleFormatterException {
@@ -328,5 +328,23 @@ public class TokenizerTest extends AbstractTestCase {
         assertEquals("g_handleList.hFile", elemToken.getChild(0).getValue());
 
         assertEquals(TokenType.EOL, tokens[1].getType());
+    }
+
+    @Test
+    public void test_function_with_embedded_spaces() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("myProcedure   (10);");
+        assertEquals(TokenType.FUNCTION, tokens[0].getType());
+        assertEquals("myProcedure", tokens[0].getValue());
+        assertEquals("10", tokens[0].getChild(0).getValue());
+    }
+
+    @Test
+    public void test_keyword_with_embedded_spaces() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize("options   (*varsize);");
+        assertEquals(TokenType.KEYWORD, tokens[0].getType());
+        assertEquals("options", tokens[0].getValue());
+        assertEquals("*varsize", tokens[0].getChild(0).getValue());
     }
 }

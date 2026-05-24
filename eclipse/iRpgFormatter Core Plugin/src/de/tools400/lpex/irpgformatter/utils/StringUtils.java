@@ -19,6 +19,13 @@ public class StringUtils implements RpgleSourceConstants {
         // Utility class
     }
 
+    public static int skipLeadingSpaces(String value, int offset) {
+        while (offset < value.length() && SPACE.equals(value.substring(offset, offset + 1))) {
+            offset++;
+        }
+        return offset;
+    }
+
     public static String getIndent(String line) {
 
         int i = 0;
