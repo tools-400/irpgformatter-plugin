@@ -87,6 +87,30 @@ public final class ContinuationHandler {
 
                 StatementType currentType = currentStatement.getType();
                 if (currentType.isStartOfBLock()) {
+
+                    // Experimental:
+                    // Pop parent is statement type matches previous type.
+                    // Actually we needed an Abstract Syntax Tree (AST) for
+                    // correct source formatting in order to have cleanly
+                    // identified statements, if the developer uses includes and
+                    // conditional compiling. This fix at least makes the
+                    // following statement work:
+                    // @formatter:off
+                    //   /If DEFINED (DEFINE_PROCPTR)
+                    //   Dcl-Pr SrvPgmFilter_delete Ind
+                    //     ExtProc(g_pFilter_delete);
+                    //   /Else
+                    //     Dcl-Pr SrvPgmFilter_delete Ind
+                    //     ExtProc('SrvPgmFilter_delete');
+                    //   /Endif
+                    //     io_pHandle Pointer;
+                    //   End-Pr;
+                    // @formatter:on
+
+                    if (parents.peek() != null && parents.peek().getType() == currentType) {
+                        parents.pop();
+                    }
+
                     int indent = parents.size() - 1;
                     currentStatement.setIndentLevel(indent);
                     parents.push(currentStatement);
