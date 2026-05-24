@@ -840,11 +840,24 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         String property = event.getProperty();
 
-        // Start column: RPGLE.FORMATTING.start
-        // End column: RPGLE.FORMATTING.end
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Formatter
+        // ----------------------------------------------------
+
         if (property.equals("RPGLE.FORMATTING.start") || property.equals("RPGLE.FORMATTING.end")
             || property.equals("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
 
+            loadIbmPreferences();
+            previewPanel.formatPreview();
+        }
+
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Key Behavior
+        // ----------------------------------------------------
+
+        if (property.startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
             loadIbmPreferences();
             previewPanel.formatPreview();
         }
