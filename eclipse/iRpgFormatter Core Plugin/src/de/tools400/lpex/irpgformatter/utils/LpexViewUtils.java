@@ -12,6 +12,8 @@ import com.ibm.etools.iseries.parsers.ISeriesEditorRPGILEParser;
 import com.ibm.lpex.core.LpexParser;
 import com.ibm.lpex.core.LpexView;
 
+import de.tools400.lpex.irpgformatter.preferences.Preferences;
+
 public final class LpexViewUtils {
 
     public static ISeriesEditorRPGILEParser getParser(LpexView view) {
@@ -91,7 +93,7 @@ public final class LpexViewUtils {
     public static int getMaxLineLength(LpexView view) {
         String raw = view.query("save.textLimit");
         if (raw == null || "default".equals(raw)) {
-            return Integer.MAX_VALUE;
+            return Preferences.getInstance().getEndColumn();
         }
         return Integer.parseInt(raw);
     }
