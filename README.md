@@ -6,6 +6,33 @@ Plug-in for formatting RPGLE **\*\*free** source code in RDi (Rational Developer
 
 Further information about the iRpgFormatter are available on the [iRpgFormatter Web Site](https://tools-400.github.io/irpgformatter/).
 
+## Limitations
+
+The formatter does not have an Abstract Syntax Tree (AST), which usually is required for formatting source code. But it has basic
+knowledge about functions, keywords, special words and data types.
+
+Most of the time it produces the expected result. But there are edge cases where the result is unexpected. Unexpected result can
+occur if the structure of the source code is not completely visible in the source member, but hidden in includes or manipulated
+by conditional compiling.
+
+For example:
+
+```text
+/if defined(DEFINE_PROCPTR)
+dcl-pr SrvPgmLayout_new ind extproc(g_pLayout_new);
+/else
+dcl-pr SrvPgmLayout_new ind extproc('SrvPgmLayout_new');
+/endif
+  i_pSuper   like(LOG4RPG_pLayout_t) const;
+  io_pHandle pointer;
+  i_propList like(LOG4RPG_pPropertyList_t) const;
+  i_prefix   like(LOG4RPG_prefix_t) const;
+end-pr;
+```
+
+The problem of the example above is that there are two `dcl-pr` statements in a row. This edge case works, because block statements
+are automatically closed if a block statement is followed by a statement of the same type.
+
 ## Usage
 
 ### Formatting Source Code
