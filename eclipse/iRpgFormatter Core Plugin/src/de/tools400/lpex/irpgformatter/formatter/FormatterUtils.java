@@ -409,6 +409,8 @@ public class FormatterUtils implements RpgleSourceConstants {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix, new NullFormattingRule());
         } else if (token.getType() == TokenType.FUNCTION) {
             parameterParts = formatFunctionWithParameters(currentLine, token, maxLineLength);
+        } else if (token.getType() == TokenType.KEYWORD) {
+            parameterParts = formatKeywordWithParameters(currentLine, token, maxLineLength);
         } else {
             throw new UnexpectedTokenException(token, getLineNumber());
         }

@@ -591,6 +591,23 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_ctlOpt_break_with_keyword_parameter() throws RpgleFormatterException {
+
+        String[] result = new String[0];
+
+        formatter.setSourceLength(50);
+
+        // @formatter:off
+        result = formatter.format(new TextLinesInput(
+            "ctl-opt debug option(*SRCSTMT : *NODEBUGIO) main(main);"
+        ),0).toLines();
+        // @formatter:on
+
+        assertTrue("First line must end with main( keyword", "ctl-opt debug option(*srcstmt: *nodebugio) main(".equals(result[0]));
+        assertTrue("Second line ends closing the main keyword", "  main);".equals(result[1]));
+    }
+
+    @Test
     public void format_ctlOpt_do_not_break_keywords() throws RpgleFormatterException {
 
         formatter.getConfig().setBreakBeforeKeyword(true);
