@@ -76,6 +76,9 @@ public class StatementIdentifier implements RpgleSourceConstants {
         StatementType type = identifyStatementType(line);
         if (type == StatementType.DCL_DS && containsToken(line, TokenType.KEYWORD, "LIKEDS")) {
             return true;
+            // } else if (type == StatementType.DCL_DS && containsToken(line,
+            // TokenType.KEYWORD, "LIKEREC")) {
+            // return true;
         } else if (type == StatementType.DCL_PI && containsToken(line, TokenType.DCL, "END-PI")) {
             return true;
         } else if (type == StatementType.DCL_PR && containsToken(line, TokenType.DCL, "END-PR")) {

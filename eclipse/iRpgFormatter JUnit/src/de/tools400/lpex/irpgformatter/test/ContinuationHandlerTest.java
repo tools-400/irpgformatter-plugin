@@ -110,6 +110,32 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         assertEquals(2, statements[0].numLines());
     }
 
+    // --- single line statement tests ---
+
+    @Test
+    public void singleLine_dcl_ds_with_likeds() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-ds msg likeds(msg_t);",
+            "dcl-s i int(10);"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals("dcl-ds msg likeds(msg_t);", statements[0].getStatement());
+    }
+
+    @Test
+    public void singleLine_dcl_ds_with_likerec() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-ds ds_SUBFILE_OUT likerec(PBSFL: *OUTPUT) inz;",
+            "dcl-s i int(10);"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals("dcl-ds ds_SUBFILE_OUT likerec(PBSFL: *OUTPUT) inz;", statements[0].getStatement());
+    }
+
     // --- joinContinuedLines tests ---
 
     @Test
