@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -73,14 +74,28 @@ public class CheckNLSMessages {
         System.out.println("Testing class: " + clazz.getName());
         for (String locale : locales) {
             Locale.setDefault(new Locale(locale));
+            resetNlsSuffixCache();
 
             Object nlsMessagesObject = getInstance(clazz);
             String resourcePath = getResourcePath(clazz, nlsResource, locale);
-            System.out.println("  Locale: " + resourcePath);
+            System.out.println("  Locale (" + locale + "):" + resourcePath);
 
             Properties properties = getPropertyResourceBundle(nlsMessagesObject, resourcePath);
             checkMessagesForLocale(locale, resourcePath, nlsMessagesObject, properties);
         }
+    }
+
+    /**
+     * Resets the static suffix cache in org.eclipse.osgi.util.NLS so that the
+     * next call to initializeMessages re-evaluates Locale.getDefault(). Without
+     * this, NLS keeps the suffixes from when its class was first loaded
+     * (typically by RDi at startup with osgi.nl=en).
+     */
+    private void resetNlsSuffixCache() throws Exception {
+        Class<?> nlsClass = Class.forName("org.eclipse.osgi.util.NLS");
+        Field nlSuffixes = nlsClass.getDeclaredField("nlSuffixes");
+        nlSuffixes.setAccessible(true);
+        nlSuffixes.set(null, null);
     }
 
     /**
@@ -165,6 +180,7 @@ public class CheckNLSMessages {
      * Java 9+ (built-in app classloader).
      */
     private URL[] getClassLoaderUrls(ClassLoader classLoader) {
+
         if (classLoader instanceof URLClassLoader) {
             // Java 8 and earlier
             return ((URLClassLoader)classLoader).getURLs();
