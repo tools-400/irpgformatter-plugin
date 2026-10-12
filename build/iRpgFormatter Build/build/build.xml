@@ -956,8 +956,6 @@
         <if>
             <equals arg1="${do.copy.site.xml}" arg2="true" />
             <then>
-                <mkdir dir="${temp.dir.local_updatesite}/Server" />
-                <copy file="${build.template.dir.web.assets}/upload_savf.cmd" todir="${temp.dir.local_updatesite}/Server" />
                 <copy todir="${temp.dir.local_updatesite}" >
                     <fileset dir="${site.dir}" includes="site.xml" />
                 </copy>
@@ -1188,7 +1186,7 @@
     <!--
     * =====================================================================
     *   Updates the help project with the following files:
-    *     - upload_savf.cmd
+    *     - n/a
     *
     *   Set the build properties as shown below, if you want to update
     *   the help pages:
@@ -1197,10 +1195,6 @@
     *
     * ===================================================================== -->
     <target name="updateHelpProject" unless="ignore.build.help" >
-
-        <echo>Updating upload_savf.cmd in ${workspace.home}/${build.help.base.project} ...</echo>
-
-        <copy file="${build.template.dir.web.assets}/upload_savf.cmd" todir="${workspace.home}/${build.help.base.project}/html/appendix/assets" />
 
         <echo>Refreshing: ${build.help.base.project}</echo>
         <eclipse.refreshLocal resource="${build.help.base.project}" depth="infinite" />
