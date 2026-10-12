@@ -438,39 +438,6 @@
     </target>
 
     <!-- =============================================================
-          Execute JUnit tests.
-         ============================================================= -->
-    <target name="junit" >
-
-        <echo>Running JUnit tests of project ${build.junit.project} ...</echo>
-
-        <junit haltonerror="true" haltonfailure="true" printsummary="true" >
-            <classpath>
-                <!-- JUnit4 -->
-                <path location="${build.dir}/build/lib/junit.jar" />
-                <path location="${build.dir}/build/lib/org.hamcrest.core_1.3.0.v201303031735.jar" />
-                <!-- OSGI for finding org.eclipse.osgi.util.NLS -->
-                <!--
-                Not necessary, because BUILD.xml must run in the same JRE as the workspace.
-                <path location="${build.dir}/build/lib/org.eclipse.osgi_3.6.3.R36x_v20110629.jar" />
-                -->
-                <!-- Projects with Messages classes -->
-                <dirset dir="${workspace.home}" >
-                    <include name="${build.junit.classpath}" />
-                </dirset>
-            </classpath>
-            <batchtest>
-                <fileset dir="${workspace.home}/${build.junit.project}/bin" id="id" >
-                    <include name="**/*NLS*.class" />
-                </fileset>
-            </batchtest>
-        </junit>
-
-        <echo>... finished JUnit tests.</echo>
-
-    </target>
-
-    <!-- =============================================================
           Updates 'Docs' with the current project documentation.
          ============================================================= -->
     <target name="createGitHubFiles" depends="updatePdfFile, prepareUpdateSite, createZipFile, createUpdateSite, createUpdateSiteHtmlPages, createHelpHtmlPages, createHomePageHtml, createFilesHtml, refreshProjects" description="Step 3" >
@@ -980,8 +947,6 @@
         <if>
             <equals arg1="${build.library.enabled}" arg2="true" />
             <then>
-                <mkdir dir="${temp.dir.local_updatesite}/Server" />
-                <copy file="${build.template.dir.web.assets}/upload_savf.cmd" todir="${temp.dir.local_updatesite}/Server" />
                 <copy toDir="${temp.dir.local_updatesite}/Server" >
                     <fileset dir="${local.savefile.directory}" includes="${local.savefile.name}" />
                 </copy>
