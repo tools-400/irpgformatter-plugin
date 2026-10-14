@@ -39,6 +39,9 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
     private static final String SUB_MENU_NAME = Messages.MenuItem_SubMenu_iRPGFormatter;
     private static final String MARK_ID = "de.tools400.lpex.irpgformatter.LPEX"; //$NON-NLS-1$
 
+    private static final String OWNED_CLASS_PREFIX = "de.tools400.lpex.irpgformatter."; //$NON-NLS-1$
+    private static final String OWNED_ACTION_ID_PREFIX = "iRPGFormatter."; //$NON-NLS-1$
+
     private static final boolean START_OF_MENU = false;
     private static final boolean END_OF_MENU = true;
 
@@ -84,6 +87,26 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
     @Override
     protected String getMarkId() {
         return MARK_ID;
+    }
+
+    /**
+     * Returns the package of all classes of iRPGFormatter. User actions in the
+     * LPEX settings, whose class starts with this prefix, belong to
+     * iRPGFormatter.
+     */
+    @Override
+    protected String[] getOwnedClassPrefixes() {
+        return new String[] { OWNED_CLASS_PREFIX };
+    }
+
+    /**
+     * Returns the prefix of the action IDs of iRPGFormatter. User key actions
+     * in the LPEX settings on such an action belong to iRPGFormatter, even if
+     * the action has been renamed or removed in a later version.
+     */
+    @Override
+    protected String[] getOwnedActionIdPrefixes() {
+        return new String[] { OWNED_ACTION_ID_PREFIX };
     }
 
     @Override

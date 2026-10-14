@@ -26,6 +26,7 @@ public class UserKeyAction extends AbstractLpexAction<UserKeyAction> implements 
         return keyStrokes + ACTION_DELIMITER + getActionId();
     }
 
+    @Override
     public int compareTo(UserKeyAction action) {
 
         if (action == null || action.getKeyStrokes() == null) {

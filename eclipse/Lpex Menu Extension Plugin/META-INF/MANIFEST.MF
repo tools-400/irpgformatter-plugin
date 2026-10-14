@@ -2,12 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Lpex Menu Extension
 Bundle-SymbolicName: de.tools400.lpex.menuextension.plugin;singleton:=true
-Bundle-Version: 1.0.0.b001
+Bundle-Version: 1.1.0.r
 Bundle-Vendor: Tools/400
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.jface,
- com.ibm.lpex
+ com.ibm.lpex,
+ org.eclipse.ui.workbench.texteditor
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: de.tools400.lpex.menuextension,

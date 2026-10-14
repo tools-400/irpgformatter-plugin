@@ -26,6 +26,7 @@ public class UserAction extends AbstractLpexAction<UserAction> implements Compar
         return getActionId() + ACTION_DELIMITER + className;
     }
 
+    @Override
     public int compareTo(UserAction action) {
 
         if (action == null || action.getActionId() == null) {

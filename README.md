@@ -51,6 +51,20 @@ You can format only a portion of the source:
 
 **Note:** If your selection starts or ends inside a block (DCL-DS, DCL-PR, DCL-PI), the selection is automatically expanded to include the complete block.
 
+### Keyboard Shortcut
+
+iRPGFormatter does not assign a key by default. To format with a key, map a **User Key Action** to the action `iRPGFormatter.Format`:
+
+1. Open **Window > Preferences > LPEX Editor > User Key Actions**
+2. Enter a key, e.g. `c-a-f` for Ctrl+Alt+F, and the action `iRPGFormatter.Format`
+3. Click **Set** and **Apply and Close**
+
+iRPGFormatter adds its action and the **iFormat** menu item to each LPEX editor. It does not store them in the LPEX preferences.
+Therefore `iRPGFormatter.Format` is not listed on the LPEX preference page **User Actions**.
+
+Your key action is kept when you restart RDi. While RDi is closed, it is stored in the preferences of iRPGFormatter instead of
+the LPEX preferences. That way it is removed together with iRPGFormatter, when you uninstall the plug-in.
+
 ## Supported Source Types
 
 - **RPGLE** (ILE RPG free-format)
@@ -64,7 +78,7 @@ The formatter requires **\*\*free** format. Fixed-format sources are not support
 
 Access preferences via **Window > Preferences > IBM i > Parsers > ILE RPG > iRPGFormatter**, next to the IBM formatter settings.
 
-Consider mapping a **User Key Action** to the `iRPGFormatter.Format` **User Action**.
+Consider mapping a **User Key Action** to the action `iRPGFormatter.Format`, see [Keyboard Shortcut](#keyboard-shortcut).
 
 ### IBM Settings
 

@@ -13,7 +13,13 @@ import org.eclipse.swt.widgets.Shell;
 import com.ibm.lpex.core.LpexView;
 import com.ibm.lpex.core.LpexWindow;
 
+import de.tools400.lpex.menuextension.logic.ILpexProfile;
+import de.tools400.lpex.menuextension.logic.LpexParameter;
+import de.tools400.lpex.menuextension.platform.LpexProfile;
+
 public final class LpexHelper {
+
+    private static final ILpexProfile PROFILE = new LpexProfile();
 
     private LpexHelper() {
     }
@@ -25,7 +31,7 @@ public final class LpexHelper {
      */
     public static String getUserActions() {
 
-        String lpexUserActions = LpexView.globalQuery("current.updateProfile.userActions");
+        String lpexUserActions = PROFILE.getCurrent(LpexParameter.USER_ACTIONS);
         if (lpexUserActions == null) {
             lpexUserActions = "";
         }
@@ -40,7 +46,7 @@ public final class LpexHelper {
      */
     public static String getPopMenu() {
 
-        String lpexPopupMenu = LpexView.globalQuery("current.popup");
+        String lpexPopupMenu = PROFILE.getCurrent(LpexParameter.POPUP);
         if (lpexPopupMenu == null) {
             lpexPopupMenu = "";
         }
@@ -54,7 +60,7 @@ public final class LpexHelper {
      * @param userActions - String defining the Lpex user actions.
      */
     public static void setUserActions(String userActions) {
-        LpexView.doGlobalCommand("set default.updateProfile.userActions " + userActions);
+        PROFILE.setDefault(LpexParameter.USER_ACTIONS, userActions);
     }
 
     /**
@@ -223,7 +229,7 @@ public final class LpexHelper {
      * @return LPEX editor uUser actions.
      */
     public static String getLpexUserActions() {
-        return LpexView.globalQuery("current.updateProfile.userActions");
+        return PROFILE.getCurrent(LpexParameter.USER_ACTIONS);
     }
 
     /**
@@ -233,7 +239,7 @@ public final class LpexHelper {
      *        editor.
      */
     public static void setLpexViewUserActions(String userActions) {
-        LpexView.doGlobalCommand("set default.updateProfile.userActions " + userActions);
+        PROFILE.setDefault(LpexParameter.USER_ACTIONS, userActions);
     }
 
     /**
@@ -242,7 +248,7 @@ public final class LpexHelper {
      * @return LPEX editor user key actions (shortcuts).
      */
     public static String getLpexUserKeyActions() {
-        return LpexView.globalQuery("current.updateProfile.userKeyActions");
+        return PROFILE.getCurrent(LpexParameter.USER_KEY_ACTIONS);
     }
 
     /**
@@ -252,7 +258,7 @@ public final class LpexHelper {
      *        (shortcuts) of the LPEX editor.
      */
     public static void setLpexViewUserKeyActions(String userKeyActions) {
-        LpexView.doGlobalCommand("set default.updateProfile.userKeyActions " + userKeyActions); //$NON-NLS-1$
+        PROFILE.setDefault(LpexParameter.USER_KEY_ACTIONS, userKeyActions);
     }
 
     /**
@@ -261,7 +267,7 @@ public final class LpexHelper {
      * @return LPEX editor popup menu.
      */
     public static String getLpexPopupMenu() {
-        return LpexView.globalQuery("current.popup"); //$NON-NLS-1$
+        return PROFILE.getCurrent(LpexParameter.POPUP);
     }
 
     /**
@@ -270,6 +276,6 @@ public final class LpexHelper {
      * @param popupMenu - String defining the popup menu of the Lpex view.
      */
     public static void setLpexViewPopup(String popupMenu) {
-        LpexView.doGlobalCommand("set default.popup " + popupMenu); //$NON-NLS-1$
+        PROFILE.setDefault(LpexParameter.POPUP, popupMenu);
     }
 }
