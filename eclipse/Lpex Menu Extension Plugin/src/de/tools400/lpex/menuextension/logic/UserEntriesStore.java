@@ -48,18 +48,32 @@ public class UserEntriesStore implements IUserEntriesStore {
         return entries;
     }
 
+    /**
+     * Replaces the remembered entries. An empty list leaves no keys behind.
+     * The node is saved only, if it has been changed.
+     */
     public void replace(UserEntries entries) {
+
+        boolean isChanged = false;
 
         for (LpexParameter parameter : LpexParameter.userParameters()) {
             String value = new PairList(entries.get(parameter), null).format();
             if (value.length() == 0) {
-                node.remove(getKey(parameter));
+                isChanged |= removeKey(getKey(parameter));
             } else {
-                node.put(getKey(parameter), value);
+                isChanged |= putKey(getKey(parameter), value);
             }
         }
 
-        node.put(getVersionKey(), FORMAT_VERSION);
+        if (entries.isEmpty()) {
+            isChanged |= removeKey(getVersionKey());
+        } else {
+            isChanged |= putKey(getVersionKey(), FORMAT_VERSION);
+        }
+
+        if (!isChanged) {
+            return;
+        }
 
         try {
             node.flush();
@@ -92,5 +106,27 @@ public class UserEntriesStore implements IUserEntriesStore {
 
     public String getVersionKey() {
         return KEY_PREFIX + markId + "." + VERSION; //$NON-NLS-1$
+    }
+
+    private boolean putKey(String key, String value) {
+
+        if (value.equals(node.get(key))) {
+            return false;
+        }
+
+        node.put(key, value);
+
+        return true;
+    }
+
+    private boolean removeKey(String key) {
+
+        if (node.get(key) == null) {
+            return false;
+        }
+
+        node.remove(key);
+
+        return true;
     }
 }

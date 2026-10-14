@@ -200,6 +200,18 @@ public class PopupMenuEditorTest {
     }
 
     @Test
+    public void removeBlocks_markersWithSeveralTokensAndWhiteSpace() {
+
+        // Markers of the STRPREPRC sub-menu of iSphere before 2019.
+        MenuMarkers legacyMarkers = new MenuMarkers("beginSubmenu \"STRPREPRC\"", "endSubmenu separator ");
+        String popupMenu = "beginSubmenu \"STRPREPRC\" \"Edit header\" SprPrePrc.EditHeader endSubmenu separator " + TestData.INSTALL_POPUP;
+        List<String> warnings = new ArrayList<String>();
+
+        assertEquals(TestData.INSTALL_POPUP, PopupMenuEditor.removeBlocks(popupMenu, legacyMarkers, warnings));
+        assertTrue(warnings.isEmpty());
+    }
+
+    @Test
     public void removeBlocks_noBlock() {
 
         List<String> warnings = new ArrayList<String>();

@@ -45,7 +45,7 @@ public class PopupMenuEditor {
             return false;
         }
 
-        return indexOfToken(popupMenu, markers.getStart(), 0) >= 0;
+        return indexOfToken(popupMenu, markers.getStart().trim(), 0) >= 0;
     }
 
     /**
@@ -118,7 +118,9 @@ public class PopupMenuEditor {
 
     /**
      * Removes all blocks that are enclosed by the specified markers. A block
-     * without end marker is left unchanged and reported.
+     * without end marker is left unchanged and reported. A marker may consist
+     * of several tokens, e.g. <code>endSubmenu separator</code>. White space
+     * around a marker is ignored.
      *
      * @param popupMenu - popup menu
      * @param markers - markers of the blocks
@@ -131,24 +133,27 @@ public class PopupMenuEditor {
             return null;
         }
 
+        String startMarker = markers.getStart().trim();
+        String endMarker = markers.getEnd().trim();
+
         String result = popupMenu;
         int from = 0;
 
         while (true) {
 
-            int start = indexOfToken(result, markers.getStart(), from);
+            int start = indexOfToken(result, startMarker, from);
             if (start < 0) {
                 break;
             }
 
-            int end = indexOfToken(result, markers.getEnd(), start + markers.getStart().length());
+            int end = indexOfToken(result, endMarker, start + startMarker.length());
             if (end < 0) {
-                warnings.add("End marker of menu block not found: " + markers.getEnd()); //$NON-NLS-1$
+                warnings.add("End marker of menu block not found: " + endMarker); //$NON-NLS-1$
                 break;
             }
 
             String before = trimRight(result.substring(0, start));
-            String after = trimLeft(result.substring(end + markers.getEnd().length()));
+            String after = trimLeft(result.substring(end + endMarker.length()));
 
             if (before.length() > 0 && after.length() > 0) {
                 result = before + DELIMITER + after;

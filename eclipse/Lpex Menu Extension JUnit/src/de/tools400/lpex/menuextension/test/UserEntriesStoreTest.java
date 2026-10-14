@@ -125,12 +125,48 @@ public class UserEntriesStoreTest {
     }
 
     @Test
+    public void replace_emptyList_noKeysAndNoFlush() {
+
+        store.replace(new UserEntries());
+
+        assertTrue(node.getValues().isEmpty());
+        assertEquals(0, node.getFlushCount());
+    }
+
+    @Test
+    public void replace_emptyList_removesAllKeys() {
+
+        UserEntries entries = new UserEntries();
+        entries.add(LpexParameter.USER_KEY_ACTIONS, "c-a-f", "iRPGFormatter.Format");
+        store.replace(entries);
+
+        store.replace(new UserEntries());
+
+        assertTrue(node.getValues().isEmpty());
+        assertEquals(2, node.getFlushCount());
+    }
+
+    @Test
+    public void replace_unchanged_noFlush() {
+
+        UserEntries entries = new UserEntries();
+        entries.add(LpexParameter.USER_KEY_ACTIONS, "c-a-f", "iRPGFormatter.Format");
+
+        store.replace(entries);
+        store.replace(entries);
+
+        assertEquals(1, node.getFlushCount());
+    }
+
+    @Test
     public void replace_flushFails() {
 
         node.setFailing(true);
+        UserEntries entries = new UserEntries();
+        entries.add(LpexParameter.USER_KEY_ACTIONS, "c-a-f", "iRPGFormatter.Format");
 
         try {
-            store.replace(new UserEntries());
+            store.replace(entries);
             fail("IllegalStateException expected");
         } catch (IllegalStateException e) {
             assertTrue(e.getMessage().contains("de.tools400.lpex.irpgformatter.LPEX"));
