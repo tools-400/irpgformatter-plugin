@@ -638,13 +638,8 @@ public class PreviewPanel implements IPropertyChangeListener {
         // General -> Editors -> Text Editors
         // ----------------------------------------------------
 
-        if (ColorUtils.CURRENT_LINE_COLOR.equals(property) || ColorUtils.CURRENT_LINE_COLOR.equals(property)) {
-            updateColorSettings();
-        } else if (ColorUtils.LINE_NUMBER_COLOR.equals(property) || ColorUtils.LINE_NUMBER_COLOR.equals(property)) {
-            updateColorSettings();
-        } else if (ColorUtils.PRINT_MARGIN_COLOR.equals(property) || ColorUtils.PRINT_MARGIN_COLOR.equals(property)) {
-            updateColorSettings();
-        } else if (ColorUtils.LINE_NUMBER_RULER_ENABLED.equals(property)) {
+        if (ColorUtils.CURRENT_LINE_COLOR.equals(property) || ColorUtils.LINE_NUMBER_COLOR.equals(property)
+            || ColorUtils.PRINT_MARGIN_COLOR.equals(property) || ColorUtils.LINE_NUMBER_RULER_ENABLED.equals(property)) {
             updateColorSettings();
         }
 
