@@ -84,59 +84,11 @@ public final class ContinuationHandler {
             if (currentStatement.isComplete()) {
 
                 statements.add(currentStatement);
-
-                StatementType currentType = currentStatement.getType();
-                if (currentType.isStartOfBLock()) {
-
-                    // Experimental:
-                    // Pop parent if statement type matches previous type.
-                    // Actually we needed an Abstract Syntax Tree (AST) for
-                    // correct source formatting in order to have cleanly
-                    // identified statements, if the developer uses includes and
-                    // conditional compiling. This fix at least makes the
-                    // following statement work:
-                    // @formatter:off
-                    //   /If DEFINED (DEFINE_PROCPTR)
-                    //   Dcl-Pr SrvPgmFilter_delete Ind
-                    //     ExtProc(g_pFilter_delete);
-                    //   /Else
-                    //     Dcl-Pr SrvPgmFilter_delete Ind
-                    //     ExtProc('SrvPgmFilter_delete');
-                    //   /Endif
-                    //     io_pHandle Pointer;
-                    //   End-Pr;
-                    // @formatter:on
-
-                    if (parents.peek() != null && parents.peek().getType() == currentType) {
-                        parents.pop();
-                    }
-
-                    int indent = parents.size() - 1;
-                    currentStatement.setIndentLevel(indent);
-                    parents.push(currentStatement);
-                    // single line DCL-DS or DCL-PI/DCL-PR statement
-                    if (StatementIdentifier.isSingleLineStatement(currentStatement.getStatement())) {
-                        parents.pop();
-                    }
-                } else {
-                    CollectedStatement parent = parents.peek();
-                    if (parent != null) {
-                        StatementType parentEndOfBlockType = parent.getType().getEndOfBlockType();
-                        if (currentType == parentEndOfBlockType) {
-                            parents.pop();
-                        } else {
-                            if (currentStatement.getType() == StatementType.DCL_SUBF) {
-                                parent.addChild(currentStatement);
-                            }
-                        }
-                    }
-                    int indent = parents.size() - 1;
-                    currentStatement.setIndentLevel(indent);
-                }
+                nestStatement(parents, currentStatement);
 
                 // all statements following the first compile time array are
                 // single line statements by definition
-                if (currentType == StatementType.COMPILE_TIME_ARRAY) {
+                if (currentStatement.getType() == StatementType.COMPILE_TIME_ARRAY) {
                     haveOnlySingleLineStatements = true;
                 }
 
@@ -159,11 +111,73 @@ public final class ContinuationHandler {
         parents.pop();
 
         if (!isTestMode && !parents.isEmpty()) {
-            throw new RpgleFormatterException("Parents atack is not empty.");
+            throw new RpgleFormatterException("Parents stack is not empty.");
         }
 
         setTestMode(false);
 
         return statements.toArray(new CollectedStatement[statements.size()]);
+    }
+
+    /**
+     * Places a complete statement into the block structure and sets its indent
+     * level: a statement that starts a block is pushed onto the stack of
+     * parents, the statement that ends the block pops it. Sub-fields are added
+     * to their parent.
+     *
+     * @param parents the blocks that enclose the statement, <code>null</code>
+     *        at the bottom
+     * @param currentStatement the complete statement
+     */
+    private static void nestStatement(Stack<CollectedStatement> parents, CollectedStatement currentStatement) throws RpgleFormatterException {
+
+        StatementType currentType = currentStatement.getType();
+        if (currentType.isStartOfBLock()) {
+
+            // Experimental:
+            // Pop parent if statement type matches previous type.
+            // Actually we needed an Abstract Syntax Tree (AST) for
+            // correct source formatting in order to have cleanly
+            // identified statements, if the developer uses includes and
+            // conditional compiling. This fix at least makes the
+            // following statement work:
+            // @formatter:off
+            //   /If DEFINED (DEFINE_PROCPTR)
+            //   Dcl-Pr SrvPgmFilter_delete Ind
+            //     ExtProc(g_pFilter_delete);
+            //   /Else
+            //     Dcl-Pr SrvPgmFilter_delete Ind
+            //     ExtProc('SrvPgmFilter_delete');
+            //   /Endif
+            //     io_pHandle Pointer;
+            //   End-Pr;
+            // @formatter:on
+
+            if (parents.peek() != null && parents.peek().getType() == currentType) {
+                parents.pop();
+            }
+
+            int indent = parents.size() - 1;
+            currentStatement.setIndentLevel(indent);
+            parents.push(currentStatement);
+            // single line DCL-DS or DCL-PI/DCL-PR statement
+            if (StatementIdentifier.isSingleLineStatement(currentStatement.getStatement())) {
+                parents.pop();
+            }
+        } else {
+            CollectedStatement parent = parents.peek();
+            if (parent != null) {
+                StatementType parentEndOfBlockType = parent.getType().getEndOfBlockType();
+                if (currentType == parentEndOfBlockType) {
+                    parents.pop();
+                } else {
+                    if (currentType == StatementType.DCL_SUBF) {
+                        parent.addChild(currentStatement);
+                    }
+                }
+            }
+            int indent = parents.size() - 1;
+            currentStatement.setIndentLevel(indent);
+        }
     }
 }
