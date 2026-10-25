@@ -93,6 +93,9 @@ public class FormatRemoteStreamFileJob extends Job {
                 count++;
             }
 
+        } catch (BatchAbortedException e) {
+            // user declined connection dialog — stop processing remaining
+            // files
         } catch (Exception e) {
             ExceptionUtils.handleBatchException(e);
         }
