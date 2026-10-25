@@ -123,6 +123,8 @@ public class Messages extends NLS {
 
     public static String MenuItem_SubMenu_iRPGFormatter;
     public static String MenuItem_Format;
+    public static String MenuItem_Select_All;
+    public static String MenuItem_Copy;
 
     public static String Message_Source_formatted_successfully;
     public static String Message_Source_Lines_A_B_formatted_successfully;

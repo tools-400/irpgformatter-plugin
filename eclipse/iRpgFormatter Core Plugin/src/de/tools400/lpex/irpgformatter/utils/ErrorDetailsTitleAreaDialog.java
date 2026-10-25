@@ -12,18 +12,11 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -71,7 +64,7 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
             list.add(detail);
         }
 
-        addCopySupport(list);
+        UIUtils.addCopySupport(list);
 
         return area;
     }
@@ -79,45 +72,5 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-    }
-
-    private void addCopySupport(List list) {
-
-        list.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.stateMask == SWT.CTRL && e.keyCode == 'a') {
-                    list.selectAll();
-                } else if (e.stateMask == SWT.CTRL && e.keyCode == 'c') {
-                    copySelection(list);
-                }
-            }
-        });
-
-        Menu menu = new Menu(list);
-        MenuItem selectAllItem = new MenuItem(menu, SWT.PUSH);
-        selectAllItem.setText("Select All\tCtrl+A");
-        selectAllItem.addListener(SWT.Selection, event -> list.selectAll());
-        MenuItem copyItem = new MenuItem(menu, SWT.PUSH);
-        copyItem.setText("Copy\tCtrl+C");
-        copyItem.addListener(SWT.Selection, event -> copySelection(list));
-        list.setMenu(menu);
-    }
-
-    private void copySelection(List list) {
-        String[] selection = list.getSelection();
-        if (selection.length == 0) {
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < selection.length; i++) {
-            if (i > 0) {
-                sb.append(System.lineSeparator());
-            }
-            sb.append(selection[i]);
-        }
-        Clipboard clipboard = new Clipboard(list.getDisplay());
-        clipboard.setContents(new Object[] { sb.toString() }, new Transfer[] { TextTransfer.getInstance() });
-        clipboard.dispose();
     }
 }
