@@ -207,44 +207,43 @@ public class Tokenizer implements RpgleSourceConstants {
 
     private IToken parseLiteral(String line, int offset) {
 
-        String currentChar = null;
-        String nextChar = null;
+        int i = findEndOfLiteral(line, 0);
+        String value = line.substring(0, i);
+
+        int rawLength = skipSpaceAndColon(line.substring(i)) + i;
+        IToken token = new LiteralToken(value, line.substring(0, rawLength), offset);
+
+        return token;
+    }
+
+    /**
+     * Returns the index behind the literal, that starts with the first single
+     * quote at or after the given index. Two single quotes inside the literal
+     * are an escaped quote.
+     *
+     * @return index behind the closing quote or the length of the line, if the
+     *         literal is not closed
+     */
+    private static int findEndOfLiteral(String line, int start) {
 
         boolean insideLiteral = false;
 
-        int i;
-        for (i = 0; i < line.length(); i++) {
-            currentChar = line.substring(i, i + 1);
-            if (i < line.length() - 1) {
-                nextChar = line.substring(i + 1, i + 2);
-            } else {
-                nextChar = null;
-            }
-
-            // Track string literal boundaries when collecting parameters
-            if (SINGLE_QUOTE.equals(currentChar)) {
+        for (int i = start; i < line.length(); i++) {
+            if (line.startsWith(SINGLE_QUOTE, i)) {
                 if (!insideLiteral) {
                     // Opening quote
                     insideLiteral = true;
-                } else if (SINGLE_QUOTE.equals(nextChar)) {
+                } else if (line.startsWith(SINGLE_QUOTE, i + 1)) {
                     // Escaped single quote inside literal — skip next quote
                     i++;
                 } else {
                     // Closing quote
-                    insideLiteral = false;
-                    i++;
-                    break;
+                    return i + 1;
                 }
             }
         }
 
-        String value = line.substring(0, i);
-
-        int rawLength = value.length();
-        rawLength = skipSpaceAndColon(line.substring(i)) + i;
-        IToken token = new LiteralToken(value, line.substring(0, rawLength), offset);
-
-        return token;
+        return line.length();
     }
 
     private IToken parseVariable(String line, int offset) throws RpgleFormatterException {
@@ -264,62 +263,49 @@ public class Tokenizer implements RpgleSourceConstants {
         String name = null;
         StringBuilder parameters = new StringBuilder();
         boolean insideParameters = false;
-        boolean insideLiteral = false;
         int bracketDepth = 0;
 
         String currentChar;
-        String nextChar;
 
         int i;
         for (i = 0; i < line.length(); i++) {
 
             currentChar = line.substring(i, i + 1);
-            nextChar = (i < line.length() - 1) ? line.substring(i + 1, i + 2) : null;
 
-            // Track string literal boundaries when collecting parameters
+            // Collect a literal of the parameters as a whole, so that its
+            // brackets do not count
             if (insideParameters && SINGLE_QUOTE.equals(currentChar)) {
-                parameters.append(currentChar);
-                if (!insideLiteral) {
-                    // Opening quote
-                    insideLiteral = true;
-                } else if (SINGLE_QUOTE.equals(nextChar)) {
-                    // Escaped single quote inside literal — skip next quote
-                    i++;
-                    parameters.append(nextChar);
+                int endOfLiteral = findEndOfLiteral(line, i);
+                parameters.append(line, i, endOfLiteral);
+                i = endOfLiteral - 1;
+                continue;
+            }
+
+            if (OPEN_BRACKET.equals(currentChar)) {
+                if (!insideParameters) {
+                    // Get keyword name and start collecting parameters
+                    name = line.substring(0, i);
+                    insideParameters = true;
+                    bracketDepth = 1;
                 } else {
-                    // Closing quote
-                    insideLiteral = false;
+                    // Nested open bracket inside parameters (e.g.
+                    // dim(%elem(...)))
+                    parameters.append(currentChar);
+                    bracketDepth++;
                 }
                 continue;
             }
 
-            if (!insideLiteral) {
-                if (OPEN_BRACKET.equals(currentChar)) {
-                    if (!insideParameters) {
-                        // Get keyword name and start collecting parameters
-                        name = line.substring(0, i);
-                        insideParameters = true;
-                        bracketDepth = 1;
-                    } else {
-                        // Nested open bracket inside parameters (e.g.
-                        // dim(%elem(...)))
-                        parameters.append(currentChar);
-                        bracketDepth++;
-                    }
-                    continue;
+            if (insideParameters && CLOSE_BRACKET.equals(currentChar)) {
+                bracketDepth--;
+                if (bracketDepth == 0) {
+                    i++;
+                    break;
+                } else {
+                    // Nested close bracket — keep collecting
+                    parameters.append(currentChar);
                 }
-
-                if (insideParameters && CLOSE_BRACKET.equals(currentChar)) {
-                    bracketDepth--;
-                    if (bracketDepth == 0) {
-                        i++;
-                        break;
-                    } else {
-                        // Nested close bracket — keep collecting
-                        parameters.append(currentChar);
-                    }
-                    continue;
-                }
+                continue;
             }
 
             if (insideParameters) {
