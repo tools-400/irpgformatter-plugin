@@ -35,7 +35,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -79,10 +78,9 @@ public class PreviewPanel implements IPropertyChangeListener {
     private Button showWhitespacesCheckbox;
     private Spinner previewVerticalRulerSpinner;
 
-    /* Painters and resources */
+    /* Painters */
     private WhitespaceCharacterPainter whitespacePainter;
     private MarginPainter marginPainter;
-    private Font monoFont;
 
     /* State */
     private boolean isEditMode;
@@ -141,7 +139,7 @@ public class PreviewPanel implements IPropertyChangeListener {
             public void widgetSelected(SelectionEvent e) {
                 if (!isEditMode) {
                     String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
-                    fromatPreviewSource(comment);
+                    formatPreviewSource(comment);
                 }
             }
         };
@@ -214,14 +212,14 @@ public class PreviewPanel implements IPropertyChangeListener {
      * Triggers a re-format of the preview with the current settings.
      */
     public void formatPreview() {
-        fromatPreviewSource();
+        formatPreviewSource();
     }
 
     /**
      * Triggers a re-format and scrolls to the given comment line.
      */
     public void formatPreview(String scrollToComment) {
-        fromatPreviewSource(scrollToComment);
+        formatPreviewSource(scrollToComment);
     }
 
     /**
@@ -233,7 +231,8 @@ public class PreviewPanel implements IPropertyChangeListener {
     }
 
     /**
-     * Disposes all resources (painters, colors, fonts) owned by this panel.
+     * Removes the listeners and deactivates the painters of this panel. Fonts
+     * and colors belong to the registries of JFace.
      */
     public void dispose() {
 
@@ -248,10 +247,6 @@ public class PreviewPanel implements IPropertyChangeListener {
             marginPainter.deactivate(true);
             marginPainter = null;
         }
-
-        if (monoFont != null && !monoFont.isDisposed()) {
-            monoFont.dispose();
-        }
     }
 
     // ------------------------------------------------------------------
@@ -265,7 +260,18 @@ public class PreviewPanel implements IPropertyChangeListener {
         previewGroup.setLayout(new GridLayout(1, false));
         previewGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        // SourceViewer for source preview, with line-number ruler on the left
+        createSourceViewer(preferences);
+        installCursorLineHighlighting();
+        installLineWidthHighlighting();
+        installMarginPainter(preferences);
+        createButtonBar(preferences);
+    }
+
+    /**
+     * Creates the source viewer with the line number ruler on the left.
+     */
+    private void createSourceViewer(Preferences preferences) {
+
         CompositeRuler ruler = new CompositeRuler();
         lineNumberRuler = new LineNumberRulerColumn() {
             @Override
@@ -278,26 +284,30 @@ public class PreviewPanel implements IPropertyChangeListener {
         ruler.addDecorator(0, lineNumberRuler);
 
         previewViewer = new SourceViewer(previewGroup, ruler, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-        StyledText styledText = previewViewer.getTextWidget();
         GridData viewerData = new GridData(GridData.FILL_BOTH);
         viewerData.widthHint = 400;
         viewerData.heightHint = 300;
         previewViewer.getControl().setLayoutData(viewerData);
 
-        // Set monospace font (also on the ruler so digit height matches code
-        // lines)
-        FontData[] fontData = styledText.getFont().getFontData();
-        monoFont = new Font(styledText.getDisplay(), "Courier New", fontData[0].getHeight(), SWT.NORMAL);
-        styledText.setFont(monoFont);
-        lineNumberRuler.setFont(monoFont);
+        // Text font of the editors (also on the ruler so digit height matches
+        // code lines). The font belongs to the font registry of JFace.
+        Font textFont = JFaceResources.getTextFont();
+        previewViewer.getTextWidget().setFont(textFont);
+        lineNumberRuler.setFont(textFont);
         lineNumberRuler.setForeground(ColorUtils.getLineNumberColor());
 
         // Set initial content
         IDocument document = new Document(preferences.getDefaultFormatterSource());
         previewViewer.setDocument(document);
         previewViewer.setEditable(false);
+    }
 
-        // Highlight cursor line (works regardless of focus)
+    /**
+     * Highlights the line of the cursor, regardless of the focus.
+     */
+    private void installCursorLineHighlighting() {
+
+        StyledText styledText = previewViewer.getTextWidget();
         styledText.addCaretListener(event -> {
             if (isUpdatingPreview) {
                 return;
@@ -314,9 +324,14 @@ public class PreviewPanel implements IPropertyChangeListener {
                 event.lineBackground = ColorUtils.getCurrentLineHighlightColor();
             }
         });
+    }
 
-        // Highlight lines exceeding the configured line width
-        styledText.addLineStyleListener(new LineStyleListener() {
+    /**
+     * Highlights the lines, that exceed the configured line width.
+     */
+    private void installLineWidthHighlighting() {
+
+        previewViewer.getTextWidget().addLineStyleListener(new LineStyleListener() {
             @Override
             public void lineGetStyle(LineStyleEvent event) {
                 if (previewVerticalRulerSpinner == null) {
@@ -332,19 +347,37 @@ public class PreviewPanel implements IPropertyChangeListener {
                 }
             }
         });
+    }
 
-        // Margin painter (vertical ruler at line width column)
+    /**
+     * Draws the vertical ruler at the line width column.
+     */
+    private void installMarginPainter(Preferences preferences) {
+
         marginPainter = new MarginPainter(previewViewer);
         marginPainter.setMarginRulerColor(ColorUtils.getPrintMarginColor());
-        marginPainter.setMarginRulerColumn(60);
+        marginPainter.setMarginRulerColumn(preferences.getDefaultFormatterPreviewVerticalRulerColumn());
         previewViewer.addPainter(marginPainter);
+    }
 
-        // Button bar
+    private void createButtonBar(Preferences preferences) {
+
         Composite buttonBar = new Composite(previewGroup, SWT.NONE);
         buttonBar.setLayout(new GridLayout(6, false));
         buttonBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        // "View/Edit raw code" toggle button
+        createViewEditButton(buttonBar);
+        createCustomPreviewButton(buttonBar);
+        createShowWhitespacesCheckbox(buttonBar);
+        createLineWidthSpinner(buttonBar);
+        createResetLineWidthButton(buttonBar, preferences);
+    }
+
+    /**
+     * Creates the toggle button 'View/Edit raw code'.
+     */
+    private void createViewEditButton(Composite buttonBar) {
+
         viewEditButton = UIUtils.createToggleButton(buttonBar, Messages.Label_View_Edit_raw_code, Messages.Tooltip_View_Edit_raw_code);
         viewEditButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -360,13 +393,18 @@ public class PreviewPanel implements IPropertyChangeListener {
                 } else {
                     // Leaving edit mode: capture raw source, then format
                     setCurrentRawSource(previewViewer.getDocument().get());
-                    fromatPreviewSource();
+                    formatPreviewSource();
                     previewGroup.setText(Messages.Label_Preview);
                 }
             }
         });
+    }
 
-        // "Custom preview contents" toggle button
+    /**
+     * Creates the toggle button 'Custom preview contents'.
+     */
+    private void createCustomPreviewButton(Composite buttonBar) {
+
         customPreviewButton = UIUtils.createToggleButton(buttonBar, Messages.Label_Custom_preview_contents, Messages.Tooltip_Custom_preview_contents);
         customPreviewButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -374,8 +412,13 @@ public class PreviewPanel implements IPropertyChangeListener {
                 switchPreviewContent();
             }
         });
+    }
 
-        // "Show whitespaces" checkbox
+    /**
+     * Creates the checkbox 'Show whitespaces'.
+     */
+    private void createShowWhitespacesCheckbox(Composite buttonBar) {
+
         showWhitespacesCheckbox = UIUtils.createCheckbox(buttonBar, Messages.Label_Show_whitespaces, Messages.Tooltip_Show_whitespaces);
         showWhitespacesCheckbox.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -383,8 +426,14 @@ public class PreviewPanel implements IPropertyChangeListener {
                 toggleWhitespaceDisplay();
             }
         });
+    }
 
-        // "Preview line width:" label + spinner
+    /**
+     * Creates the label 'Preview line width:' and its spinner. The vertical
+     * ruler follows the spinner with a delay.
+     */
+    private void createLineWidthSpinner(Composite buttonBar) {
+
         previewVerticalRulerSpinner = UIUtils.createSpinner(buttonBar, Messages.Label_Preview_line_width, Messages.Tooltip_Preview_line_width, 0,
             500);
         previewVerticalRulerSpinner.addModifyListener(new ModifyListener() {
@@ -397,8 +446,13 @@ public class PreviewPanel implements IPropertyChangeListener {
                 rulerUpdateJob.schedule(200);
             }
         });
+    }
 
-        // "Reset preview line width" button
+    /**
+     * Creates the button, that resets the preview line width to its default.
+     */
+    private void createResetLineWidthButton(Composite buttonBar, Preferences preferences) {
+
         Button resetLineWidthButton = new Button(buttonBar, SWT.PUSH);
         resetLineWidthButton.setToolTipText(Messages.Tooltip_Reset_preview_line_width);
         resetLineWidthButton.setImage(IRpgleFormatterPlugin.getDefault().getImage(IRpgleFormatterPlugin.IMAGE_RESET));
@@ -420,11 +474,11 @@ public class PreviewPanel implements IPropertyChangeListener {
     // Preview formatting
     // ------------------------------------------------------------------
 
-    private void fromatPreviewSource() {
-        fromatPreviewSource(null);
+    private void formatPreviewSource() {
+        formatPreviewSource(null);
     }
 
-    private void fromatPreviewSource(String scrollToComment) {
+    private void formatPreviewSource(String scrollToComment) {
 
         if (isDisposed()) {
             return;
@@ -533,7 +587,7 @@ public class PreviewPanel implements IPropertyChangeListener {
 
         // Format if not in edit mode
         if (!isEditMode) {
-            fromatPreviewSource();
+            formatPreviewSource();
         }
     }
 
@@ -581,7 +635,7 @@ public class PreviewPanel implements IPropertyChangeListener {
             }
             previewViewer.setEditable(false);
             previewGroup.setText(Messages.Label_Preview);
-            fromatPreviewSource();
+            formatPreviewSource();
         }
     }
 
@@ -695,7 +749,7 @@ public class PreviewPanel implements IPropertyChangeListener {
                 updateMarginColumn(column);
                 if (!isEditMode) {
                     boolean spinnerHadFocus = previewVerticalRulerSpinner.isFocusControl();
-                    fromatPreviewSource();
+                    formatPreviewSource();
                     if (spinnerHadFocus) {
                         // Move focus away and back to re-select the spinner
                         // text, since forceFocus() is a no-op when the spinner
