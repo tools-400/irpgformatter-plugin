@@ -553,7 +553,7 @@ public class PreviewPanel implements IPropertyChangeListener {
                 previewViewer.getDocument().set(formattedSource);
 
                 if (scrollToComment != null) {
-                    int commentLine = findCommentLine(lines, scrollToComment);
+                    int commentLine = PreviewComments.findLine(lines, scrollToComment);
                     if (commentLine >= 0) {
                         previewCursorLine = commentLine;
                         int visibleLines = styledText.getClientArea().height / styledText.getLineHeight();
@@ -587,15 +587,6 @@ public class PreviewPanel implements IPropertyChangeListener {
     // ------------------------------------------------------------------
     // Helper methods
     // ------------------------------------------------------------------
-
-    private int findCommentLine(String[] lines, String comment) {
-        for (int i = 0; i < lines.length; i++) {
-            if (lines[i].trim().equals(comment)) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     private void switchPreviewContent() {
 

@@ -285,10 +285,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         Group group = createSubGroup(parent, Messages.Label_General_Settings);
 
         useConstKeywordCheckbox = createSettingCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword,
-            "// Use const() in dcl-c statements.");
+            PreviewComments.USE_CONST_KEYWORD);
 
         putDelimiterBeforeParameterCheckbox = createSettingCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
-            Messages.Tooltip_Put_delimiter_before_parameter, "// Put delimiter before parameter.");
+            Messages.Tooltip_Put_delimiter_before_parameter, PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
         // Parameter spacing style
         Label parameterSpacingLabel = new Label(group, SWT.NONE);
@@ -298,38 +298,38 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         parameterSpacingStyleCombo.setItems(preferences.getParameterSpacingStyles());
         parameterSpacingStyleCombo.setLayoutData(createStyleData());
         parameterSpacingStyleCombo.setToolTipText(Messages.Tooltip_Parameter_spacing_style);
-        previewPanel.addPreviewTrigger(parameterSpacingStyleCombo, "// Put delimiter before parameter.");
+        previewPanel.addPreviewTrigger(parameterSpacingStyleCombo, PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
         alignSubFieldsCheckbox = createSettingCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields,
-            "// Align sub-fields/parameters.");
+            PreviewComments.ALIGN_SUB_FIELDS);
 
         breakNameOnCaseChangeCheckbox = createSettingCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change,
-            "// Break name on case change.");
+            PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
         breakBeforeKeywordCheckbox = createSettingCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword,
-            "// Break before keyword.");
+            PreviewComments.BREAK_BEFORE_KEYWORD);
 
         sortConstValueToEndCheckbox = createSettingCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end,
-            "// Sort const/value to end.");
+            PreviewComments.SORT_CONST_VALUE_TO_END);
 
         replacePiNameCheckbox = createSettingCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name,
-            "// Replace dcl-pi name with *N.");
+            PreviewComments.REPLACE_PI_NAME);
 
         removeEndProcNameCheckbox = createSettingCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name,
-            "// Remove end-proc name.");
+            PreviewComments.REMOVE_END_PROC_NAME);
 
         unindentCompilerDirectivesCheckbox = createSettingCheckbox(group, Messages.Label_Unindent_compiler_directives,
-            Messages.Tooltip_Unindent_compiler_directives, "// Unindent compiler directives.");
+            Messages.Tooltip_Unindent_compiler_directives, PreviewComments.UNINDENT_COMPILER_DIRECTIVES);
 
         // Maximum name length
         maxNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100);
         maxNameLengthSpinner.setLayoutData(createSpinnerGridData());
-        previewPanel.addPreviewTrigger(maxNameLengthSpinner, "// Break name on case change.");
+        previewPanel.addPreviewTrigger(maxNameLengthSpinner, PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
         // Minimum name length
         minNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50);
         minNameLengthSpinner.setLayoutData(createSpinnerGridData());
-        previewPanel.addPreviewTrigger(minNameLengthSpinner, "// Break name on case change.");
+        previewPanel.addPreviewTrigger(minNameLengthSpinner, PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
         // Execute iRPG formatter
         executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
@@ -350,10 +350,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         Group group = createSubGroup(parent, Messages.Label_Experimental_Settings);
 
         removeEmptyCommentLinesCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_comment_lines,
-            Messages.Tooltip_Remove_empty_comment_lines, "// Remove empty comment lines.");
+            Messages.Tooltip_Remove_empty_comment_lines, PreviewComments.REMOVE_EMPTY_COMMENT_LINES);
 
         removeEmptyLinesBeforeDclPiCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
-            Messages.Tooltip_Remove_empty_lines_before_dcl_pi, "// Remove empty comment lines before dcl-pi.");
+            Messages.Tooltip_Remove_empty_lines_before_dcl_pi, PreviewComments.REMOVE_EMPTY_LINES_BEFORE_DCL_PI);
     }
 
     /**
