@@ -33,7 +33,7 @@ public final class LpexHelper {
 
         String lpexUserActions = PROFILE.getCurrent(LpexParameter.USER_ACTIONS);
         if (lpexUserActions == null) {
-            lpexUserActions = "";
+            lpexUserActions = ""; //$NON-NLS-1$
         }
 
         return lpexUserActions;
@@ -48,7 +48,7 @@ public final class LpexHelper {
 
         String lpexPopupMenu = PROFILE.getCurrent(LpexParameter.POPUP);
         if (lpexPopupMenu == null) {
-            lpexPopupMenu = "";
+            lpexPopupMenu = ""; //$NON-NLS-1$
         }
 
         return lpexPopupMenu;
@@ -71,7 +71,7 @@ public final class LpexHelper {
      */
     public static String getFileName(LpexView aLpexView) {
 
-        String fileName = aLpexView.query("name");
+        String fileName = aLpexView.query("name"); //$NON-NLS-1$
 
         return fileName;
     }
@@ -85,7 +85,7 @@ public final class LpexHelper {
      */
     public static boolean isReadOnly(LpexView aLpexView) {
 
-        boolean isReadOnly = aLpexView.queryOn("readonly");
+        boolean isReadOnly = aLpexView.queryOn("readonly"); //$NON-NLS-1$
 
         return isReadOnly;
     }
@@ -108,7 +108,7 @@ public final class LpexHelper {
      * @param message - Message that is displayed.
      */
     public static void displayMessage(final LpexView aLpexView, final String message) {
-        aLpexView.doCommand("set messageText " + message);
+        aLpexView.doCommand("set messageText " + message); //$NON-NLS-1$
     }
 
     /**
@@ -119,7 +119,7 @@ public final class LpexHelper {
      */
     public static int getCursorPosition(LpexView aLpexView) {
 
-        int position = aLpexView.queryInt("displayPosition");
+        int position = aLpexView.queryInt("displayPosition"); //$NON-NLS-1$
 
         return position;
     }
