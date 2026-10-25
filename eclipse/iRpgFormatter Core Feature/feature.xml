@@ -3,15 +3,14 @@
       id="de.tools400.lpex.irpgformatter.core.feature"
       label="iRpgFormatter"
       version="1.0.7.r"
-      provider-name="iRPGFormatter Project Team">
+      provider-name="Tools/400">
 
-   <description url="">
-      The &quot;iRPGFormatter Core Feature&quot; is a RPGLE code formatter.
+   <description url="https://tools-400.github.io/irpgformatter/">
+      The &quot;iRpgFormatter Core Feature&quot; is a RPGLE code formatter.
    </description>
 
-   <copyright>
-      Copyright (c) 2026 iRpgFormatter Project Team. All rights
-reserved.
+   <copyright url="https://tools-400.github.io/irpgformatter/">
+      Copyright (c) 2026 Tools/400. All rights reserved.
    </copyright>
 
    <license url="http://www.eclipse.org/legal/cpl-v10.html">
@@ -21,7 +20,7 @@ this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html
    </license>
 
    <url>
-      <update label="iRpgFormatter - Remote Update Site" url="https://tools-400.github.io/irpgformatter//update-site/eclipse/rdi8.0"/>
+      <update label="iRpgFormatter - Remote Update Site" url="https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/"/>
    </url>
 
    <plugin
