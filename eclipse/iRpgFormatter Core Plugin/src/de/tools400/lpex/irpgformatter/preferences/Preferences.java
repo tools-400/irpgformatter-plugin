@@ -384,10 +384,6 @@ public final class Preferences implements RpgleSourceConstants {
         return preferenceStore.getString(USER_KEY_ACTIONS);
     }
 
-    public void setUserKeyActions(String userKeyActions) {
-        preferenceStore.setValue(USER_KEY_ACTIONS, userKeyActions);
-    }
-
     public Map<String, String> getDataTypes() {
         if (cachedDataTypes == null) {
             String value = preferenceStore.getString(DATA_TYPES);

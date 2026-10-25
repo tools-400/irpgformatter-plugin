@@ -9,13 +9,10 @@
 package de.tools400.lpex.irpgformatter.menu;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.actions.FormatLpexSourceAction;
@@ -33,9 +30,8 @@ import de.tools400.lpex.menuextension.model.UserKeyAction;
  * <li>iFormat</li>
  * </ul>
  */
-public class MenuExtension extends AbstractLpexMenuExtension implements IPropertyChangeListener {
+public class MenuExtension extends AbstractLpexMenuExtension {
 
-    private static final String PROPERTY_LPEX_USER_KEY_ACTIONS = "default.updateProfile.userKeyActions"; //$NON-NLS-1$
     private static final String SUB_MENU_NAME = Messages.MenuItem_SubMenu_iRPGFormatter;
     private static final String MARK_ID = "de.tools400.lpex.irpgformatter.LPEX"; //$NON-NLS-1$
 
@@ -150,9 +146,11 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
         return i;
     }
 
+    /**
+     * iRPGFormatter does not listen to changes of the LPEX settings.
+     */
     @Override
     protected IPropertyChangeListener getPreferencesChangeListener() {
-        // return this;
         return null;
     }
 
@@ -167,29 +165,5 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
 
         return buffer.toString();
 
-    }
-
-    public void propertyChange(PropertyChangeEvent event) {
-
-        if (!PROPERTY_LPEX_USER_KEY_ACTIONS.equals(event.getProperty())) {
-            return;
-        }
-
-        UserKeyAction[] newUserKeyActions = parseUserKeyActions((String)event.getNewValue());
-
-        UserAction[] userActionsList = getEnabledUserActions();
-        Set<String> knownActionClasses = new HashSet<>();
-        for (UserAction action : userActionsList) {
-            knownActionClasses.add(action.getActionId());
-        }
-
-        StringBuilder buffer = new StringBuilder();
-        for (UserKeyAction action : newUserKeyActions) {
-            if (knownActionClasses.contains(action.getActionId())) {
-                appendActionToBuffer(buffer, action);
-            }
-        }
-
-        Preferences.getInstance().setUserKeyActions(buffer.toString());
     }
 }
