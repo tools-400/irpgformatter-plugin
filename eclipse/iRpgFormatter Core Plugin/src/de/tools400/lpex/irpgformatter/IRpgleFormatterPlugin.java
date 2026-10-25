@@ -28,7 +28,7 @@ import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
 public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuExtensionPlugin {
 
     /** The plug-in ID */
-    public static final String PLUGIN_ID = "de.tools400.lpex.irpgformatter.core";
+    public static final String PLUGIN_ID = "de.tools400.lpex.irpgformatter.core.plugin";
 
     public static final String IMAGE_RESET = "reset-10-bw.png";
 
