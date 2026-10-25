@@ -11,4 +11,6 @@ package de.tools400.lpex.menuextension;
 public interface LpexMenu {
 
     public static final String SOURCE = "popup.sourceMenu"; //$NON-NLS-1$
+
+    public static final String END_SUBMENU = "endSubmenu"; //$NON-NLS-1$
 }

@@ -140,8 +140,7 @@ public class MenuExtension extends AbstractLpexMenuExtension implements IPropert
         if (i >= 0) {
             i = i + LpexMenu.SOURCE.length();
             if (isEndOfMenu) {
-                // int j = menu.indexOf(LpexMenu.END_SUBMENU, i + 1);
-                int j = menu.indexOf("endSubmenu", i + 1);
+                int j = menu.indexOf(LpexMenu.END_SUBMENU, i + 1);
                 if (j >= 0) {
                     i = j - 1;
                 }
