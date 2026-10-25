@@ -39,7 +39,9 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.ui.PlatformUI;
@@ -63,8 +65,6 @@ import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
  * iRPGFormatter preference page.
  */
 public class PreviewPanel implements IPropertyChangeListener {
-
-    public static final String PREVIEW_COMMENT_KEY = "previewComment";
 
     private final Supplier<FormatterConfig> configSupplier;
     private final Consumer<String> errorHandler;
@@ -127,22 +127,47 @@ public class PreviewPanel implements IPropertyChangeListener {
     }
 
     /**
-     * Returns a {@link SelectionListener} that the preference page should
-     * attach to every settings control that affects the preview. When
-     * triggered, it re-formats the preview (unless the panel is in edit mode)
-     * and scrolls to the comment identified by the widget's
-     * {@link #PREVIEW_COMMENT_KEY} data.
+     * Lets a settings control of the preference page update the preview. When
+     * the control changes, the preview is formatted again (unless the panel is
+     * in edit mode) and scrolls to the comment of the preview source, that
+     * shows the setting.
+     *
+     * @param control checkbox, combo or spinner
+     * @param previewComment comment line of the preview source, e.g.
+     *        <code>// Break before keyword.</code>
      */
-    public SelectionListener getPreviewUpdater() {
-        return new SelectionAdapter() {
+    public void addPreviewTrigger(Control control, String previewComment) {
+
+        if (control instanceof Spinner) {
+            ((Spinner)control).addModifyListener(new ModifyListener() {
+                @Override
+                public void modifyText(ModifyEvent e) {
+                    formatPreviewUnlessEditMode(previewComment);
+                }
+            });
+            return;
+        }
+
+        SelectionListener listener = new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (!isEditMode) {
-                    String comment = (String)e.widget.getData(PREVIEW_COMMENT_KEY);
-                    formatPreviewSource(comment);
-                }
+                formatPreviewUnlessEditMode(previewComment);
             }
         };
+
+        if (control instanceof Button) {
+            ((Button)control).addSelectionListener(listener);
+        } else if (control instanceof Combo) {
+            ((Combo)control).addSelectionListener(listener);
+        } else {
+            throw new IllegalArgumentException("Unsupported control: " + control.getClass().getName());
+        }
+    }
+
+    private void formatPreviewUnlessEditMode(String previewComment) {
+        if (!isEditMode) {
+            formatPreviewSource(previewComment);
+        }
     }
 
     /**

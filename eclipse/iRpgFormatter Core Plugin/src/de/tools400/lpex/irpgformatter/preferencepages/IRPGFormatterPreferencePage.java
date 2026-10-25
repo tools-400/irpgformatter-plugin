@@ -18,11 +18,8 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -70,7 +67,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     /* Local preferences */
     private Button useConstKeywordCheckbox;
-    private Button putDelemiterBeforeParameterCheckbox;
+    private Button putDelimiterBeforeParameterCheckbox;
     private Combo parameterSpacingStyleCombo;
     private Button alignSubFieldsCheckbox;
     private Button breakNameOnCaseChangeCheckbox;
@@ -130,7 +127,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             return createConfigFromUI();
         }, error -> setErrorMessage(error), preferences);
 
-        // Populate settings panel (needs previewPanel for getPreviewUpdater)
+        // Populate settings panel (needs previewPanel for addPreviewTrigger)
         createKeywordsTabs(settingsContainer);
 
         // Load current values
@@ -172,7 +169,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setMinLiteralLength(minNameLengthSpinner.getSelection());
         config.setAlignSubFields(alignSubFieldsCheckbox.getSelection());
         config.setBreakBeforeKeyword(breakBeforeKeywordCheckbox.getSelection());
-        config.setDelimiterBeforeParameter(putDelemiterBeforeParameterCheckbox.getSelection());
+        config.setDelimiterBeforeParameter(putDelimiterBeforeParameterCheckbox.getSelection());
         config.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
         config.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
         config.setSortConstValueToEnd(sortConstValueToEndCheckbox.getSelection());
@@ -287,18 +284,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         Group group = createSubGroup(parent, Messages.Label_General_Settings);
 
-        SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
+        useConstKeywordCheckbox = createSettingCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword,
+            "// Use const() in dcl-c statements.");
 
-        // Use const() keyword in dcl-c statements
-        useConstKeywordCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword);
-        useConstKeywordCheckbox.setLayoutData(createCheckboxGridData());
-        useConstKeywordCheckbox.addSelectionListener(previewUpdater);
-
-        // Place delimiter before parameter
-        putDelemiterBeforeParameterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
-            Messages.Tooltip_Put_delimiter_before_parameter);
-        putDelemiterBeforeParameterCheckbox.setLayoutData(createCheckboxGridData());
-        putDelemiterBeforeParameterCheckbox.addSelectionListener(previewUpdater);
+        putDelimiterBeforeParameterCheckbox = createSettingCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
+            Messages.Tooltip_Put_delimiter_before_parameter, "// Put delimiter before parameter.");
 
         // Parameter spacing style
         Label parameterSpacingLabel = new Label(group, SWT.NONE);
@@ -308,77 +298,38 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         parameterSpacingStyleCombo.setItems(preferences.getParameterSpacingStyles());
         parameterSpacingStyleCombo.setLayoutData(createStyleData());
         parameterSpacingStyleCombo.setToolTipText(Messages.Tooltip_Parameter_spacing_style);
-        parameterSpacingStyleCombo.addSelectionListener(previewUpdater);
+        previewPanel.addPreviewTrigger(parameterSpacingStyleCombo, "// Put delimiter before parameter.");
 
-        // Align sub-fields/parameters
-        alignSubFieldsCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields);
-        alignSubFieldsCheckbox.setLayoutData(createCheckboxGridData());
-        alignSubFieldsCheckbox.addSelectionListener(previewUpdater);
+        alignSubFieldsCheckbox = createSettingCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields,
+            "// Align sub-fields/parameters.");
 
-        // Break literal between case change
-        breakNameOnCaseChangeCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change);
-        breakNameOnCaseChangeCheckbox.setLayoutData(createCheckboxGridData());
-        breakNameOnCaseChangeCheckbox.addSelectionListener(previewUpdater);
+        breakNameOnCaseChangeCheckbox = createSettingCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change,
+            "// Break name on case change.");
 
-        // Break line before keyword
-        breakBeforeKeywordCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword);
-        breakBeforeKeywordCheckbox.setLayoutData(createCheckboxGridData());
-        breakBeforeKeywordCheckbox.addSelectionListener(previewUpdater);
+        breakBeforeKeywordCheckbox = createSettingCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword,
+            "// Break before keyword.");
 
-        // Sort const/value to end of sub-field declarations
-        sortConstValueToEndCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end);
-        sortConstValueToEndCheckbox.setLayoutData(createCheckboxGridData());
-        sortConstValueToEndCheckbox.addSelectionListener(previewUpdater);
+        sortConstValueToEndCheckbox = createSettingCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end,
+            "// Sort const/value to end.");
 
-        // Replace dcl-pi name with *N
-        replacePiNameCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name);
-        replacePiNameCheckbox.setLayoutData(createCheckboxGridData());
-        replacePiNameCheckbox.addSelectionListener(previewUpdater);
+        replacePiNameCheckbox = createSettingCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name,
+            "// Replace dcl-pi name with *N.");
 
-        // Remove end-proc name
-        removeEndProcNameCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name);
-        removeEndProcNameCheckbox.setLayoutData(createCheckboxGridData());
-        removeEndProcNameCheckbox.addSelectionListener(previewUpdater);
+        removeEndProcNameCheckbox = createSettingCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name,
+            "// Remove end-proc name.");
 
-        // Unindent compiler directives
-        unindentCompilerDirectivesCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Unindent_compiler_directives,
-            Messages.Tooltip_Unindent_compiler_directives);
-        unindentCompilerDirectivesCheckbox.setLayoutData(createCheckboxGridData());
-        unindentCompilerDirectivesCheckbox.addSelectionListener(previewUpdater);
-
-        ModifyListener spinnerPreviewUpdater = new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                if (!previewPanel.isEditMode()) {
-                    String comment = (String)e.widget.getData(PreviewPanel.PREVIEW_COMMENT_KEY);
-                    previewPanel.formatPreview(comment);
-                }
-            }
-        };
+        unindentCompilerDirectivesCheckbox = createSettingCheckbox(group, Messages.Label_Unindent_compiler_directives,
+            Messages.Tooltip_Unindent_compiler_directives, "// Unindent compiler directives.");
 
         // Maximum name length
         maxNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100);
-        maxNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
         maxNameLengthSpinner.setLayoutData(createSpinnerGridData());
+        previewPanel.addPreviewTrigger(maxNameLengthSpinner, "// Break name on case change.");
 
         // Minimum name length
         minNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50);
-        minNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
         minNameLengthSpinner.setLayoutData(createSpinnerGridData());
-
-        // Set preview comment tags on controls
-        useConstKeywordCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Use const() in dcl-c statements.");
-        putDelemiterBeforeParameterCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
-        parameterSpacingStyleCombo.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Put delimiter before parameter.");
-        alignSubFieldsCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Align sub-fields/parameters.");
-        breakNameOnCaseChangeCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
-        breakBeforeKeywordCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break before keyword.");
-        sortConstValueToEndCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Sort const/value to end.");
-        replacePiNameCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Replace dcl-pi name with *N.");
-        removeEndProcNameCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove end-proc name.");
-        unindentCompilerDirectivesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Unindent compiler directives.");
-        maxNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
-        minNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
+        previewPanel.addPreviewTrigger(minNameLengthSpinner, "// Break name on case change.");
 
         // Execute iRPG formatter
         executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
@@ -398,22 +349,24 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         Group group = createSubGroup(parent, Messages.Label_Experimental_Settings);
 
-        SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
+        removeEmptyCommentLinesCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_comment_lines,
+            Messages.Tooltip_Remove_empty_comment_lines, "// Remove empty comment lines.");
 
-        // Remove empty comment lines
-        removeEmptyCommentLinesCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_empty_comment_lines,
-            Messages.Tooltip_Remove_empty_comment_lines);
-        removeEmptyCommentLinesCheckbox.setLayoutData(createCheckboxGridData());
-        removeEmptyCommentLinesCheckbox.addSelectionListener(previewUpdater);
+        removeEmptyLinesBeforeDclPiCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
+            Messages.Tooltip_Remove_empty_lines_before_dcl_pi, "// Remove empty comment lines before dcl-pi.");
+    }
 
-        // Remove empty lines before dcl-pi
-        removeEmptyLinesBeforeDclPiCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
-            Messages.Tooltip_Remove_empty_lines_before_dcl_pi);
-        removeEmptyLinesBeforeDclPiCheckbox.setLayoutData(createCheckboxGridData());
-        removeEmptyLinesBeforeDclPiCheckbox.addSelectionListener(previewUpdater);
+    /**
+     * Creates a checkbox of a formatter setting, that updates the preview and
+     * scrolls it to the given comment.
+     */
+    private Button createSettingCheckbox(Composite group, String label, String tooltip, String previewComment) {
 
-        removeEmptyCommentLinesCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines.");
-        removeEmptyLinesBeforeDclPiCheckbox.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Remove empty comment lines before dcl-pi.");
+        Button checkbox = WidgetFactory.createCheckbox(group, label, tooltip);
+        checkbox.setLayoutData(createCheckboxGridData());
+        previewPanel.addPreviewTrigger(checkbox, previewComment);
+
+        return checkbox;
     }
 
     private void createImportExportButtons(Composite parent) {
@@ -529,7 +482,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         data.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()).name());
         data.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
-        data.setDelimiterBeforeParameter(putDelemiterBeforeParameterCheckbox.getSelection());
+        data.setDelimiterBeforeParameter(putDelimiterBeforeParameterCheckbox.getSelection());
         data.setAlignSubFields(alignSubFieldsCheckbox.getSelection());
         data.setBreakBetweenCaseChange(breakNameOnCaseChangeCheckbox.getSelection());
         data.setBreakBeforeKeyword(breakBeforeKeywordCheckbox.getSelection());
@@ -566,7 +519,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         useConstKeywordCheckbox.setSelection(data.isUseConstKeyword());
-        putDelemiterBeforeParameterCheckbox.setSelection(data.isDelimiterBeforeParameter());
+        putDelimiterBeforeParameterCheckbox.setSelection(data.isDelimiterBeforeParameter());
         alignSubFieldsCheckbox.setSelection(data.isAlignSubFields());
         breakNameOnCaseChangeCheckbox.setSelection(data.isBreakBetweenCaseChange());
         breakBeforeKeywordCheckbox.setSelection(data.isBreakBeforeKeyword());
@@ -696,7 +649,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         removeEmptyCommentLinesCheckbox.setSelection(preferences.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(preferences.isRemoveEmptyLinesBeforeDclPi());
         useConstKeywordCheckbox.setSelection(preferences.isUseConstKeyword());
-        putDelemiterBeforeParameterCheckbox.setSelection(preferences.isDelimiterBeforeParameter());
+        putDelimiterBeforeParameterCheckbox.setSelection(preferences.isDelimiterBeforeParameter());
         parameterSpacingStyleCombo.select(preferences.getParameterSpacingStyle().ordinal());
         alignSubFieldsCheckbox.setSelection(preferences.isAlignSubFields());
         breakNameOnCaseChangeCheckbox.setSelection(preferences.isBreakBetweenCaseChange());
@@ -738,7 +691,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         preferences.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
         preferences.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
-        preferences.setDelimiterBeforeParameter(putDelemiterBeforeParameterCheckbox.getSelection());
+        preferences.setDelimiterBeforeParameter(putDelimiterBeforeParameterCheckbox.getSelection());
         String style = parameterSpacingStyleCombo.getText();
         preferences.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(style));
         preferences.setAlignSubFields(alignSubFieldsCheckbox.getSelection());
@@ -773,7 +726,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         // Reset use const keyword
         useConstKeywordCheckbox.setSelection(preferences.getDefaultUseConstKeyword());
-        putDelemiterBeforeParameterCheckbox.setSelection(preferences.getDefaultDelimiterBeforeParameter());
+        putDelimiterBeforeParameterCheckbox.setSelection(preferences.getDefaultDelimiterBeforeParameter());
         parameterSpacingStyleCombo.select(preferences.getDefaultParameterSpacingStyle().ordinal());
         alignSubFieldsCheckbox.setSelection(preferences.getDefaultAlignSubFields());
         breakNameOnCaseChangeCheckbox.setSelection(preferences.getDefaultBreakBetweenCaseChange());
