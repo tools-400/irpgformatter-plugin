@@ -13,16 +13,16 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
-import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob;
-import de.tools400.lpex.irpgformatter.handlers.jobs.FormatStreamFileJob.FileError;
-import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatStreamFilesPostRun;
 import de.tools400.lpex.irpgformatter.handlers.resolvers.LocalStreamFileResolver;
-import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 
-public class FormatLocalStreamFileHandler extends AbstractFormatHandler implements IFormatStreamFilesPostRun {
+public class FormatLocalStreamFileHandler extends AbstractFormatHandler {
 
     private IFile[] files;
+
+    public FormatLocalStreamFileHandler() {
+        super(SourceKind.STREAM_FILES);
+    }
 
     @Override
     public int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException {
@@ -39,39 +39,5 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
 
         FormatStreamFileJob job = new FormatStreamFileJob(files, this);
         job.schedule();
-    }
-
-    /**
-     * Callback of the formatter job. Called at the end of the formatter. Both
-     * write-level and statement-level errors are presented together in the
-     * master/detail dialog.
-     */
-    @Override
-    public void postRun(IFile[] formatted, FileError[] errors, ErrorGroup[] statementErrors) {
-
-        if (errors.length == 0 && statementErrors.length == 0) {
-            displaySuccessDialog(Messages.bind(Messages.Info_Finished_formatting_stream_files_A, formatted.length));
-            return;
-        }
-
-        ErrorGroup[] groups = concat(toErrorGroups(errors), statementErrors);
-        String message = buildHeader(formatted.length, errors.length, statementErrors.length);
-        displayErrorDialog(message, groups);
-    }
-
-    private static String buildHeader(int formatted, int writeErrors, int statementErrorFiles) {
-        if (writeErrors > 0 && statementErrorFiles == 0) {
-            if (formatted > 0) {
-                return Messages.bind(Messages.Error_A_formatted_B_errors, formatted, writeErrors);
-            }
-            return Messages.bind(Messages.Error_Not_all_files_formatted_A, writeErrors);
-        }
-        if (writeErrors == 0 && statementErrorFiles > 0) {
-            return Messages.bind(Messages.Error_A_files_formatted_with_statement_errors_B, formatted, statementErrorFiles);
-        }
-
-        // both write errors and statement errors present
-        return Messages.bind(Messages.Error_A_files_formatted_B_failed_C_with_statement_errors,
-            new Object[] { formatted, writeErrors, statementErrorFiles });
     }
 }

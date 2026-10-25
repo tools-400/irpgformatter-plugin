@@ -8,220 +8,48 @@
 
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.rse.services.clientserver.messages.SystemMessageException;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
-import org.eclipse.swt.widgets.Display;
 
-import com.ibm.as400.access.AS400;
 import com.ibm.as400.access.IFSFile;
 import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
-import de.tools400.lpex.irpgformatter.formatter.FormatError;
-import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
-import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
-import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
-import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
-public class FormatRemoteStreamFileJob extends Job {
+/**
+ * Formats stream files of the IFS.
+ */
+public class FormatRemoteStreamFileJob extends AbstractFormatJob<IRemoteFile> {
 
-    private IRemoteFile[] files;
-    private RpgleFormatter formatter;
-    private IFormatRemoteStreamFilesPostRun postRun;
-
-    private IProgressMonitor monitor;
-    private List<FileError> errors;
-    private List<IRemoteFile> formatted;
-    private List<ErrorGroup> statementErrors;
-
-    public FormatRemoteStreamFileJob(IRemoteFile[] files, IFormatRemoteStreamFilesPostRun postRun) {
-        super(Messages.Job_Formatting_remote_stream_files);
-
-        Preferences.getInstance();
-        this.files = files;
-        this.formatter = new RpgleFormatter();
-        this.postRun = postRun;
-
-        this.errors = new LinkedList<>();
-        this.formatted = new LinkedList<>();
-        this.statementErrors = new LinkedList<>();
+    public FormatRemoteStreamFileJob(IRemoteFile[] files, IFormatPostRun postRun) {
+        super(Messages.Job_Formatting_remote_stream_files, files, postRun);
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
-
-        this.monitor = monitor;
-
-        try {
-
-            int totalNumberOfFiles = files.length;
-
-            monitor.beginTask(Messages.Job_Formatting, totalNumberOfFiles);
-
-            int count = 0;
-
-            while (count < totalNumberOfFiles) {
-
-                if (monitor.isCanceled()) {
-                    break;
-                }
-
-                IRemoteFile file = files[count];
-
-                monitor.setTaskName(file.getAbsolutePath());
-                executeFormatter(file);
-
-                monitor.worked(1);
-
-                count++;
-            }
-
-        } catch (BatchAbortedException e) {
-            // user declined connection dialog — stop processing remaining
-            // files
-        } catch (Exception e) {
-            ExceptionUtils.handleBatchException(e);
-        }
-
-        monitor.done();
-
-        if (postRun != null) {
-            postRun.postRun(formatted.toArray(new IRemoteFile[formatted.size()]), errors.toArray(new FileError[errors.size()]),
-                statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
-        }
-
-        return Status.OK_STATUS;
+    protected String getPath(IRemoteFile file) {
+        return file.getAbsolutePath();
     }
 
-    private void executeFormatter(IRemoteFile file) throws Exception, BatchAbortedException {
+    @Override
+    protected void checkAvailability(IRemoteFile file) throws Exception {
 
-        try {
+        IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
+        ensureConnected(connection);
 
-            IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
-            AS400 system = connection.getAS400ToolboxObject();
-            String path = file.getAbsolutePath();
-
-            monitor.subTask(Messages.SubTask_Checking_availability);
-            ensureConnected(connection);
-            ensureWritable(system, path);
-
-            monitor.subTask(Messages.SubTask_Reading);
-            IRpgleInput input = RpgleInputFactory.createFromRemoteStreamFile(system, path);
-
-            String validationError = RpgleFormatter.validateInput(input);
-            if (validationError != null) {
-                errors.add(new FileError(file, validationError));
-            } else {
-                executeFormatter(file, input);
-            }
-
-        } catch (BatchAbortedException e) {
-            throw e;
-        } catch (Exception e) {
-            FileError memberError = new FileError(file, e.getLocalizedMessage());
-            errors.add(memberError);
-        }
-    }
-
-    private void ensureConnected(IBMiConnection connection) throws BatchAbortedException, SystemMessageException {
-
-        if (connection.isConnected()) {
-            return;
-        }
-
-        final boolean[] userWantsConnect = { false };
-
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                userWantsConnect[0] = MessageDialog.openQuestion(Display.getDefault().getActiveShell(), Messages.Title_Connection_offline,
-                    Messages.bind(Messages.Question_Connection_A_is_offline_connect, connection.getConnectionName()));
-            }
-        });
-
-        if (!userWantsConnect[0]) {
-            throw new BatchAbortedException();
-        }
-
-        // throws SystemMessageException on failure
-        connection.connect();
-    }
-
-    private void ensureWritable(AS400 system, String path) throws IOException, FileLockedException {
-
-        IFSFile ifsFile = new IFSFile(system, path);
+        String path = file.getAbsolutePath();
+        IFSFile ifsFile = new IFSFile(connection.getAS400ToolboxObject(), path);
         if (!ifsFile.canWrite()) {
             throw new FileLockedException(path);
         }
     }
 
-    private void executeFormatter(IRemoteFile file, IRpgleInput input) throws Exception, RpgleFormatterException {
+    @Override
+    protected IRpgleInput createInput(IRemoteFile file, IProgressMonitor monitor) throws Exception {
 
-        formatter.setSourceLength(RpgleFormatter.DEFAULT_END_COLUMN);
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
-
-        monitor.subTask(Messages.SubTask_Formatting);
-        FormattedResult result = formatter.format(input, defaultIndent);
-
-        monitor.subTask(Messages.SubTask_Writing);
-        IRpgleOutput output = input.getOutput();
-        if (output.writeSourceLines(result)) {
-            formatted.add(file);
-            if (formatter.getErrorCount() > 0) {
-                statementErrors.add(new ErrorGroup(file.getAbsolutePath(), toDetailMessages(formatter.getErrors())));
-            }
-        } else {
-            errors.add(new FileError(file, Messages.Error_Could_not_format_member));
-        }
-    }
-
-    private static String[] toDetailMessages(List<FormatError> formatErrors) {
-        String[] details = new String[formatErrors.size()];
-        for (int i = 0; i < formatErrors.size(); i++) {
-            FormatError fe = formatErrors.get(i);
-            details[i] = Messages.bind(Messages.Error_Line_A_message_B, fe.getStartLineNumber() + 1, fe.getMessage());
-        }
-        return details;
-    }
-
-    public class FileError implements IErrorObject {
-
-        private IRemoteFile file;
-        private String errorMessage;
-
-        public FileError(IRemoteFile file, String errorMessage) {
-            this.file = file;
-            this.errorMessage = errorMessage;
-        }
-
-        public IRemoteFile getFile() {
-            return file;
-        }
-
-        public String getErrorMessage() {
-            return errorMessage;
-        }
-
-        @Override
-        public String getFullPath() {
-            return file.getAbsolutePath();
-        }
+        IBMiConnection connection = IBMiConnection.getConnection(file.getHost());
+        return RpgleInputFactory.createFromRemoteStreamFile(connection.getAS400ToolboxObject(), file.getAbsolutePath());
     }
 }

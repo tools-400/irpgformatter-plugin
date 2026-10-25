@@ -26,12 +26,52 @@ import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatPostRun;
 import de.tools400.lpex.irpgformatter.handlers.resolvers.AbstractResolver;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
-public abstract class AbstractFormatHandler extends AbstractHandler {
+public abstract class AbstractFormatHandler extends AbstractHandler implements IFormatPostRun {
+
+    /**
+     * Kind of the formatted sources, with the texts of the result.
+     */
+    protected enum SourceKind {
+        STREAM_FILES (
+            Messages.Info_Finished_formatting_stream_files_A,
+            Messages.Error_A_formatted_B_errors,
+            Messages.Error_Not_all_files_formatted_A,
+            Messages.Error_A_files_formatted_with_statement_errors_B,
+            Messages.Error_A_files_formatted_B_failed_C_with_statement_errors),
+        SOURCE_MEMBERS (
+            Messages.Info_Finished_formatting_source_members_A,
+            Messages.Error_A_members_formatted_B_errors,
+            Messages.Error_Not_all_members_formatted_A,
+            Messages.Error_A_members_formatted_with_statement_errors_B,
+            Messages.Error_A_members_formatted_B_failed_C_with_statement_errors);
+
+        private final String finished;
+        private final String formattedWithErrors;
+        private final String notAllFormatted;
+        private final String formattedWithStatementErrors;
+        private final String formattedFailedWithStatementErrors;
+
+        private SourceKind(String finished, String formattedWithErrors, String notAllFormatted, String formattedWithStatementErrors,
+            String formattedFailedWithStatementErrors) {
+            this.finished = finished;
+            this.formattedWithErrors = formattedWithErrors;
+            this.notAllFormatted = notAllFormatted;
+            this.formattedWithStatementErrors = formattedWithStatementErrors;
+            this.formattedFailedWithStatementErrors = formattedFailedWithStatementErrors;
+        }
+    }
+
+    private final SourceKind sourceKind;
+
+    protected AbstractFormatHandler(SourceKind sourceKind) {
+        this.sourceKind = sourceKind;
+    }
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -118,7 +158,40 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
 
     protected abstract void scheduleFormatterJob();
 
-    protected void displaySuccessDialog(String message) {
+    /**
+     * Callback of the formatter job. Called at the end of the formatter. Both
+     * write-level and statement-level errors are presented together in the
+     * master/detail dialog.
+     */
+    @Override
+    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors) {
+
+        if (errors.length == 0 && statementErrors.length == 0) {
+            displaySuccessDialog(Messages.bind(sourceKind.finished, formattedCount));
+            return;
+        }
+
+        ErrorGroup[] groups = concat(toErrorGroups(errors), statementErrors);
+        String message = buildHeader(formattedCount, errors.length, statementErrors.length);
+        displayErrorDialog(message, groups);
+    }
+
+    private String buildHeader(int formatted, int writeErrors, int statementErrorSources) {
+        if (writeErrors > 0 && statementErrorSources == 0) {
+            if (formatted > 0) {
+                return Messages.bind(sourceKind.formattedWithErrors, formatted, writeErrors);
+            }
+            return Messages.bind(sourceKind.notAllFormatted, writeErrors);
+        }
+        if (writeErrors == 0 && statementErrorSources > 0) {
+            return Messages.bind(sourceKind.formattedWithStatementErrors, formatted, statementErrorSources);
+        }
+
+        // both write errors and statement errors present
+        return Messages.bind(sourceKind.formattedFailedWithStatementErrors, new Object[] { formatted, writeErrors, statementErrorSources });
+    }
+
+    private void displaySuccessDialog(String message) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
             @Override
             public IStatus runInUIThread(IProgressMonitor arg0) {
@@ -129,7 +202,7 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         job.schedule();
     }
 
-    protected void displayNoValidEntriesFoundError() {
+    private void displayNoValidEntriesFoundError() {
         UIUtils.displaySimpleErrorDialog(Messages.Error_No_valid_entries_found);
     }
 
@@ -139,7 +212,7 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
      * resource per group, multiple detail lines) are presented in the same
      * dialog so the user only deals with one window.
      */
-    protected void displayErrorDialog(String message, ErrorGroup[] groups) {
+    private void displayErrorDialog(String message, ErrorGroup[] groups) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
             @Override
             public IStatus runInUIThread(IProgressMonitor arg0) {
@@ -155,7 +228,7 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
      * the {@link ErrorGroup} representation used by the master/detail dialog,
      * so they can be displayed alongside statement-level errors.
      */
-    protected static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
+    private static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
         ErrorGroup[] groups = new ErrorGroup[errors.length];
         for (int i = 0; i < errors.length; i++) {
             groups[i] = new ErrorGroup(errors[i].getFullPath(), new String[] { errors[i].getErrorMessage() });
@@ -167,7 +240,7 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
      * Concatenates two {@link ErrorGroup} arrays in order. Used when a batch
      * has both write failures and statement-level errors.
      */
-    protected static ErrorGroup[] concat(ErrorGroup[] a, ErrorGroup[] b) {
+    private static ErrorGroup[] concat(ErrorGroup[] a, ErrorGroup[] b) {
         ErrorGroup[] result = new ErrorGroup[a.length + b.length];
         System.arraycopy(a, 0, result, 0, a.length);
         System.arraycopy(b, 0, result, a.length, b.length);

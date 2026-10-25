@@ -9,176 +9,38 @@
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
-import de.tools400.lpex.irpgformatter.formatter.FormatError;
-import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
-import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
-import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
-import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
-public class FormatJavaIoStreamFileJob extends Job {
+/**
+ * Formats files of the local file system, that are not part of the workspace.
+ */
+public class FormatJavaIoStreamFileJob extends AbstractFormatJob<File> {
 
-    private Preferences preferences;
-    private File[] files;
-    private RpgleFormatter formatter;
-    private IFormatJavaIoStreamFilesPostRun postRun;
-
-    private IProgressMonitor monitor;
-    private List<FileError> errors;
-    private List<File> formatted;
-    private List<ErrorGroup> statementErrors;
-
-    public FormatJavaIoStreamFileJob(File[] files, IFormatJavaIoStreamFilesPostRun postRun) {
-        super(Messages.Job_Formatting_stream_files);
-
-        this.preferences = Preferences.getInstance();
-        this.files = files;
-        this.formatter = new RpgleFormatter();
-        this.postRun = postRun;
-
-        this.errors = new LinkedList<>();
-        this.formatted = new LinkedList<>();
-        this.statementErrors = new LinkedList<>();
+    public FormatJavaIoStreamFileJob(File[] files, IFormatPostRun postRun) {
+        super(Messages.Job_Formatting_stream_files, files, postRun);
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
-
-        this.monitor = monitor;
-
-        try {
-
-            int totalNumberOfFiles = files.length;
-
-            monitor.beginTask(Messages.Job_Formatting, totalNumberOfFiles);
-
-            int count = 0;
-
-            while (count < totalNumberOfFiles) {
-
-                if (monitor.isCanceled()) {
-                    break;
-                }
-
-                File file = files[count];
-
-                monitor.setTaskName(file.getAbsolutePath());
-                executeFormatter(file);
-
-                monitor.worked(1);
-
-                count++;
-            }
-
-        } catch (Exception e) {
-            ExceptionUtils.handleBatchException(e);
-        }
-
-        monitor.done();
-
-        if (postRun != null) {
-            postRun.postRun(formatted.toArray(new File[formatted.size()]), errors.toArray(new FileError[errors.size()]),
-                statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
-        }
-
-        return Status.OK_STATUS;
+    protected String getPath(File file) {
+        return file.getAbsolutePath();
     }
 
-    private void executeFormatter(File file) throws Exception, RpgleFormatterException {
-
-        try {
-
-            monitor.subTask(Messages.SubTask_Checking_availability);
-            ensureWritable(file);
-
-            monitor.subTask(Messages.SubTask_Reading);
-            IRpgleInput input = RpgleInputFactory.createFromJavaIoFile(file);
-
-            String validationError = RpgleFormatter.validateInput(input);
-            if (validationError != null) {
-                errors.add(new FileError(file, validationError));
-            } else {
-                executeFormatter(file, input);
-            }
-
-        } catch (Exception e) {
-            FileError memberError = new FileError(file, e.getLocalizedMessage());
-            errors.add(memberError);
-        }
-    }
-
-    private void ensureWritable(File file) throws FileLockedException {
+    @Override
+    protected void checkAvailability(File file) throws FileLockedException {
 
         if (file.exists() && !file.canWrite()) {
             throw new FileLockedException(file.getAbsolutePath());
         }
     }
 
-    private void executeFormatter(File file, IRpgleInput input) throws Exception, RpgleFormatterException {
-
-        formatter.setSourceLength(RpgleFormatter.DEFAULT_END_COLUMN);
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
-
-        monitor.subTask(Messages.SubTask_Formatting);
-        FormattedResult result = formatter.format(input, defaultIndent);
-
-        monitor.subTask(Messages.SubTask_Writing);
-        IRpgleOutput output = input.getOutput();
-        if (output.writeSourceLines(result)) {
-            formatted.add(file);
-            if (formatter.getErrorCount() > 0) {
-                statementErrors.add(new ErrorGroup(file.getAbsolutePath(), toDetailMessages(formatter.getErrors())));
-            }
-        } else {
-            errors.add(new FileError(file, Messages.Error_Could_not_format_member));
-        }
-    }
-
-    private static String[] toDetailMessages(List<FormatError> formatErrors) {
-        String[] details = new String[formatErrors.size()];
-        for (int i = 0; i < formatErrors.size(); i++) {
-            FormatError fe = formatErrors.get(i);
-            details[i] = Messages.bind(Messages.Error_Line_A_message_B, fe.getStartLineNumber() + 1, fe.getMessage());
-        }
-        return details;
-    }
-
-    public class FileError implements IErrorObject {
-
-        private File file;
-        private String errorMessage;
-
-        public FileError(File file, String errorMessage) {
-            this.file = file;
-            this.errorMessage = errorMessage;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        public String getErrorMessage() {
-            return errorMessage;
-        }
-
-        @Override
-        public String getFullPath() {
-            return file.getAbsolutePath();
-        }
+    @Override
+    protected IRpgleInput createInput(File file, IProgressMonitor monitor) {
+        return RpgleInputFactory.createFromJavaIoFile(file);
     }
 }
