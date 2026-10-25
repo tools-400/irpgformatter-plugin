@@ -37,10 +37,10 @@ public class Preload implements LpexPreload {
 
     public void preload() {
 
-        // MenuExtension menuExtension = MenuExtension.newMainMenuExtension();
+        // The entry is added at the start of the 'Source' submenu.
+        // MenuExtension also offers newMainMenuExtension() and
+        // newEndOfSourceMenuExtension().
         MenuExtension menuExtension = MenuExtension.newStartOfSourceMenuExtension();
-        // MenuExtension menuExtension =
-        // MenuExtension.newEndOfSourceMenuExtension();
         menuExtension.initializeLpexEditor(IRpgleFormatterPlugin.getDefault());
 
         registerFormatOnSave();

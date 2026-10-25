@@ -10,7 +10,7 @@ package de.tools400.lpex.irpgformatter.tokenizer;
 
 import java.util.LinkedList;
 
-public class AbstractToken implements IToken {
+public abstract class AbstractToken implements IToken {
 
     private TokenType type;
     private String rawValue;
@@ -20,10 +20,6 @@ public class AbstractToken implements IToken {
     private int offset;
 
     private IToken parent;
-
-    // public AbstractToken(TokenType type, String value) {
-    // this(type, value, value);
-    // }
 
     public AbstractToken(TokenType type, String value, String rawValue, int offset) {
         this.type = type;

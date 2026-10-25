@@ -108,15 +108,4 @@ public class ColorUtils {
 
         return color;
     }
-
-    public static void clearEditorUIColors() {
-
-        ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
-        for (String fullColorKey : colorRegistry.getKeySet()) {
-            if (fullColorKey.startsWith(COLORS_NAMESPACE)) {
-                String colorKey = fullColorKey.substring(COLORS_NAMESPACE.length());
-                getOrUpdateEditorsUIColor(colorKey);
-            }
-        }
-    }
 }

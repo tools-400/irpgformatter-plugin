@@ -89,7 +89,7 @@ public final class ContinuationHandler {
                 if (currentType.isStartOfBLock()) {
 
                     // Experimental:
-                    // Pop parent is statement type matches previous type.
+                    // Pop parent if statement type matches previous type.
                     // Actually we needed an Abstract Syntax Tree (AST) for
                     // correct source formatting in order to have cleanly
                     // identified statements, if the developer uses includes and

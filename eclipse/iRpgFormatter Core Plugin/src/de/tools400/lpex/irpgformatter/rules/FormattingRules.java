@@ -77,18 +77,6 @@ public class FormattingRules implements RpgleSourceConstants {
     }
 
     /**
-     * Formats the spacing of a parameter.
-     */
-    // public String formatParameter(String text) {
-    //
-    // FormatParameterRule formatParameterRule = new FormatParameterRule();
-    //
-    // String formatted = applyRules(text, formatParameterRule);
-    //
-    // return formatted;
-    // }
-
-    /**
      * Formats data-types to the configured casing style while preserving
      * identifier case.
      */

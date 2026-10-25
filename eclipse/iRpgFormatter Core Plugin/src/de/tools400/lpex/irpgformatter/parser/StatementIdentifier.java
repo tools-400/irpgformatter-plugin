@@ -144,46 +144,36 @@ public class StatementIdentifier implements RpgleSourceConstants {
         /* End block statements */
 
         if (StatementType.END_DS.pattern().matcher(line).find()) {
-            // insideBlock = false;
             return StatementType.END_DS;
         }
         if (StatementType.END_ENUM.pattern().matcher(line).find()) {
-            // insideBlock = false;
             return StatementType.END_ENUM;
         }
         if (StatementType.END_PROC.pattern().matcher(line).find()) {
-            // insideBlock = false;
             return StatementType.END_PROC;
         }
         if (StatementType.END_PR.pattern().matcher(line).find()) {
-            // insideBlock = false;
             return StatementType.END_PR;
         }
         if (StatementType.END_PI.pattern().matcher(line).find()) {
-            // insideBlock = false;
             return StatementType.END_PI;
         }
 
         /* Start block statements */
 
         if (StatementType.DCL_DS.pattern().matcher(line).find()) {
-            // insideBlock = true;
             return StatementType.DCL_DS;
         }
         if (StatementType.DCL_ENUM.pattern().matcher(line).find()) {
-            // insideBlock = true;
             return StatementType.DCL_ENUM;
         }
         if (StatementType.DCL_PROC.pattern().matcher(line).find()) {
-            // insideBlock = true;
             return StatementType.DCL_PROC;
         }
         if (StatementType.DCL_PR.pattern().matcher(line).find()) {
-            // insideBlock = true;
             return StatementType.DCL_PR;
         }
         if (StatementType.DCL_PI.pattern().matcher(line).find()) {
-            // insideBlock = true;
             return StatementType.DCL_PI;
         }
 

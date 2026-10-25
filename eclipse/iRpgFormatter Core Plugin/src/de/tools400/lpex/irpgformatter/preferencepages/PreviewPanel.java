@@ -249,21 +249,9 @@ public class PreviewPanel implements IPropertyChangeListener {
             marginPainter = null;
         }
 
-        // if (marginColor != null && !marginColor.isDisposed()) {
-        // marginColor.dispose();
-        // }
-
-        // if (overflowColor != null && !overflowColor.isDisposed()) {
-        // overflowColor.dispose();
-        // }
-
         if (monoFont != null && !monoFont.isDisposed()) {
             monoFont.dispose();
         }
-
-        // if (cursorLineColor != null && !cursorLineColor.isDisposed()) {
-        // cursorLineColor.dispose();
-        // }
     }
 
     // ------------------------------------------------------------------
@@ -346,7 +334,6 @@ public class PreviewPanel implements IPropertyChangeListener {
         });
 
         // Margin painter (vertical ruler at line width column)
-        // marginColor = new Color(styledText.getDisplay(), 192, 192, 192);
         marginPainter = new MarginPainter(previewViewer);
         marginPainter.setMarginRulerColor(ColorUtils.getPrintMarginColor());
         marginPainter.setMarginRulerColumn(60);
@@ -612,8 +599,6 @@ public class PreviewPanel implements IPropertyChangeListener {
     // ------------------------------------------------------------------
 
     private void updateColorSettings() {
-
-        // ColorUtils.clearEditorUIColors();
 
         marginPainter.setMarginRulerColor(ColorUtils.getPrintMarginColor());
         lineNumberRuler.setForeground(ColorUtils.getLineNumberColor());
