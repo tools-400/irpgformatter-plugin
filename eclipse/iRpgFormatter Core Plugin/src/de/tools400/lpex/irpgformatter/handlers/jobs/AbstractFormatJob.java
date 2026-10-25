@@ -93,6 +93,7 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         this.monitor = monitor;
 
+        boolean canceled = false;
         try {
 
             monitor.beginTask(Messages.Job_Formatting, sources.length);
@@ -100,6 +101,7 @@ public abstract class AbstractFormatJob<T> extends Job {
             for (T source : sources) {
 
                 if (monitor.isCanceled()) {
+                    canceled = true;
                     break;
                 }
 
@@ -112,6 +114,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         } catch (BatchAbortedException e) {
             // user declined connection dialog — stop processing remaining
             // sources
+            canceled = true;
         } catch (Exception e) {
             ExceptionUtils.handleBatchException(e);
         }
@@ -120,7 +123,11 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         if (postRun != null) {
             postRun.postRun(formattedCount, errors.toArray(new IErrorObject[errors.size()]),
-                statementErrors.toArray(new ErrorGroup[statementErrors.size()]));
+                statementErrors.toArray(new ErrorGroup[statementErrors.size()]), canceled);
+        }
+
+        if (canceled) {
+            return Status.CANCEL_STATUS;
         }
 
         return Status.OK_STATUS;
@@ -146,7 +153,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         } catch (BatchAbortedException e) {
             throw e;
         } catch (Exception e) {
-            errors.add(new SourceError(getPath(source), e.getLocalizedMessage()));
+            errors.add(new SourceError(getPath(source), ExceptionUtils.getLocalizedMessage(e)));
         }
     }
 

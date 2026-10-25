@@ -161,13 +161,15 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     /**
      * Callback of the formatter job. Called at the end of the formatter. Both
      * write-level and statement-level errors are presented together in the
-     * master/detail dialog.
+     * master/detail dialog. After a cancel, only the errors are shown.
      */
     @Override
-    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors) {
+    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors, boolean canceled) {
 
         if (errors.length == 0 && statementErrors.length == 0) {
-            displaySuccessDialog(Messages.bind(sourceKind.finished, formattedCount));
+            if (!canceled) {
+                displaySuccessDialog(Messages.bind(sourceKind.finished, formattedCount));
+            }
             return;
         }
 

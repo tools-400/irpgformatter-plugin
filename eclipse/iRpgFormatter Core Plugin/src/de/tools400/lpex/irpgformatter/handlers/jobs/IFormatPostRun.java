@@ -23,6 +23,8 @@ public interface IFormatPostRun {
      * @param statementErrors written sources that nevertheless contain
      *        individual statement-level errors (original lines kept for
      *        those statements); one group per affected source
+     * @param canceled <code>true</code>, if the user canceled the job or
+     *        declined to connect, so that not all sources were processed
      */
-    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors);
+    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors, boolean canceled);
 }
