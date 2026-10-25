@@ -58,6 +58,33 @@ public final class PreferencesProfileManager {
     private static final String ATTR_VALUE = "value";
     private static final String ATTR_KEY = "key";
 
+    /*
+     * IDs of the settings in the profile file. They are part of the file format
+     * of exported profiles and must not change.
+     */
+    private static final String SETTING_EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
+    private static final String SETTING_USE_CONST_KEYWORD = "useConstKeyword";
+    private static final String SETTING_DELIMITER_BEFORE_PARAMETER = "delimiterBeforeParameter";
+    private static final String SETTING_PARAMETER_SPACING_STYLE = "parameterSpacingStyle";
+    private static final String SETTING_ALIGN_SUB_FIELDS = "alignSubFields";
+    private static final String SETTING_BREAK_BETWEEN_CASE_CHANGE = "breakBetweenCaseChange";
+    private static final String SETTING_BREAK_BEFORE_KEYWORD = "breakBeforeKeyword";
+    private static final String SETTING_SORT_CONST_VALUE_TO_END = "sortConstValueToEnd";
+    private static final String SETTING_REPLACE_PI_NAME = "replacePiName";
+    private static final String SETTING_REMOVE_END_PROC_NAME = "removeEndProcName";
+    private static final String SETTING_UNINDENT_COMPILER_DIRECTIVES = "unindentCompilerDirectives";
+    private static final String SETTING_MAX_NAME_LENGTH = "maxNameLength";
+    private static final String SETTING_MIN_NAME_LENGTH = "minNameLength";
+    private static final String SETTING_EXECUTE_IRPG_FORMATTER = "executeIrpgFormatter";
+    private static final String SETTING_FORMAT_ON_SAVE = "formatOnSave";
+    private static final String SETTING_REMOVE_EMPTY_COMMENT_LINES = "removeEmptyCommentLines";
+    private static final String SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "removeEmptyLinesBeforeDclPi";
+    private static final String SETTING_DATA_TYPES = "dataTypes";
+    private static final String SETTING_DECLARATION_TYPES = "declarationTypes";
+    private static final String SETTING_KEYWORDS = "keywords";
+    private static final String SETTING_SPECIAL_WORDS = "specialWords";
+    private static final String SETTING_CUSTOM_PREVIEW_SOURCE = "customPreviewSource";
+
     private PreferencesProfileManager() {
         // Utility class
     }
@@ -89,39 +116,39 @@ public final class PreferencesProfileManager {
         profiles.appendChild(profile);
 
         // Scalar settings: IBM Settings
-        addScalarSetting(doc, profile, "executeIbmFormatter", String.valueOf(data.isExecuteIbmFormatter()));
+        addScalarSetting(doc, profile, SETTING_EXECUTE_IBM_FORMATTER, String.valueOf(data.isExecuteIbmFormatter()));
 
         // Scalar settings: General Settings
-        addScalarSetting(doc, profile, "useConstKeyword", String.valueOf(data.isUseConstKeyword()));
-        addScalarSetting(doc, profile, "delimiterBeforeParameter", String.valueOf(data.isDelimiterBeforeParameter()));
-        addScalarSetting(doc, profile, "parameterSpacingStyle", data.getParameterSpacingStyle());
-        addScalarSetting(doc, profile, "alignSubFields", String.valueOf(data.isAlignSubFields()));
-        addScalarSetting(doc, profile, "breakBetweenCaseChange", String.valueOf(data.isBreakBetweenCaseChange()));
-        addScalarSetting(doc, profile, "breakBeforeKeyword", String.valueOf(data.isBreakBeforeKeyword()));
-        addScalarSetting(doc, profile, "sortConstValueToEnd", String.valueOf(data.isSortConstValueToEnd()));
-        addScalarSetting(doc, profile, "replacePiName", String.valueOf(data.isReplacePiName()));
-        addScalarSetting(doc, profile, "removeEndProcName", String.valueOf(data.isRemoveEndProcName()));
-        addScalarSetting(doc, profile, "unindentCompilerDirectives", String.valueOf(data.isUnindentCompilerDirectives()));
-        addScalarSetting(doc, profile, "maxNameLength", String.valueOf(data.getMaxNameLength()));
-        addScalarSetting(doc, profile, "minNameLength", String.valueOf(data.getMinNameLength()));
-        addScalarSetting(doc, profile, "executeIrpgFormatter", String.valueOf(data.isExecuteIrpgFormatter()));
+        addScalarSetting(doc, profile, SETTING_USE_CONST_KEYWORD, String.valueOf(data.isUseConstKeyword()));
+        addScalarSetting(doc, profile, SETTING_DELIMITER_BEFORE_PARAMETER, String.valueOf(data.isDelimiterBeforeParameter()));
+        addScalarSetting(doc, profile, SETTING_PARAMETER_SPACING_STYLE, data.getParameterSpacingStyle());
+        addScalarSetting(doc, profile, SETTING_ALIGN_SUB_FIELDS, String.valueOf(data.isAlignSubFields()));
+        addScalarSetting(doc, profile, SETTING_BREAK_BETWEEN_CASE_CHANGE, String.valueOf(data.isBreakBetweenCaseChange()));
+        addScalarSetting(doc, profile, SETTING_BREAK_BEFORE_KEYWORD, String.valueOf(data.isBreakBeforeKeyword()));
+        addScalarSetting(doc, profile, SETTING_SORT_CONST_VALUE_TO_END, String.valueOf(data.isSortConstValueToEnd()));
+        addScalarSetting(doc, profile, SETTING_REPLACE_PI_NAME, String.valueOf(data.isReplacePiName()));
+        addScalarSetting(doc, profile, SETTING_REMOVE_END_PROC_NAME, String.valueOf(data.isRemoveEndProcName()));
+        addScalarSetting(doc, profile, SETTING_UNINDENT_COMPILER_DIRECTIVES, String.valueOf(data.isUnindentCompilerDirectives()));
+        addScalarSetting(doc, profile, SETTING_MAX_NAME_LENGTH, String.valueOf(data.getMaxNameLength()));
+        addScalarSetting(doc, profile, SETTING_MIN_NAME_LENGTH, String.valueOf(data.getMinNameLength()));
+        addScalarSetting(doc, profile, SETTING_EXECUTE_IRPG_FORMATTER, String.valueOf(data.isExecuteIrpgFormatter()));
 
         // Scalar settings: Save Actions
-        addScalarSetting(doc, profile, "formatOnSave", String.valueOf(data.isFormatOnSave()));
+        addScalarSetting(doc, profile, SETTING_FORMAT_ON_SAVE, String.valueOf(data.isFormatOnSave()));
 
         // Scalar settings: Experimental Settings
-        addScalarSetting(doc, profile, "removeEmptyCommentLines", String.valueOf(data.isRemoveEmptyCommentLines()));
-        addScalarSetting(doc, profile, "removeEmptyLinesBeforeDclPi", String.valueOf(data.isRemoveEmptyLinesBeforeDclPi()));
+        addScalarSetting(doc, profile, SETTING_REMOVE_EMPTY_COMMENT_LINES, String.valueOf(data.isRemoveEmptyCommentLines()));
+        addScalarSetting(doc, profile, SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI, String.valueOf(data.isRemoveEmptyLinesBeforeDclPi()));
 
         // Map settings
-        addMapSetting(doc, profile, "dataTypes", data.getDataTypes());
-        addMapSetting(doc, profile, "declarationTypes", data.getDeclarationTypes());
-        addMapSetting(doc, profile, "keywords", data.getKeywords());
-        addMapSetting(doc, profile, "specialWords", data.getSpecialWords());
+        addMapSetting(doc, profile, SETTING_DATA_TYPES, data.getDataTypes());
+        addMapSetting(doc, profile, SETTING_DECLARATION_TYPES, data.getDeclarationTypes());
+        addMapSetting(doc, profile, SETTING_KEYWORDS, data.getKeywords());
+        addMapSetting(doc, profile, SETTING_SPECIAL_WORDS, data.getSpecialWords());
 
         // Text content settings (CDATA for multi-line content)
         if (data.getCustomPreviewSource() != null && !data.getCustomPreviewSource().isEmpty()) {
-            addTextSetting(doc, profile, "customPreviewSource", data.getCustomPreviewSource());
+            addTextSetting(doc, profile, SETTING_CUSTOM_PREVIEW_SOURCE, data.getCustomPreviewSource());
         }
 
         // Write to file with pretty-printing
@@ -166,8 +193,8 @@ public final class PreferencesProfileManager {
         for (int i = 0; i < settings.getLength(); i++) {
             Element setting = (Element)settings.item(i);
 
-            // Skip nested <entry> elements that are also returned by
-            // getElementsByTagName
+            // getElementsByTagName() returns the <setting> elements of all
+            // levels; only the direct children of <profile> are settings.
             if (!setting.getParentNode().equals(profileElement)) {
                 continue;
             }
@@ -176,70 +203,70 @@ public final class PreferencesProfileManager {
             String value = setting.getAttribute(ATTR_VALUE);
 
             switch (id) {
-            case "parameterSpacingStyle":
+            case SETTING_PARAMETER_SPACING_STYLE:
                 data.setParameterSpacingStyle(value);
                 break;
-            case "useConstKeyword":
+            case SETTING_USE_CONST_KEYWORD:
                 data.setUseConstKeyword(Boolean.parseBoolean(value));
                 break;
-            case "delimiterBeforeParameter":
+            case SETTING_DELIMITER_BEFORE_PARAMETER:
                 data.setDelimiterBeforeParameter(Boolean.parseBoolean(value));
                 break;
-            case "alignSubFields":
+            case SETTING_ALIGN_SUB_FIELDS:
                 data.setAlignSubFields(Boolean.parseBoolean(value));
                 break;
-            case "breakBetweenCaseChange":
+            case SETTING_BREAK_BETWEEN_CASE_CHANGE:
                 data.setBreakBetweenCaseChange(Boolean.parseBoolean(value));
                 break;
-            case "breakBeforeKeyword":
+            case SETTING_BREAK_BEFORE_KEYWORD:
                 data.setBreakBeforeKeyword(Boolean.parseBoolean(value));
                 break;
-            case "sortConstValueToEnd":
+            case SETTING_SORT_CONST_VALUE_TO_END:
                 data.setSortConstValueToEnd(Boolean.parseBoolean(value));
                 break;
-            case "replacePiName":
+            case SETTING_REPLACE_PI_NAME:
                 data.setReplacePiName(Boolean.parseBoolean(value));
                 break;
-            case "removeEndProcName":
+            case SETTING_REMOVE_END_PROC_NAME:
                 data.setRemoveEndProcName(Boolean.parseBoolean(value));
                 break;
-            case "unindentCompilerDirectives":
+            case SETTING_UNINDENT_COMPILER_DIRECTIVES:
                 data.setUnindentCompilerDirectives(Boolean.parseBoolean(value));
                 break;
-            case "maxNameLength":
+            case SETTING_MAX_NAME_LENGTH:
                 data.setMaxNameLength(Integer.parseInt(value));
                 break;
-            case "minNameLength":
+            case SETTING_MIN_NAME_LENGTH:
                 data.setMinNameLength(Integer.parseInt(value));
                 break;
-            case "executeIbmFormatter":
+            case SETTING_EXECUTE_IBM_FORMATTER:
                 data.setExecuteIbmFormatter(Boolean.parseBoolean(value));
                 break;
-            case "executeIrpgFormatter":
+            case SETTING_EXECUTE_IRPG_FORMATTER:
                 data.setExecuteIrpgFormatter(Boolean.parseBoolean(value));
                 break;
-            case "formatOnSave":
+            case SETTING_FORMAT_ON_SAVE:
                 data.setFormatOnSave(Boolean.parseBoolean(value));
                 break;
-            case "removeEmptyCommentLines":
+            case SETTING_REMOVE_EMPTY_COMMENT_LINES:
                 data.setRemoveEmptyCommentLines(Boolean.parseBoolean(value));
                 break;
-            case "removeEmptyLinesBeforeDclPi":
+            case SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI:
                 data.setRemoveEmptyLinesBeforeDclPi(Boolean.parseBoolean(value));
                 break;
-            case "dataTypes":
+            case SETTING_DATA_TYPES:
                 data.setDataTypes(readMapEntries(setting));
                 break;
-            case "declarationTypes":
+            case SETTING_DECLARATION_TYPES:
                 data.setDeclarationTypes(readMapEntries(setting));
                 break;
-            case "keywords":
+            case SETTING_KEYWORDS:
                 data.setKeywords(readMapEntries(setting));
                 break;
-            case "specialWords":
+            case SETTING_SPECIAL_WORDS:
                 data.setSpecialWords(readMapEntries(setting));
                 break;
-            case "customPreviewSource":
+            case SETTING_CUSTOM_PREVIEW_SOURCE:
                 String content = setting.getTextContent().trim();
                 content = content.replace("\r\n", "\n").replace("\r", "\n");
                 data.setCustomPreviewSource(content);
