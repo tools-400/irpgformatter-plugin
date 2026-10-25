@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.formatter;
 
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
@@ -27,11 +28,12 @@ public class FormatError {
     private final Throwable cause;
 
     /**
-     * @param startLineNumber 0-based start line of the failing statement
-     * @param endLineNumber 0-based end line of the failing statement
+     * @param startLineNumber 1-based start line of the failing statement
+     * @param endLineNumber 1-based end line of the failing statement
      * @param statementType the statement type that failed to format
-     * @param message human-readable error message (typically
-     *        {@code exception.getMessage()})
+     * @param message human-readable error message, that contains the line
+     *        number (typically {@code exception.getMessage()}), or
+     *        <code>null</code> to build the message from the cause
      * @param cause the underlying throwable for unexpected failures, or
      *        {@code null} for expected formatter errors (e.g.
      *        {@link LineOverflowException}) that do not warrant a stack trace
@@ -57,17 +59,20 @@ public class FormatError {
         return statementType;
     }
 
+    /**
+     * Returns the error message for the user. It always contains the start
+     * line number.
+     */
     public String getMessage() {
 
-        StringBuilder buffer = new StringBuilder();
-
         if (!StringUtils.isNullOrEmpty(message)) {
-            buffer.append(message);
-        } else {
-            formatUnexpectedException(buffer);
+            return message;
         }
 
-        return buffer.toString();
+        StringBuilder buffer = new StringBuilder();
+        formatUnexpectedException(buffer);
+
+        return Messages.bind(Messages.Error_Error_on_line_A_Unexpected_error_B, startLineNumber, buffer.toString());
     }
 
     public Throwable getCause() {

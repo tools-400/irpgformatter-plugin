@@ -219,8 +219,8 @@ public class RpgleFormatter implements ILineNumberProvider {
                     // in the output so that later lines remain numbered
                     // correctly; the caller is informed via getErrors().
                     stmtOutput.addAll(currentStatement.getOriginalStatements());
-                    errors.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type, e.getMessage(),
-                        unexpectedCause));
+                    errors.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type,
+                        getMessageWithLineNumber(e), unexpectedCause));
                 }
             }
             results
@@ -228,6 +228,24 @@ public class RpgleFormatter implements ILineNumberProvider {
         }
 
         return new FormattedResult(results.toArray(new FormattedStatement[0]));
+    }
+
+    /**
+     * Returns the message of the exception, if it contains the line number.
+     * The subclasses of {@link RpgleFormatterException} put it into their
+     * message; the base class (e.g. thrown by the tokenizer) and runtime
+     * exceptions do not.
+     *
+     * @return the message or <code>null</code>, if {@link FormatError} has to
+     *         build it from the cause
+     */
+    private static String getMessageWithLineNumber(Exception e) {
+
+        if (e instanceof RpgleFormatterException && e.getClass() != RpgleFormatterException.class) {
+            return e.getMessage();
+        }
+
+        return null;
     }
 
     private FormattedStatement asUnformatted(CollectedStatement stmt) {

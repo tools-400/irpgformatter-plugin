@@ -85,7 +85,6 @@ public class Messages extends NLS {
     public static String ColumnLabel_Errors;
 
     public static String Label_Errors_in_A;
-    public static String Error_Line_A_message_B;
 
     public static String Label_Preview;
     public static String Label_Preview_Edit;

@@ -54,7 +54,7 @@ public interface IRpgleInput {
 
     /**
      * Returns the 1-based start line number of this input within the overall
-     * source. For full-file inputs this is 0; for range-based inputs (e.g. LPEX
+     * source. For full-file inputs this is 1; for range-based inputs (e.g. LPEX
      * selection) it reflects the actual position in the source member.
      *
      * @return 1-based start line number

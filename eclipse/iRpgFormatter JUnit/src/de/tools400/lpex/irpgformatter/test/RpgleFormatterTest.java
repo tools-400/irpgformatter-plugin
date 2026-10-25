@@ -1251,6 +1251,50 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_errorMessageContainsLineNumberOfStatement() throws RpgleFormatterException {
+
+        // The error dialogs show the message as it is, so it must contain the
+        // 1-based line number of the failing statement.
+        formatter.setSourceLength(3);
+
+        // @formatter:off
+        formatter.format(new TextLinesInput(
+            "**free",
+            "",
+            "dcl-s f extproc('m');"
+        ),0);
+        // @formatter:on
+
+        assertEquals(1, formatter.getErrorCount());
+
+        FormatError error = formatter.getErrors().get(0);
+        assertEquals(3, error.getStartLineNumber());
+        assertTrue("Message must contain the line number: " + error.getMessage(), error.getMessage().contains("#3:"));
+    }
+
+    @Test
+    public void format_errorMessageWithoutLineNumberGetsLineNumberOfStatement() throws RpgleFormatterException {
+
+        // Without a source length the formatter throws a plain
+        // RpgleFormatterException, whose message has no line number.
+        RpgleFormatter formatterWithoutSourceLength = new RpgleFormatter();
+
+        // @formatter:off
+        formatterWithoutSourceLength.format(new TextLinesInput(
+            "**free",
+            "dcl-s f int(10);"
+        ),0);
+        // @formatter:on
+
+        assertEquals(1, formatterWithoutSourceLength.getErrorCount());
+
+        FormatError error = formatterWithoutSourceLength.getErrors().get(0);
+        assertEquals(2, error.getStartLineNumber());
+        assertTrue("Message must contain the line number: " + error.getMessage(), error.getMessage().contains("#2:"));
+        assertTrue("Message must contain the cause: " + error.getMessage(), error.getMessage().contains("End column not set."));
+    }
+
+    @Test
     public void format_subFieldAlignment_mixedDclSubfPrefix() throws RpgleFormatterException {
         // Sub-fields may optionally start with `dcl-subf`. The prefix
         // contributes to the alignment column so that data types of all

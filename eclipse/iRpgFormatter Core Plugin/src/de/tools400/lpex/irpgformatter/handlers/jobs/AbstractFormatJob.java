@@ -207,11 +207,14 @@ public abstract class AbstractFormatJob<T> extends Job {
         connection.connect();
     }
 
+    /**
+     * Returns the messages of the errors; each message contains its line
+     * number.
+     */
     private static String[] toDetailMessages(List<FormatError> formatErrors) {
         String[] details = new String[formatErrors.size()];
         for (int i = 0; i < formatErrors.size(); i++) {
-            FormatError fe = formatErrors.get(i);
-            details[i] = Messages.bind(Messages.Error_Line_A_message_B, fe.getStartLineNumber() + 1, fe.getMessage());
+            details[i] = formatErrors.get(i).getMessage();
         }
         return details;
     }
