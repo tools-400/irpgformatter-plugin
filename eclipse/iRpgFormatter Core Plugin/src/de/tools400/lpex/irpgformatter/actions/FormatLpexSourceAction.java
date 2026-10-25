@@ -28,7 +28,6 @@ import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
-import de.tools400.lpex.irpgformatter.utils.StringUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public class FormatLpexSourceAction implements LpexAction {
@@ -66,7 +65,7 @@ public class FormatLpexSourceAction implements LpexAction {
                 // Extend selected lines to logical block
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
                 // Use current indent of first line
-                defaultIndent = getIndent(view, startLine);
+                defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, startLine);
             } else {
                 input = RpgleInputFactory.createFromAll(view);
                 startLine = 1;
@@ -108,7 +107,7 @@ public class FormatLpexSourceAction implements LpexAction {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
             // Update indent from first line.
             // The IBM formatter may have changed it.
-            defaultIndent = getIndent(view, startLine);
+            defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, startLine);
         }
 
         if (executeIrpgFormatter) {
@@ -168,17 +167,6 @@ public class FormatLpexSourceAction implements LpexAction {
                 IRpgleFormatterPlugin.logError(error.getMessage(), error.getCause());
             }
         }
-    }
-
-    private int getIndent(LpexView view, int startLine) {
-
-        String line = LpexViewUtils.getElementText(view, startLine).toUpperCase();
-        while (line.trim().length() == 0 || "**FREE".equals(line)) {
-            startLine++;
-            line = LpexViewUtils.getElementText(view, startLine).toUpperCase();
-        }
-
-        return StringUtils.getIndent(line).length();
     }
 
     private void saveCursorPosition(LpexView view) {

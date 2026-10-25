@@ -86,6 +86,31 @@ public final class LpexViewUtils {
     }
 
     /**
+     * Returns the indent of the first source line at or after the given
+     * element, that is neither blank nor the <code>**FREE</code> directive.
+     * The manual format and the format on save start with this indent, after
+     * the IBM formatter has run.
+     *
+     * @return indent or 0, if there is no such line up to the end of the source
+     */
+    public static int getIndentOfFirstStatement(LpexView view, int startElement) {
+
+        int numElements = view.elements();
+        for (int element = startElement; element <= numElements; element++) {
+            if (!isSourceLine(view, element)) {
+                continue;
+            }
+            String line = getElementText(view, element);
+            if (line == null || line.trim().length() == 0 || line.toUpperCase().startsWith("**FREE")) {
+                continue;
+            }
+            return StringUtils.getIndent(line).length();
+        }
+
+        return 0;
+    }
+
+    /**
      * Returns the physical record length for source members, or
      * <code>Integer.MAX_VALUE</code> for stream files (where LPEX reports
      * "default" instead of a number).

@@ -20,7 +20,6 @@ import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
-import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
  * Formats an RPGLE source in the given {@link LpexView} silently. Used by the
@@ -72,8 +71,8 @@ public final class FormatOnSaveListener {
 
         if (Preferences.getInstance().isExecuteIbmFormatter()) {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
-            String firstLine = LpexViewUtils.getElementText(view, 1);
-            defaultIndent = StringUtils.getIndent(firstLine).length();
+            // Update indent from first line, like the manual format does.
+            defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, 1);
         }
 
         if (Preferences.getInstance().isExecuteIrpgFormatter()) {
