@@ -8,21 +8,17 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Reader;
 
 import org.eclipse.core.resources.IFile;
 
-import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
  * {@link IRpgleInput} implementation that wraps an Eclipse IFile.
  */
-public class RpgleStreamFileInput extends AbstractRpgleInput implements IRpgleInput {
+public class RpgleStreamFileInput extends AbstractStreamFileInput {
 
     private final IFile file;
 
@@ -31,50 +27,12 @@ public class RpgleStreamFileInput extends AbstractRpgleInput implements IRpgleIn
     }
 
     @Override
-    public String getFirstSourceLine() throws RpgleFormatterException {
+    protected Reader openReader() throws Exception {
 
-        try {
+        // The charset first, so that no stream is left open, if it fails.
+        String charset = file.getCharset();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(file.getContents(), file.getCharset()));
-
-            try {
-
-                String line = reader.readLine();
-                return line;
-
-            } finally {
-                reader.close();
-            }
-
-        } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, file.getName()), e);
-        }
-    }
-
-    @Override
-    public String[] getSourceLines() throws RpgleFormatterException {
-
-        List<String> lines = new ArrayList<>();
-
-        try {
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(file.getContents(), file.getCharset()));
-
-            try {
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lines.add(line);
-                }
-            } finally {
-                reader.close();
-            }
-
-        } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, file.getName()), e);
-        }
-
-        return lines.toArray(new String[0]);
+        return new InputStreamReader(file.getContents(), charset);
     }
 
     @Override
