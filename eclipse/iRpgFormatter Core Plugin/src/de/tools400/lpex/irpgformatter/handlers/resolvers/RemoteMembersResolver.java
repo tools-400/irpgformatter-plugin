@@ -38,10 +38,11 @@ import de.tools400.lpex.irpgformatter.handlers.FormatRemoteMemberHandler;
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 
 /**
- * Flattens an RSE Local Files selection (single files, directories, or filter
- * references) into an array of {@link IQSYSMember} pointing at the underlying
- * disk paths. Used by {@link FormatRemoteMemberHandler} for files displayed in
- * the <i>Remote Systems</i> view.
+ * Flattens a selection of the QSYS file system in the <i>Remote Systems</i>
+ * view (libraries, source files, source members or filter references) into an
+ * array of {@link SourceMember}. A library is resolved to its source files, a
+ * source file to its members. Only members of a source type, that the
+ * formatter supports, are returned. Used by {@link FormatRemoteMemberHandler}.
  */
 public class RemoteMembersResolver extends AbstractResolver {
 
@@ -158,15 +159,16 @@ public class RemoteMembersResolver extends AbstractResolver {
 
     private void addSourceMember(IHost host, Object element) {
 
-        String profileName = IBMiConnection.getConnection(host).getConnectionName();
-        String connectionName = IBMiConnection.getConnection(host).getProfileName();
+        IBMiConnection connection = IBMiConnection.getConnection(host);
+        String connectionName = connection.getConnectionName();
+        String profileName = connection.getProfileName();
         String library = getLibraryName(element);
         String file = getFileName(element);
         String member = getMemberName(element);
         String type = getMemberType(element).toUpperCase();
 
         if (RpgleFormatter.isSupportedSourceType(type)) {
-            SourceMember sourceMember = new SourceMember(profileName, connectionName, library, file, member, type);
+            SourceMember sourceMember = new SourceMember(connectionName, profileName, library, file, member, type);
             sourceMembers.add(sourceMember);
         }
     }
