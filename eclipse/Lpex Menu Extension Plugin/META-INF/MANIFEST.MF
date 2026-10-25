@@ -9,7 +9,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface,
  com.ibm.lpex,
  org.eclipse.ui.workbench.texteditor
-Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Export-Package: de.tools400.lpex.menuextension,
  de.tools400.lpex.menuextension.helper,
