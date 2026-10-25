@@ -29,9 +29,9 @@ import org.eclipse.swt.widgets.TableItem;
 import de.tools400.lpex.irpgformatter.Messages;
 
 /**
- * Master/detail error dialog: a sortable table of resources (e.g. members)
- * on top, the detail messages of the selected row at the bottom. Suited for
- * batch operations where errors naturally group by resource.
+ * Master/detail error dialog: a sortable table of resources (e.g. members) on
+ * top, the detail messages of the selected row at the bottom. Suited for batch
+ * operations where errors naturally group by resource.
  */
 public class MemberErrorsDialog extends TitleAreaDialog {
 

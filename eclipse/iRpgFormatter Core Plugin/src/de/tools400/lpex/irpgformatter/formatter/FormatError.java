@@ -60,8 +60,8 @@ public class FormatError {
     }
 
     /**
-     * Returns the error message for the user. It always contains the start
-     * line number.
+     * Returns the error message for the user. It always contains the start line
+     * number.
      */
     public String getMessage() {
 

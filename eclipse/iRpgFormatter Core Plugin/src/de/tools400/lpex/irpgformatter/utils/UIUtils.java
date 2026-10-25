@@ -52,8 +52,8 @@ public class UIUtils {
      * scrollable list of detail entries. All callers that want the standard
      * iRPGFormatter look-and-feel for such dialogs should use this method; the
      * underlying dialog implementation can then be swapped centrally without
-     * touching call sites. Call {@link #displayErrorDetailsMessageDialog} instead
-     * to use the {@link ErrorDetailsMessageDialog}.
+     * touching call sites. Call {@link #displayErrorDetailsMessageDialog}
+     * instead to use the {@link ErrorDetailsMessageDialog}.
      * <p>
      * Used by the {@link FormatLpexSourceAction}.
      */

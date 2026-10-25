@@ -17,9 +17,9 @@ import java.nio.charset.Charset;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * {@link IRpgleInput} implementation that wraps a {@link java.io.File} from
- * the local filesystem (e.g. an RSE Local Files selection that is not part
- * of an Eclipse workspace project).
+ * {@link IRpgleInput} implementation that wraps a {@link java.io.File} from the
+ * local filesystem (e.g. an RSE Local Files selection that is not part of an
+ * Eclipse workspace project).
  */
 public class RpgleJavaIoFileInput extends AbstractStreamFileInput {
 

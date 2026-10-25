@@ -231,10 +231,10 @@ public class RpgleFormatter implements ILineNumberProvider {
     }
 
     /**
-     * Returns the message of the exception, if it contains the line number.
-     * The subclasses of {@link RpgleFormatterException} put it into their
-     * message; the base class (e.g. thrown by the tokenizer) and runtime
-     * exceptions do not.
+     * Returns the message of the exception, if it contains the line number. The
+     * subclasses of {@link RpgleFormatterException} put it into their message;
+     * the base class (e.g. thrown by the tokenizer) and runtime exceptions do
+     * not.
      *
      * @return the message or <code>null</code>, if {@link FormatError} has to
      *         build it from the cause
@@ -300,8 +300,8 @@ public class RpgleFormatter implements ILineNumberProvider {
 
         for (FormatError error : errors) {
             if (error.getCause() != null) {
-                IRpgleFormatterPlugin.logError(
-                    String.format("Unexpected error on line %d of %s.", error.getStartLineNumber(), sourceName), error.getCause()); //$NON-NLS-1$
+                IRpgleFormatterPlugin.logError(String.format("Unexpected error on line %d of %s.", error.getStartLineNumber(), sourceName), //$NON-NLS-1$
+                    error.getCause());
             }
         }
     }

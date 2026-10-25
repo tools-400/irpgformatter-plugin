@@ -82,9 +82,9 @@ public class FormatParameterRule implements RpgleSourceConstants {
     }
 
     /**
-     * Returns the parameter wrapped with its delimiters as a single string.
-     * Use this on the single-line code path; use
-     * {@link #delimiterFor(int, int)} when you need to handle line wrapping.
+     * Returns the parameter wrapped with its delimiters as a single string. Use
+     * this on the single-line code path; use {@link #delimiterFor(int, int)}
+     * when you need to handle line wrapping.
      */
     public String format(String parameter, int i, int length) {
         Delimiter delimiter = delimiterFor(i, length);
@@ -93,8 +93,8 @@ public class FormatParameterRule implements RpgleSourceConstants {
 
     /**
      * The delimiter parts (prefix and suffix) that surround a parameter on a
-     * single line. On a line wrap the suffix stays on the previous line and
-     * the prefix moves to the next line.
+     * single line. On a line wrap the suffix stays on the previous line and the
+     * prefix moves to the next line.
      */
     public static final class Delimiter {
 

@@ -19,14 +19,15 @@ import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
  * Formats the optional <code>CTDATA</code> keyword on a compile-time array
  * marker line. The <code>**</code> marker, the whitespace around it and any
  * array-name parameter (e.g. <code>arrname</code> or <code>(arrname)</code>)
- * are preserved verbatim. Lines without the <code>CTDATA</code> keyword
- * (e.g. <code>**</code>, <code>**ALTSEQ</code>, <code>**FTRANS</code>) are
- * passed through unchanged.
+ * are preserved verbatim. Lines without the <code>CTDATA</code> keyword (e.g.
+ * <code>**</code>, <code>**ALTSEQ</code>, <code>**FTRANS</code>) are passed
+ * through unchanged.
  * <p>
  * Examples for casing style {@link KeywordCasingStyle#UPPERCASE}:
  * <ul>
  * <li><code>**ctdata arrname</code> &rarr; <code>**CTDATA arrname</code></li>
- * <li><code>** ctdata(arrname)</code> &rarr; <code>** CTDATA(arrname)</code></li>
+ * <li><code>** ctdata(arrname)</code> &rarr;
+ * <code>** CTDATA(arrname)</code></li>
  * <li><code>**</code> &rarr; <code>**</code></li>
  * <li><code>**ALTSEQ</code> &rarr; <code>**ALTSEQ</code></li>
  * </ul>

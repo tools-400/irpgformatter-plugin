@@ -430,7 +430,8 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createCustomPreviewButton(Composite buttonBar) {
 
-        customPreviewButton = WidgetFactory.createToggleButton(buttonBar, Messages.Label_Custom_preview_contents, Messages.Tooltip_Custom_preview_contents);
+        customPreviewButton = WidgetFactory.createToggleButton(buttonBar, Messages.Label_Custom_preview_contents,
+            Messages.Tooltip_Custom_preview_contents);
         customPreviewButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -459,8 +460,8 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createLineWidthSpinner(Composite buttonBar) {
 
-        previewVerticalRulerSpinner = WidgetFactory.createSpinner(buttonBar, Messages.Label_Preview_line_width, Messages.Tooltip_Preview_line_width, 0,
-            500);
+        previewVerticalRulerSpinner = WidgetFactory.createSpinner(buttonBar, Messages.Label_Preview_line_width, Messages.Tooltip_Preview_line_width,
+            0, 500);
         previewVerticalRulerSpinner.addModifyListener(new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {

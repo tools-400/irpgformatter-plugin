@@ -13,10 +13,10 @@ import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 /**
  * Token-array based formatting rule for a single RPGLE statement.
  * <p>
- * Implementations receive the tokens of one statement and return a
- * (possibly modified) token array. Used for transformations that operate
- * on the token sequence as a whole (e.g. inserting, removing, or rewriting
- * positional tokens within a statement).
+ * Implementations receive the tokens of one statement and return a (possibly
+ * modified) token array. Used for transformations that operate on the token
+ * sequence as a whole (e.g. inserting, removing, or rewriting positional tokens
+ * within a statement).
  * </p>
  */
 public interface IStatementRule {

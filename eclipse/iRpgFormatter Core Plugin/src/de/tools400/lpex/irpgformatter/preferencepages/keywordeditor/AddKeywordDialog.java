@@ -54,8 +54,8 @@ public class AddKeywordDialog extends TitleAreaDialog {
     }
 
     /**
-     * Creates a new keyword dialog pre-filled with initial values (for
-     * changing an existing entry).
+     * Creates a new keyword dialog pre-filled with initial values (for changing
+     * an existing entry).
      *
      * @param parentShell the parent shell
      * @param title the dialog title

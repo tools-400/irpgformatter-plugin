@@ -33,10 +33,10 @@ import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
- * Base class of the jobs that format a batch of sources: source members,
- * stream files of the IFS, files of the workspace and files of the local file
- * system. A subclass names, checks and reads a single source. The loop, the
- * progress, the error handling and the result are the same for all sources.
+ * Base class of the jobs that format a batch of sources: source members, stream
+ * files of the IFS, files of the workspace and files of the local file system.
+ * A subclass names, checks and reads a single source. The loop, the progress,
+ * the error handling and the result are the same for all sources.
  *
  * @param <T> type of the sources
  */

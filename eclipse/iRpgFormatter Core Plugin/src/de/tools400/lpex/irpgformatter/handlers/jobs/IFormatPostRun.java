@@ -18,11 +18,11 @@ public interface IFormatPostRun {
      *
      * @param formattedCount number of sources whose formatted source was
      *        written back
-     * @param errors sources that could not be written at all (lock,
-     *        validation, I/O, ...)
+     * @param errors sources that could not be written at all (lock, validation,
+     *        I/O, ...)
      * @param statementErrors written sources that nevertheless contain
-     *        individual statement-level errors (original lines kept for
-     *        those statements); one group per affected source
+     *        individual statement-level errors (original lines kept for those
+     *        statements); one group per affected source
      * @param canceled <code>true</code>, if the user canceled the job or
      *        declined to connect, so that not all sources were processed
      */

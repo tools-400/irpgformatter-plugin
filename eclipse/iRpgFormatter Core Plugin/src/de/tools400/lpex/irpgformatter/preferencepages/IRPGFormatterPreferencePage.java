@@ -244,7 +244,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Start column
-        startColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column, Messages.Tooltip_IBM_Settings_Start_column);
+        startColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column,
+            Messages.Tooltip_IBM_Settings_Start_column);
         startColumnText.setLayoutData(createTextGridData(60));
 
         // End column
@@ -277,7 +278,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         casingStyleText.setLayoutData(createTextGridData(120));
 
         // Execute IBM formatter before iRPGFormatter
-        executeIbmFormatterCheckbox = WidgetFactory.createCheckbox(parent, Messages.Label_Execute_IBM_formatter, Messages.Tooltip_Execute_IBM_formatter);
+        executeIbmFormatterCheckbox = WidgetFactory.createCheckbox(parent, Messages.Label_Execute_IBM_formatter,
+            Messages.Tooltip_Execute_IBM_formatter);
         executeIbmFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
@@ -333,7 +335,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         previewPanel.addPreviewTrigger(minNameLengthSpinner, PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
         // Execute iRPG formatter
-        executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
+        executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter,
+            Messages.Tooltip_Execute_iRPG_formatter);
         executeIrpgFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 

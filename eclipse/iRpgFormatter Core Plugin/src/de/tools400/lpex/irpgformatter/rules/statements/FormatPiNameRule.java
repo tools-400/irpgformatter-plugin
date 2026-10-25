@@ -19,14 +19,14 @@ import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
  * Adjusts the NAME token of a DCL-PI statement that belongs to a DCL-PROC
  * parent.
  * <ul>
- * <li>When {@code Preferences.isReplacePiName()} is {@code true}, replaces
- * the NAME token with the special word {@code *N}.</li>
- * <li>When {@code Preferences.isReplacePiName()} is {@code false}, replaces
- * the special word {@code *N} with the procedure name supplied to the
+ * <li>When {@code Preferences.isReplacePiName()} is {@code true}, replaces the
+ * NAME token with the special word {@code *N}.</li>
+ * <li>When {@code Preferences.isReplacePiName()} is {@code false}, replaces the
+ * special word {@code *N} with the procedure name supplied to the
  * constructor.</li>
  * </ul>
- * If {@code procedureName} is {@code null} (no parent DCL-PROC), the rule is
- * a no-op for the restore direction.
+ * If {@code procedureName} is {@code null} (no parent DCL-PROC), the rule is a
+ * no-op for the restore direction.
  */
 public class FormatPiNameRule implements IStatementRule {
 

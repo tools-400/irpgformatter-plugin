@@ -17,12 +17,11 @@ import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 /**
  * Adjusts the NAME token of an END-PROC statement.
  * <ul>
- * <li>When {@code Preferences.isRemoveEndProcName()} is {@code true},
- * removes the NAME token (if present).</li>
- * <li>When {@code Preferences.isRemoveEndProcName()} is {@code false},
- * ensures the NAME token matches the procedure name supplied to the
- * constructor: missing names are inserted, divergent names are
- * overwritten.</li>
+ * <li>When {@code Preferences.isRemoveEndProcName()} is {@code true}, removes
+ * the NAME token (if present).</li>
+ * <li>When {@code Preferences.isRemoveEndProcName()} is {@code false}, ensures
+ * the NAME token matches the procedure name supplied to the constructor:
+ * missing names are inserted, divergent names are overwritten.</li>
  * </ul>
  * If {@code procedureName} is {@code null}, the restore direction becomes a
  * no-op.

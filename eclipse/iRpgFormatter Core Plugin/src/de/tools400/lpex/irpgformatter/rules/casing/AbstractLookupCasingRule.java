@@ -25,8 +25,7 @@ public abstract class AbstractLookupCasingRule extends AbstractCasingRule implem
     private final Map<String, String> formattingMap;
 
     /**
-     * Creates a rule, that takes the keyword casing style from the
-     * preferences.
+     * Creates a rule, that takes the keyword casing style from the preferences.
      */
     public AbstractLookupCasingRule(Map<String, String> formattingMap) {
         this.formattingMap = formattingMap;
@@ -38,8 +37,8 @@ public abstract class AbstractLookupCasingRule extends AbstractCasingRule implem
     }
 
     /**
-     * Returns the canonical spelling of the word in the keyword casing style
-     * or the word unchanged, if it is not in the table.
+     * Returns the canonical spelling of the word in the keyword casing style or
+     * the word unchanged, if it is not in the table.
      */
     @Override
     public final String format(String value) {

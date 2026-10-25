@@ -18,16 +18,16 @@ import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 
 /**
  * Moves any {@code CONST} or {@code VALUE} keyword token of a sub-field
- * statement (parameter / subfield) to the end of the keyword list, just
- * before the trailing {@code EOL}/{@code COMMENT} tokens.
+ * statement (parameter / subfield) to the end of the keyword list, just before
+ * the trailing {@code EOL}/{@code COMMENT} tokens.
  * <p>
  * Example: {@code myParam const char(10);} becomes
  * {@code myParam char(10) const;}.
  * <ul>
  * <li>If the preference {@code FormatterConfig#isSortConstValueToEnd()} is
  * disabled, the tokens are returned unchanged.</li>
- * <li>If no {@code CONST} or {@code VALUE} keyword is present, the tokens
- * are returned unchanged.</li>
+ * <li>If no {@code CONST} or {@code VALUE} keyword is present, the tokens are
+ * returned unchanged.</li>
  * <li>{@code EOL} and {@code COMMENT} tokens always remain at the end.</li>
  * </ul>
  */

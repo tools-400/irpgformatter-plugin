@@ -31,10 +31,10 @@ public class FileLockedException extends RpgleFormatterException {
     }
 
     /**
-     * Lock exception with a caller-supplied detail message (e.g. a message
-     * that already includes the holding job/user, fetched from the RDi
-     * API). The default template is bypassed so the detail is not wrapped
-     * in a generic "File is locked: ..." prefix.
+     * Lock exception with a caller-supplied detail message (e.g. a message that
+     * already includes the holding job/user, fetched from the RDi API). The
+     * default template is bypassed so the detail is not wrapped in a generic
+     * "File is locked: ..." prefix.
      */
     public FileLockedException(String path, String detailMessage) {
         super(detailMessage);

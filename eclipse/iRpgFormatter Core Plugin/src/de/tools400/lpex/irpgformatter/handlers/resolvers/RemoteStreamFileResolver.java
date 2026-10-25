@@ -24,9 +24,9 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
  * Flattens a selection of IFS stream files of a remote system (single files,
- * directories, or filter references) into an array of {@link IRemoteFile}.
- * Used by {@link FormatRemoteStreamFileHandler} for files displayed in the
- * <i>Remote Systems</i> view.
+ * directories, or filter references) into an array of {@link IRemoteFile}. Used
+ * by {@link FormatRemoteStreamFileHandler} for files displayed in the <i>Remote
+ * Systems</i> view.
  */
 public class RemoteStreamFileResolver extends AbstractRemoteFileResolver {
 

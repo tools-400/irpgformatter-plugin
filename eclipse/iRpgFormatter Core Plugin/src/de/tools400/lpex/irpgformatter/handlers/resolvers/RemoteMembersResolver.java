@@ -41,8 +41,8 @@ import de.tools400.lpex.irpgformatter.handlers.SourceMember;
  * Flattens a selection of the QSYS file system in the <i>Remote Systems</i>
  * view (libraries, source files, source members or filter references) into an
  * array of {@link SourceMember}. A library is resolved to its source files, a
- * source file to its members. Only members of a source type, that the
- * formatter supports, are returned. Used by {@link FormatRemoteMemberHandler}.
+ * source file to its members. Only members of a source type, that the formatter
+ * supports, are returned. Used by {@link FormatRemoteMemberHandler}.
  */
 public class RemoteMembersResolver extends AbstractResolver {
 

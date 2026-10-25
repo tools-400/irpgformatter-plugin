@@ -9,8 +9,8 @@
 package de.tools400.lpex.irpgformatter.formatter;
 
 /**
- * Wraps the array of {@link FormattedStatement}s produced by the formatter
- * and provides convenience methods for flat-line access.
+ * Wraps the array of {@link FormattedStatement}s produced by the formatter and
+ * provides convenience methods for flat-line access.
  */
 public class FormattedResult {
 
@@ -40,11 +40,11 @@ public class FormattedResult {
     }
 
     /**
-     * Maps a 0-based line index in this result's formatted output
-     * to the corresponding 0-based line index in the target result.
+     * Maps a 0-based line index in this result's formatted output to the
+     * corresponding 0-based line index in the target result.
      * <p>
-     * Both results must originate from the same raw source so that
-     * statements correspond 1:1 by index.
+     * Both results must originate from the same raw source so that statements
+     * correspond 1:1 by index.
      * </p>
      */
     public int mapLineTo(int formattedLine, FormattedResult target) {
