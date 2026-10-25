@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
 import org.eclipse.rse.core.model.IHost;
@@ -42,18 +43,19 @@ import de.tools400.lpex.irpgformatter.handlers.SourceMember;
  * disk paths. Used by {@link FormatRemoteMemberHandler} for files displayed in
  * the <i>Remote Systems</i> view.
  */
-public class RemoteMembersResolver {
+public class RemoteMembersResolver extends AbstractResolver {
 
     private List<Object> sourceMembers;
 
-    public RemoteMembersResolver() {
+    public RemoteMembersResolver(IProgressMonitor monitor) {
+        super(monitor);
         this.sourceMembers = new LinkedList<>();
     }
 
     public SourceMember[] resolveRemoteMembers(IStructuredSelection selection) {
 
         Iterator<?> iterator = selection.iterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && !isCanceled()) {
             Object element = iterator.next();
             resolveElement(element);
         }
@@ -77,6 +79,7 @@ public class RemoteMembersResolver {
 
         } catch (Exception e) {
             IRpgleFormatterPlugin.logError("Failed to resolve source members.", e);
+            setError(e);
         }
 
     }
@@ -96,7 +99,7 @@ public class RemoteMembersResolver {
             throw new Exception(((SystemMessageObject)firstObject).getMessage());
         }
 
-        for (int idx2 = 0; idx2 < sourceFiles.length; idx2++) {
+        for (int idx2 = 0; idx2 < sourceFiles.length && !isCanceled(); idx2++) {
             Object element = sourceFiles[idx2];
             if (isSourceFile(element)) {
                 addElementsFromSourceFile(host, getLibraryName(element), getFileName(element));
@@ -119,7 +122,7 @@ public class RemoteMembersResolver {
 
         Object[] children = null;
 
-        for (int idx = 0; idx < filterStrings.length; idx++) {
+        for (int idx = 0; idx < filterStrings.length && !isCanceled(); idx++) {
 
             children = resolveFilterString(host, filterStrings[idx]);
 
@@ -173,7 +176,7 @@ public class RemoteMembersResolver {
         IBMiConnection connection = IBMiConnection.getConnection(host);
         QSYSObjectSubSystem objectSubSystem = connection.getQSYSObjectSubSystem();
 
-        return objectSubSystem.resolveFilterString(filterString, null);
+        return objectSubSystem.resolveFilterString(filterString, getMonitor());
     }
 
     /*

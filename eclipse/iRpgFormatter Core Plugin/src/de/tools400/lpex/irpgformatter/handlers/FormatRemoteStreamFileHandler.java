@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.handlers;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
@@ -24,10 +25,11 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler impleme
     private IRemoteFile[] files;
 
     @Override
-    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
+    public int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException {
 
-        RemoteStreamFileResolver resolver = new RemoteStreamFileResolver();
+        RemoteStreamFileResolver resolver = new RemoteStreamFileResolver(monitor);
         files = resolver.resolveRemoteStreamFiles(selection);
+        checkResolved(files.length, resolver);
 
         return files.length;
     }

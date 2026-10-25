@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.handlers;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -23,10 +24,11 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler implements 
     private SourceMember[] members;
 
     @Override
-    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
+    public int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException {
 
-        RemoteMembersResolver resolver = new RemoteMembersResolver();
-        members = resolver.resolveRemoteMembers((IStructuredSelection)selection);
+        RemoteMembersResolver resolver = new RemoteMembersResolver(monitor);
+        members = resolver.resolveRemoteMembers(selection);
+        checkResolved(members.length, resolver);
 
         return members.length;
     }

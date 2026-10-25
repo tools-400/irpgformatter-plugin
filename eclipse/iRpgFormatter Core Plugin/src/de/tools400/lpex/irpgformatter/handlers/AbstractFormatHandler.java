@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.handlers;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -15,13 +17,18 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.progress.UIJob;
 
+import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.handlers.resolvers.AbstractResolver;
 import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public abstract class AbstractFormatHandler extends AbstractHandler {
@@ -32,7 +39,18 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         ISelection selection = HandlerUtil.getCurrentSelection(event);
 
         if (selection instanceof IStructuredSelection) {
-            int count = resolveItems((IStructuredSelection)selection);
+
+            int count;
+            try {
+                count = resolveItemsInBackground((IStructuredSelection)selection);
+            } catch (InterruptedException e) {
+                // canceled by the user
+                return null;
+            } catch (ExecutionException e) {
+                UIUtils.displaySimpleErrorDialog(e.getMessage());
+                return null;
+            }
+
             if (count > 0) {
                 scheduleFormatterJob();
             } else {
@@ -44,7 +62,59 @@ public abstract class AbstractFormatHandler extends AbstractHandler {
         return null;
     }
 
-    protected abstract int resolveItems(IStructuredSelection selection) throws ExecutionException;
+    /**
+     * Resolves the selected items outside of the UI thread, because resolving
+     * libraries, source files, filters and directories lists them on the host.
+     * If it takes a while, a progress dialog opens, in which the user can
+     * cancel.
+     */
+    private int resolveItemsInBackground(final IStructuredSelection selection) throws ExecutionException, InterruptedException {
+
+        final int[] count = new int[1];
+        try {
+            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+                @Override
+                public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                    monitor.beginTask(Messages.SubTask_Resolving_selection, IProgressMonitor.UNKNOWN);
+                    try {
+                        count[0] = resolveItems(selection, monitor);
+                    } catch (ExecutionException e) {
+                        throw new InvocationTargetException(e);
+                    } finally {
+                        monitor.done();
+                    }
+                    if (monitor.isCanceled()) {
+                        throw new InterruptedException();
+                    }
+                }
+            });
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof ExecutionException) {
+                throw (ExecutionException)e.getCause();
+            }
+            IRpgleFormatterPlugin.logError("Failed to resolve the selected items.", e.getCause());
+            throw new ExecutionException(ExceptionUtils.getLocalizedMessage(e.getCause()), e.getCause());
+        }
+
+        return count[0];
+    }
+
+    /**
+     * Resolves the selected items. Called outside of the UI thread.
+     */
+    protected abstract int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException;
+
+    /**
+     * Throws the first error of the resolver, if no item was found, so that the
+     * user sees the reason instead of 'No valid entries found'.
+     */
+    protected static void checkResolved(int count, AbstractResolver resolver) throws ExecutionException {
+
+        if (count == 0 && resolver.getError() != null) {
+            Exception error = resolver.getError();
+            throw new ExecutionException(ExceptionUtils.getLocalizedMessage(error), error);
+        }
+    }
 
     protected abstract void scheduleFormatterJob();
 

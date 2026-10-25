@@ -18,6 +18,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
@@ -29,18 +30,19 @@ import de.tools400.lpex.irpgformatter.handlers.FormatLocalStreamFileHandler;
  * paths. Used by {@link FormatLocalStreamFileHandler} for files that are part
  * of a Eclipse workspace project.
  */
-public class LocalStreamFileResolver {
+public class LocalStreamFileResolver extends AbstractResolver {
 
     private List<IFile> files;
 
-    public LocalStreamFileResolver() {
+    public LocalStreamFileResolver(IProgressMonitor monitor) {
+        super(monitor);
         this.files = new LinkedList<>();
     }
 
     public IFile[] resolveLocalStreamFiles(IStructuredSelection selection) {
 
         Iterator<?> iterator = selection.iterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && !isCanceled()) {
             Object element = iterator.next();
             resolveElement(element);
         }
@@ -73,6 +75,9 @@ public class LocalStreamFileResolver {
         try {
             IResource[] members = container.members();
             for (IResource member : members) {
+                if (isCanceled()) {
+                    return;
+                }
                 if (member instanceof IFile) {
                     addFileIfSupported((IFile)member);
                 } else if (member instanceof IContainer) {
@@ -81,6 +86,7 @@ public class LocalStreamFileResolver {
             }
         } catch (CoreException e) {
             // Ignore inaccessible resources
+            setError(e);
         }
     }
 

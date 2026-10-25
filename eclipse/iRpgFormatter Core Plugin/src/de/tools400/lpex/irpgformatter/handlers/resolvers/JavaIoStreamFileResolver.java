@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
 import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
@@ -29,18 +30,19 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
  * paths. Used by {@link FormatJavaIoStreamFileHandler} for files that are not
  * part of any Eclipse workspace project.
  */
-public class JavaIoStreamFileResolver {
+public class JavaIoStreamFileResolver extends AbstractResolver {
 
     private List<File> files;
 
-    public JavaIoStreamFileResolver() {
+    public JavaIoStreamFileResolver(IProgressMonitor monitor) {
+        super(monitor);
         this.files = new LinkedList<>();
     }
 
     public File[] resolveStreamFiles(IStructuredSelection selection) {
 
         Iterator<?> iterator = selection.iterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && !isCanceled()) {
             Object element = iterator.next();
             resolveElement(element);
         }
@@ -75,7 +77,10 @@ public class JavaIoStreamFileResolver {
             FileServiceSubSystem subSystem = (FileServiceSubSystem)provider;
             String[] filterStrings = ref.getReferencedFilter().getFilterStrings();
             for (String filterString : filterStrings) {
-                Object[] children = subSystem.resolveFilterString(filterString, null);
+                if (isCanceled()) {
+                    return;
+                }
+                Object[] children = subSystem.resolveFilterString(filterString, getMonitor());
                 if (children == null) {
                     continue;
                 }
@@ -87,6 +92,7 @@ public class JavaIoStreamFileResolver {
             }
         } catch (Exception e) {
             // Ignore inaccessible filters
+            setError(e);
         }
     }
 
@@ -97,6 +103,9 @@ public class JavaIoStreamFileResolver {
             return;
         }
         for (File child : children) {
+            if (isCanceled()) {
+                return;
+            }
             if (child.isDirectory()) {
                 addFilesFromDirectory(child);
             } else {

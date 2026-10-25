@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
 import org.eclipse.rse.subsystems.files.core.servicesubsystem.FileServiceSubSystem;
@@ -28,18 +29,19 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
  * disk paths. Used by {@link FormatRemoteStreamFileHandler} for files displayed
  * in the <i>Remote Systems</i> view.
  */
-public class RemoteStreamFileResolver {
+public class RemoteStreamFileResolver extends AbstractResolver {
 
     private List<IRemoteFile> files;
 
-    public RemoteStreamFileResolver() {
+    public RemoteStreamFileResolver(IProgressMonitor monitor) {
+        super(monitor);
         this.files = new LinkedList<>();
     }
 
     public IRemoteFile[] resolveRemoteStreamFiles(IStructuredSelection selection) {
 
         Iterator<?> iterator = selection.iterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && !isCanceled()) {
             Object element = iterator.next();
             resolveElement(element);
         }
@@ -73,7 +75,10 @@ public class RemoteStreamFileResolver {
             FileServiceSubSystem subSystem = (FileServiceSubSystem)provider;
             String[] filterStrings = ref.getReferencedFilter().getFilterStrings();
             for (String filterString : filterStrings) {
-                Object[] children = subSystem.resolveFilterString(filterString, null);
+                if (isCanceled()) {
+                    return;
+                }
+                Object[] children = subSystem.resolveFilterString(filterString, getMonitor());
                 if (children == null) {
                     continue;
                 }
@@ -85,6 +90,7 @@ public class RemoteStreamFileResolver {
             }
         } catch (Exception e) {
             // Ignore inaccessible filters
+            setError(e);
         }
     }
 
@@ -92,8 +98,11 @@ public class RemoteStreamFileResolver {
 
         try {
             IRemoteFileSubSystem subSystem = directory.getParentRemoteFileSubSystem();
-            IRemoteFile[] children = subSystem.list(directory, null);
+            IRemoteFile[] children = subSystem.list(directory, getMonitor());
             for (IRemoteFile child : children) {
+                if (isCanceled()) {
+                    return;
+                }
                 if (child.isDirectory()) {
                     addFilesFromDirectory(child);
                 } else {
@@ -102,6 +111,7 @@ public class RemoteStreamFileResolver {
             }
         } catch (Exception e) {
             // Ignore inaccessible directories
+            setError(e);
         }
     }
 

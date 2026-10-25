@@ -11,6 +11,7 @@ package de.tools400.lpex.irpgformatter.handlers;
 import java.io.File;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -25,10 +26,11 @@ public class FormatJavaIoStreamFileHandler extends AbstractFormatHandler impleme
     private File[] files;
 
     @Override
-    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
+    public int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException {
 
-        JavaIoStreamFileResolver resolver = new JavaIoStreamFileResolver();
+        JavaIoStreamFileResolver resolver = new JavaIoStreamFileResolver(monitor);
         files = resolver.resolveStreamFiles(selection);
+        checkResolved(files.length, resolver);
 
         return files.length;
     }

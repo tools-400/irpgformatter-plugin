@@ -10,6 +10,7 @@ package de.tools400.lpex.irpgformatter.handlers;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -24,10 +25,11 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler implemen
     private IFile[] files;
 
     @Override
-    public int resolveItems(IStructuredSelection selection) throws ExecutionException {
+    public int resolveItems(IStructuredSelection selection, IProgressMonitor monitor) throws ExecutionException {
 
-        LocalStreamFileResolver resolver = new LocalStreamFileResolver();
+        LocalStreamFileResolver resolver = new LocalStreamFileResolver(monitor);
         files = resolver.resolveLocalStreamFiles(selection);
+        checkResolved(files.length, resolver);
 
         return files.length;
     }
