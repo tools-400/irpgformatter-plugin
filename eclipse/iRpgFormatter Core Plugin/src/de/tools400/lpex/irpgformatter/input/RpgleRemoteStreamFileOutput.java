@@ -8,18 +8,19 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import com.ibm.as400.access.AS400;
-import com.ibm.as400.access.IFSFileOutputStream;
+import com.ibm.as400.access.IFSFile;
+import com.ibm.as400.access.IFSFileWriter;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
- * Writes formatted source lines back to a remote IFS stream file via JT400.
+ * Writes formatted source lines back to a remote IFS stream file via JT400, in
+ * the CCSID of the file. Each line ends with a line feed, the last one, too.
  */
 public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
 
@@ -34,24 +35,13 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
     @Override
     public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
-        try {
+        IFSFile file = new IFSFile(system, path);
 
-            String[] lines = result.toLines();
-            String content = String.join("\n", lines);
-            IFSFileOutputStream outputStream = new IFSFileOutputStream(system, path);
+        try (Writer writer = new IFSFileWriter(file, RpgleRemoteStreamFileInput.getCcsid(file))) {
 
-            try {
-
-                Writer writer = new OutputStreamWriter(outputStream, "UTF-8");
-
-                try {
-                    writer.write(content);
-                } finally {
-                    writer.close();
-                }
-
-            } finally {
-                outputStream.close();
+            for (String line : result.toLines()) {
+                writer.write(line);
+                writer.write("\n");
             }
 
             return true;

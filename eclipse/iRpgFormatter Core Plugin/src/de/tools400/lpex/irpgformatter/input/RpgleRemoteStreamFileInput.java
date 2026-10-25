@@ -8,19 +8,23 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.Reader;
 
 import com.ibm.as400.access.AS400;
-import com.ibm.as400.access.IFSFileInputStream;
+import com.ibm.as400.access.IFSFile;
+import com.ibm.as400.access.IFSFileReader;
 
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
  * {@link IRpgleInput} implementation that wraps a remote IFS stream file
- * accessed via JT400.
+ * accessed via JT400. The file is read in its CCSID.
  */
 public class RpgleRemoteStreamFileInput extends AbstractStreamFileInput {
+
+    private static final int CCSID_NO_CONVERSION = 65535;
+    private static final int CCSID_UTF8 = 1208;
 
     private final AS400 system;
     private final String path;
@@ -32,7 +36,24 @@ public class RpgleRemoteStreamFileInput extends AbstractStreamFileInput {
 
     @Override
     protected Reader openReader() throws Exception {
-        return new InputStreamReader(new IFSFileInputStream(system, path), "UTF-8");
+
+        IFSFile file = new IFSFile(system, path);
+
+        return new IFSFileReader(file, getCcsid(file));
+    }
+
+    /**
+     * Returns the CCSID, in which the file is read and written. A file without
+     * conversion (65535) is read and written as UTF-8, like before.
+     */
+    static int getCcsid(IFSFile file) throws IOException {
+
+        int ccsid = file.getCCSID();
+        if (ccsid == CCSID_NO_CONVERSION) {
+            return CCSID_UTF8;
+        }
+
+        return ccsid;
     }
 
     @Override
