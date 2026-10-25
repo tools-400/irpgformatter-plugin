@@ -47,6 +47,7 @@ import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
 import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 
@@ -399,30 +400,20 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
         dialog.setText(Messages.Title_Export_Profile);
-        dialog.setFilterExtensions(new String[] { "*.xml" });
-        dialog.setFilterNames(new String[] { Messages.Label_XML_Files });
         dialog.setFileName("iRPGFormatter.xml");
         dialog.setOverwrite(true);
 
-        String lastPath = getProfileFilePath();
-        if (lastPath != null) {
-            File lastFile = new File(lastPath);
-            dialog.setFilterPath(lastFile.getParent());
-            dialog.setFileName(lastFile.getName());
-        }
-
-        String filePath = dialog.open();
+        String filePath = selectProfileFile(dialog);
         if (filePath == null) {
             return;
         }
-
-        saveProfileFilePath(filePath);
 
         try {
             ProfileData data = collectProfileDataFromUI();
             PreferencesProfileManager.exportProfile(filePath, data);
         } catch (Exception e) {
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Export_failed_A, e.getLocalizedMessage()));
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_Export_failed_A, ExceptionUtils.getLocalizedMessage(e)));
         }
     }
 
@@ -430,6 +421,33 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
         dialog.setText(Messages.Title_Import_Profile);
+
+        String filePath = selectProfileFile(dialog);
+        if (filePath == null) {
+            return;
+        }
+
+        try {
+            ProfileData data = PreferencesProfileManager.importProfile(filePath);
+            applyProfileDataToUI(data);
+        } catch (IllegalArgumentException e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_Invalid_profile_format_A, ExceptionUtils.getLocalizedMessage(e)));
+        } catch (Exception e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_Import_failed_A, ExceptionUtils.getLocalizedMessage(e)));
+        }
+    }
+
+    /**
+     * Lets the user select the XML file of a profile. Starts with the file used
+     * last and remembers the selected file.
+     *
+     * @param dialog the dialog with style, title and the settings of the caller
+     * @return the path of the file or <code>null</code>, if the user cancelled
+     */
+    private String selectProfileFile(FileDialog dialog) {
+
         dialog.setFilterExtensions(new String[] { "*.xml" });
         dialog.setFilterNames(new String[] { Messages.Label_XML_Files });
 
@@ -441,20 +459,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         String filePath = dialog.open();
-        if (filePath == null) {
-            return;
+        if (filePath != null) {
+            saveProfileFilePath(filePath);
         }
 
-        saveProfileFilePath(filePath);
-
-        try {
-            ProfileData data = PreferencesProfileManager.importProfile(filePath);
-            applyProfileDataToUI(data);
-        } catch (IllegalArgumentException e) {
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Invalid_profile_format_A, e.getLocalizedMessage()));
-        } catch (Exception e) {
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R, Messages.bind(Messages.Error_Import_failed_A, e.getLocalizedMessage()));
-        }
+        return filePath;
     }
 
     private String getProfileFilePath() {
