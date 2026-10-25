@@ -29,6 +29,7 @@ import de.tools400.lpex.irpgformatter.menu.MenuExtension;
 public class Preload implements LpexPreload {
 
     private static final String COMMAND_SAVE = "org.eclipse.ui.file.save"; //$NON-NLS-1$
+    private static final String COMMAND_SAVE_ALL = "org.eclipse.ui.file.saveAll"; //$NON-NLS-1$
 
     public Preload() {
         return;
@@ -74,6 +75,8 @@ public class Preload implements LpexPreload {
             public void preExecute(String commandId, ExecutionEvent event) {
                 if (COMMAND_SAVE.equals(commandId)) {
                     formatActiveEditor();
+                } else if (COMMAND_SAVE_ALL.equals(commandId)) {
+                    formatDirtyEditors();
                 }
             }
 
@@ -100,7 +103,31 @@ public class Preload implements LpexPreload {
             return;
         }
 
-        IEditorPart editor = page.getActiveEditor();
+        formatEditor(page.getActiveEditor());
+    }
+
+    /**
+     * Formats the dirty editors of the active page, which 'Save All' saves.
+     */
+    private static void formatDirtyEditors() {
+
+        IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (window == null) {
+            return;
+        }
+
+        IWorkbenchPage page = window.getActivePage();
+        if (page == null) {
+            return;
+        }
+
+        for (IEditorPart editor : page.getDirtyEditors()) {
+            formatEditor(editor);
+        }
+    }
+
+    private static void formatEditor(IEditorPart editor) {
+
         if (!(editor instanceof LpexAbstractTextEditor)) {
             return;
         }
