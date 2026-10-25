@@ -17,8 +17,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
 import org.eclipse.rse.subsystems.files.core.servicesubsystem.AbstractRemoteFile;
-import org.eclipse.rse.subsystems.files.core.servicesubsystem.FileServiceSubSystem;
-import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.handlers.FormatJavaIoStreamFileHandler;
@@ -30,7 +28,7 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
  * paths. Used by {@link FormatJavaIoStreamFileHandler} for files that are not
  * part of any Eclipse workspace project.
  */
-public class JavaIoStreamFileResolver extends AbstractResolver {
+public class JavaIoStreamFileResolver extends AbstractRemoteFileResolver {
 
     private List<File> files;
 
@@ -50,7 +48,8 @@ public class JavaIoStreamFileResolver extends AbstractResolver {
         return files.toArray(new File[files.size()]);
     }
 
-    private void resolveElement(Object element) {
+    @Override
+    protected void resolveElement(Object element) {
 
         if (element instanceof AbstractRemoteFile) {
             AbstractRemoteFile remoteFile = (AbstractRemoteFile)element;
@@ -64,35 +63,6 @@ public class JavaIoStreamFileResolver extends AbstractResolver {
             }
         } else if (element instanceof SystemFilterReference) {
             resolveFilterReference((SystemFilterReference)element);
-        }
-    }
-
-    private void resolveFilterReference(SystemFilterReference ref) {
-
-        try {
-            Object provider = ref.getFilterPoolReferenceManager().getProvider();
-            if (!(provider instanceof FileServiceSubSystem)) {
-                return;
-            }
-            FileServiceSubSystem subSystem = (FileServiceSubSystem)provider;
-            String[] filterStrings = ref.getReferencedFilter().getFilterStrings();
-            for (String filterString : filterStrings) {
-                if (isCanceled()) {
-                    return;
-                }
-                Object[] children = subSystem.resolveFilterString(filterString, getMonitor());
-                if (children == null) {
-                    continue;
-                }
-                for (Object child : children) {
-                    if (child instanceof IRemoteFile) {
-                        resolveElement(child);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Ignore inaccessible filters
-            setError(e);
         }
     }
 

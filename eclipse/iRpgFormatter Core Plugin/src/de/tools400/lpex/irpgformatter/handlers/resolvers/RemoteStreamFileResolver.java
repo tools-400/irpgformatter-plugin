@@ -15,7 +15,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.rse.core.filters.SystemFilterReference;
-import org.eclipse.rse.subsystems.files.core.servicesubsystem.FileServiceSubSystem;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFile;
 import org.eclipse.rse.subsystems.files.core.subsystems.IRemoteFileSubSystem;
 
@@ -24,12 +23,12 @@ import de.tools400.lpex.irpgformatter.handlers.FormatRemoteStreamFileHandler;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Flattens an RSE Local Files selection (single files, directories, or filter
- * references) into an array of {@link IRemoteFile} pointing at the underlying
- * disk paths. Used by {@link FormatRemoteStreamFileHandler} for files displayed
- * in the <i>Remote Systems</i> view.
+ * Flattens a selection of IFS stream files of a remote system (single files,
+ * directories, or filter references) into an array of {@link IRemoteFile}.
+ * Used by {@link FormatRemoteStreamFileHandler} for files displayed in the
+ * <i>Remote Systems</i> view.
  */
-public class RemoteStreamFileResolver extends AbstractResolver {
+public class RemoteStreamFileResolver extends AbstractRemoteFileResolver {
 
     private List<IRemoteFile> files;
 
@@ -49,48 +48,20 @@ public class RemoteStreamFileResolver extends AbstractResolver {
         return files.toArray(new IRemoteFile[files.size()]);
     }
 
-    private void resolveElement(Object element) {
+    @Override
+    protected void resolveElement(Object element) {
 
         if (element instanceof IRemoteFile) {
             IRemoteFile remoteFile = (IRemoteFile)element;
             if (remoteFile.isDirectory()) {
-                // Verzeichnis
+                // IRemoteFile (Remote Systems View) -> directory
                 addFilesFromDirectory(remoteFile);
             } else {
-                // einfache Datei
+                // IRemoteFile (Remote Systems View) -> file
                 addFileIfSupported(remoteFile);
             }
         } else if (element instanceof SystemFilterReference) {
             resolveFilterReference((SystemFilterReference)element);
-        }
-    }
-
-    private void resolveFilterReference(SystemFilterReference ref) {
-
-        try {
-            Object provider = ref.getFilterPoolReferenceManager().getProvider();
-            if (!(provider instanceof FileServiceSubSystem)) {
-                return;
-            }
-            FileServiceSubSystem subSystem = (FileServiceSubSystem)provider;
-            String[] filterStrings = ref.getReferencedFilter().getFilterStrings();
-            for (String filterString : filterStrings) {
-                if (isCanceled()) {
-                    return;
-                }
-                Object[] children = subSystem.resolveFilterString(filterString, getMonitor());
-                if (children == null) {
-                    continue;
-                }
-                for (Object child : children) {
-                    if (child instanceof IRemoteFile) {
-                        resolveElement(child);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Ignore inaccessible filters
-            setError(e);
         }
     }
 
