@@ -56,7 +56,7 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ColorUtils;
-import de.tools400.lpex.irpgformatter.utils.UIUtils;
+import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 
 /**
  * Encapsulates the preview panel UI and formatting logic used in the
@@ -378,7 +378,7 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createViewEditButton(Composite buttonBar) {
 
-        viewEditButton = UIUtils.createToggleButton(buttonBar, Messages.Label_View_Edit_raw_code, Messages.Tooltip_View_Edit_raw_code);
+        viewEditButton = WidgetFactory.createToggleButton(buttonBar, Messages.Label_View_Edit_raw_code, Messages.Tooltip_View_Edit_raw_code);
         viewEditButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -405,7 +405,7 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createCustomPreviewButton(Composite buttonBar) {
 
-        customPreviewButton = UIUtils.createToggleButton(buttonBar, Messages.Label_Custom_preview_contents, Messages.Tooltip_Custom_preview_contents);
+        customPreviewButton = WidgetFactory.createToggleButton(buttonBar, Messages.Label_Custom_preview_contents, Messages.Tooltip_Custom_preview_contents);
         customPreviewButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -419,7 +419,7 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createShowWhitespacesCheckbox(Composite buttonBar) {
 
-        showWhitespacesCheckbox = UIUtils.createCheckbox(buttonBar, Messages.Label_Show_whitespaces, Messages.Tooltip_Show_whitespaces);
+        showWhitespacesCheckbox = WidgetFactory.createCheckbox(buttonBar, Messages.Label_Show_whitespaces, Messages.Tooltip_Show_whitespaces);
         showWhitespacesCheckbox.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -434,7 +434,7 @@ public class PreviewPanel implements IPropertyChangeListener {
      */
     private void createLineWidthSpinner(Composite buttonBar) {
 
-        previewVerticalRulerSpinner = UIUtils.createSpinner(buttonBar, Messages.Label_Preview_line_width, Messages.Tooltip_Preview_line_width, 0,
+        previewVerticalRulerSpinner = WidgetFactory.createSpinner(buttonBar, Messages.Label_Preview_line_width, Messages.Tooltip_Preview_line_width, 0,
             500);
         previewVerticalRulerSpinner.addModifyListener(new ModifyListener() {
             @Override

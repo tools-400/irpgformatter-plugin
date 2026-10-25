@@ -51,7 +51,7 @@ import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
-import de.tools400.lpex.irpgformatter.utils.UIUtils;
+import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 
 /**
  * Preference page for RPGLE Formatter settings.
@@ -224,7 +224,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         createIBMFormatterSettingsSubGroup(group);
 
-        UIUtils.createLineSeparator(group);
+        WidgetFactory.createLineSeparator(group);
 
         createIBMKeyBehaviorSettingsSubGroup(group);
     }
@@ -246,15 +246,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Start column
-        startColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column, Messages.Tooltip_IBM_Settings_Start_column);
+        startColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column, Messages.Tooltip_IBM_Settings_Start_column);
         startColumnText.setLayoutData(createTextGridData(60));
 
         // End column
-        endColumnText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column, Messages.Tooltip_IBM_Settings_End_column);
+        endColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column, Messages.Tooltip_IBM_Settings_End_column);
         endColumnText.setLayoutData(createTextGridData(60));
 
         // Indent length
-        spacesToIndentText = UIUtils.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent, Messages.Tooltip_IBM_Settings_Indent);
+        spacesToIndentText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent, Messages.Tooltip_IBM_Settings_Indent);
         spacesToIndentText.setLayoutData(createTextGridData(60));
     }
 
@@ -275,11 +275,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         });
 
         // Keyword casing style
-        casingStyleText = UIUtils.createReadOnlyText(parent, Messages.Label_Keyword_casing_style, Messages.Tooltip_Keyword_casing_style);
+        casingStyleText = WidgetFactory.createReadOnlyText(parent, Messages.Label_Keyword_casing_style, Messages.Tooltip_Keyword_casing_style);
         casingStyleText.setLayoutData(createTextGridData(120));
 
         // Execute IBM formatter before iRPGFormatter
-        executeIbmFormatterCheckbox = UIUtils.createCheckbox(parent, Messages.Label_Execute_IBM_formatter, Messages.Tooltip_Execute_IBM_formatter);
+        executeIbmFormatterCheckbox = WidgetFactory.createCheckbox(parent, Messages.Label_Execute_IBM_formatter, Messages.Tooltip_Execute_IBM_formatter);
         executeIbmFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
@@ -290,12 +290,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
 
         // Use const() keyword in dcl-c statements
-        useConstKeywordCheckbox = UIUtils.createCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword);
+        useConstKeywordCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword);
         useConstKeywordCheckbox.setLayoutData(createCheckboxGridData());
         useConstKeywordCheckbox.addSelectionListener(previewUpdater);
 
         // Place delimiter before parameter
-        putDelemiterBeforeParameterCheckbox = UIUtils.createCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
+        putDelemiterBeforeParameterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
             Messages.Tooltip_Put_delimiter_before_parameter);
         putDelemiterBeforeParameterCheckbox.setLayoutData(createCheckboxGridData());
         putDelemiterBeforeParameterCheckbox.addSelectionListener(previewUpdater);
@@ -311,37 +311,37 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         parameterSpacingStyleCombo.addSelectionListener(previewUpdater);
 
         // Align sub-fields/parameters
-        alignSubFieldsCheckbox = UIUtils.createCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields);
+        alignSubFieldsCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields);
         alignSubFieldsCheckbox.setLayoutData(createCheckboxGridData());
         alignSubFieldsCheckbox.addSelectionListener(previewUpdater);
 
         // Break literal between case change
-        breakNameOnCaseChangeCheckbox = UIUtils.createCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change);
+        breakNameOnCaseChangeCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Break_on_case_change, Messages.Tooltip_Break_on_case_change);
         breakNameOnCaseChangeCheckbox.setLayoutData(createCheckboxGridData());
         breakNameOnCaseChangeCheckbox.addSelectionListener(previewUpdater);
 
         // Break line before keyword
-        breakBeforeKeywordCheckbox = UIUtils.createCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword);
+        breakBeforeKeywordCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Break_before_keyword, Messages.Tooltip_Break_before_keyword);
         breakBeforeKeywordCheckbox.setLayoutData(createCheckboxGridData());
         breakBeforeKeywordCheckbox.addSelectionListener(previewUpdater);
 
         // Sort const/value to end of sub-field declarations
-        sortConstValueToEndCheckbox = UIUtils.createCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end);
+        sortConstValueToEndCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Sort_const_value_to_end, Messages.Tooltip_Sort_const_value_to_end);
         sortConstValueToEndCheckbox.setLayoutData(createCheckboxGridData());
         sortConstValueToEndCheckbox.addSelectionListener(previewUpdater);
 
         // Replace dcl-pi name with *N
-        replacePiNameCheckbox = UIUtils.createCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name);
+        replacePiNameCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Replace_pi_name, Messages.Tooltip_Replace_pi_name);
         replacePiNameCheckbox.setLayoutData(createCheckboxGridData());
         replacePiNameCheckbox.addSelectionListener(previewUpdater);
 
         // Remove end-proc name
-        removeEndProcNameCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name);
+        removeEndProcNameCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_end_proc_name, Messages.Tooltip_Remove_end_proc_name);
         removeEndProcNameCheckbox.setLayoutData(createCheckboxGridData());
         removeEndProcNameCheckbox.addSelectionListener(previewUpdater);
 
         // Unindent compiler directives
-        unindentCompilerDirectivesCheckbox = UIUtils.createCheckbox(group, Messages.Label_Unindent_compiler_directives,
+        unindentCompilerDirectivesCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Unindent_compiler_directives,
             Messages.Tooltip_Unindent_compiler_directives);
         unindentCompilerDirectivesCheckbox.setLayoutData(createCheckboxGridData());
         unindentCompilerDirectivesCheckbox.addSelectionListener(previewUpdater);
@@ -357,12 +357,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         };
 
         // Maximum name length
-        maxNameLengthSpinner = UIUtils.createSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100);
+        maxNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Max_name_length, Messages.Tooltip_Max_name_length, 51, 100);
         maxNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
         maxNameLengthSpinner.setLayoutData(createSpinnerGridData());
 
         // Minimum name length
-        minNameLengthSpinner = UIUtils.createSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50);
+        minNameLengthSpinner = WidgetFactory.createSpinner(group, Messages.Label_Min_name_length, Messages.Tooltip_Min_name_length, 1, 50);
         minNameLengthSpinner.addModifyListener(spinnerPreviewUpdater);
         minNameLengthSpinner.setLayoutData(createSpinnerGridData());
 
@@ -381,7 +381,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         minNameLengthSpinner.setData(PreviewPanel.PREVIEW_COMMENT_KEY, "// Break name on case change.");
 
         // Execute iRPG formatter
-        executeIrpgFormatterCheckbox = UIUtils.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
+        executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter, Messages.Tooltip_Execute_iRPG_formatter);
         executeIrpgFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
@@ -390,7 +390,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         Group group = createSubGroup(parent, Messages.Label_Save_Actions);
 
         // Format on save
-        formatOnSaveCheckbox = UIUtils.createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save);
+        formatOnSaveCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save);
         formatOnSaveCheckbox.setLayoutData(createCheckboxGridData());
     }
 
@@ -401,13 +401,13 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         SelectionListener previewUpdater = previewPanel.getPreviewUpdater();
 
         // Remove empty comment lines
-        removeEmptyCommentLinesCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_empty_comment_lines,
+        removeEmptyCommentLinesCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_empty_comment_lines,
             Messages.Tooltip_Remove_empty_comment_lines);
         removeEmptyCommentLinesCheckbox.setLayoutData(createCheckboxGridData());
         removeEmptyCommentLinesCheckbox.addSelectionListener(previewUpdater);
 
         // Remove empty lines before dcl-pi
-        removeEmptyLinesBeforeDclPiCheckbox = UIUtils.createCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
+        removeEmptyLinesBeforeDclPiCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
             Messages.Tooltip_Remove_empty_lines_before_dcl_pi);
         removeEmptyLinesBeforeDclPiCheckbox.setLayoutData(createCheckboxGridData());
         removeEmptyLinesBeforeDclPiCheckbox.addSelectionListener(previewUpdater);
@@ -422,7 +422,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         buttonComposite.setLayout(new GridLayout(2, false));
         buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        Button exportButton = UIUtils.createStandardButton(buttonComposite, Messages.Label_Export, Messages.Tooltip_Export);
+        Button exportButton = WidgetFactory.createStandardButton(buttonComposite, Messages.Label_Export, Messages.Tooltip_Export);
         exportButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -430,7 +430,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             }
         });
 
-        Button importButton = UIUtils.createStandardButton(buttonComposite, Messages.Label_Import, Messages.Tooltip_Import);
+        Button importButton = WidgetFactory.createStandardButton(buttonComposite, Messages.Label_Import, Messages.Tooltip_Import);
         importButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
