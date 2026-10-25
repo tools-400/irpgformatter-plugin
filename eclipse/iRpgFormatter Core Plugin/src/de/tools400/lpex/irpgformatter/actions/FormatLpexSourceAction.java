@@ -8,8 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.actions;
 
-import java.util.List;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import com.ibm.lpex.core.LpexAction;
@@ -17,7 +15,6 @@ import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -127,7 +124,9 @@ public class FormatLpexSourceAction implements LpexAction {
             }
 
             if (formatter.getErrorCount() > 0) {
-                reportFormattingErrors(formatter.getErrors());
+                formatter.logUnexpectedErrors(input.getName());
+                UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_formatted_with_N_errors, formatter.getErrorCount()),
+                    formatter.getErrorMessages());
             } else if (haveSelection && result.getLineCount() > 0) {
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
             } else {
@@ -140,31 +139,6 @@ public class FormatLpexSourceAction implements LpexAction {
         }
 
         restoreCursorPosition(view);
-    }
-
-    /**
-     * Shows the standard error-details dialog summarizing the failed statements
-     * and logs any unexpected underlying exceptions to the Eclipse error log so
-     * that they are not silently swallowed.
-     */
-    private void reportFormattingErrors(List<FormatError> errors) {
-
-        String[] details = new String[errors.size()];
-        for (int i = 0; i < errors.size(); i++) {
-            FormatError error = errors.get(i);
-            details[i] = error.getMessage();
-        }
-
-        UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_formatted_with_N_errors, errors.size()), details);
-
-        // Unexpected underlying exceptions still go to the Eclipse error log
-        // for post-mortem analysis. LineOverflowException-style errors carry
-        // a null cause and are intentionally only shown to the user.
-        for (FormatError error : errors) {
-            if (error.getCause() != null) {
-                IRpgleFormatterPlugin.logError(error.getMessage(), error.getCause());
-            }
-        }
     }
 
     private void saveCursorPosition(LpexView view) {

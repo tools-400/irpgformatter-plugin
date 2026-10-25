@@ -1295,6 +1295,34 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void getErrorMessages_returnsMessageOfEachError() throws RpgleFormatterException {
+
+        formatter.setSourceLength(3);
+
+        // @formatter:off
+        formatter.format(new TextLinesInput(
+            "**free",
+            "dcl-s f extproc('m');",
+            "dcl-s g extproc('n');"
+        ),0);
+        // @formatter:on
+
+        String[] messages = formatter.getErrorMessages();
+
+        assertEquals(2, messages.length);
+        assertTrue(messages[0], messages[0].contains("#2:"));
+        assertTrue(messages[1], messages[1].contains("#3:"));
+    }
+
+    @Test
+    public void getErrorMessages_isEmptyWithoutErrors() throws RpgleFormatterException {
+
+        formatter.format(new TextLinesInput("**free", "dcl-s f int(10);"), 0);
+
+        assertEquals(0, formatter.getErrorMessages().length);
+    }
+
+    @Test
     public void format_subFieldAlignment_mixedDclSubfPrefix() throws RpgleFormatterException {
         // Sub-fields may optionally start with `dcl-subf`. The prefix
         // contributes to the alignment column so that data types of all

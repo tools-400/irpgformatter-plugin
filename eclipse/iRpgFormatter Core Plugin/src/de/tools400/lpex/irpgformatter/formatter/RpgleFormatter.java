@@ -270,6 +270,43 @@ public class RpgleFormatter implements ILineNumberProvider {
     }
 
     /**
+     * Returns the messages of the errors of the last
+     * {@link #format(IRpgleInput, int)} call for the error dialog. Each message
+     * contains its line number.
+     *
+     * @return the messages (empty if all statements were formatted
+     *         successfully)
+     */
+    public String[] getErrorMessages() {
+
+        String[] messages = new String[errors.size()];
+        for (int i = 0; i < errors.size(); i++) {
+            messages[i] = errors.get(i).getMessage();
+        }
+
+        return messages;
+    }
+
+    /**
+     * Writes the unexpected errors of the last
+     * {@link #format(IRpgleInput, int)} call with their stack trace to the
+     * Eclipse error log, because the error dialog shows only the message.
+     * Expected errors like {@link LineOverflowException} have no cause and are
+     * not logged.
+     *
+     * @param sourceName name of the formatted source for the log message
+     */
+    public void logUnexpectedErrors(String sourceName) {
+
+        for (FormatError error : errors) {
+            if (error.getCause() != null) {
+                IRpgleFormatterPlugin.logError(
+                    String.format("Unexpected error on line %d of %s.", error.getStartLineNumber(), sourceName), error.getCause()); //$NON-NLS-1$
+            }
+        }
+    }
+
+    /**
      * Checks whether a COMMENT-type statement is a formatter directive.
      *
      * @return {@code -1} for {@code @formatter:off}, {@code +1} for

@@ -23,7 +23,6 @@ import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
-import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
@@ -164,13 +163,14 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);
+        formatter.logUnexpectedErrors(getPath(source));
 
         monitor.subTask(Messages.SubTask_Writing);
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formattedCount++;
             if (formatter.getErrorCount() > 0) {
-                statementErrors.add(new ErrorGroup(getPath(source), toDetailMessages(formatter.getErrors())));
+                statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorMessages()));
             }
         } else {
             errors.add(new SourceError(getPath(source), Messages.Error_Could_not_format_member));
@@ -205,18 +205,6 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         // throws SystemMessageException on failure
         connection.connect();
-    }
-
-    /**
-     * Returns the messages of the errors; each message contains its line
-     * number.
-     */
-    private static String[] toDetailMessages(List<FormatError> formatErrors) {
-        String[] details = new String[formatErrors.size()];
-        for (int i = 0; i < formatErrors.size(); i++) {
-            details[i] = formatErrors.get(i).getMessage();
-        }
-        return details;
     }
 
     /**

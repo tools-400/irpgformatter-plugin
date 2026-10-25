@@ -79,6 +79,8 @@ public final class FormatOnSaveListener {
             FormattedResult result = formatter.format(input, defaultIndent);
             IRpgleOutput output = input.getOutput();
             output.writeSourceLines(result);
+            // No dialog on save, but a bug must not get lost.
+            formatter.logUnexpectedErrors(input.getName());
         }
     }
 }
