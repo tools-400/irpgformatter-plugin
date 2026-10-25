@@ -12,9 +12,8 @@ import java.util.Map;
 
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
 
-public class FormatSpecialWordsRule extends AbstractCasingRule implements IFormattingRule {
+public class FormatSpecialWordsRule extends AbstractLookupCasingRule {
 
     public FormatSpecialWordsRule() {
         super(Preferences.getInstance().getSpecialWords());
@@ -22,23 +21,5 @@ public class FormatSpecialWordsRule extends AbstractCasingRule implements IForma
 
     public FormatSpecialWordsRule(Map<String, String> specialWords, KeywordCasingStyle keywordCasingStyle) {
         super(specialWords, keywordCasingStyle);
-    }
-
-    @Override
-    public String format(String value) {
-
-        String result;
-
-        Map<String, String> keywordsMap = getFormattingMap();
-
-        String key = value.toUpperCase();
-        String canonical = keywordsMap.get(key);
-        if (canonical != null) {
-            result = KeywordCasingUtils.apply(canonical, getKeywordCasingStyle());
-        } else {
-            result = value;
-        }
-
-        return result;
     }
 }

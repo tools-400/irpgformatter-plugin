@@ -12,10 +12,8 @@ import java.util.Map;
 
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
-import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
 
-public class FormatDataTypeRule extends AbstractCasingRule implements IFormattingRule, RpgleSourceConstants {
+public class FormatDataTypeRule extends AbstractLookupCasingRule {
 
     public FormatDataTypeRule() {
         super(Preferences.getInstance().getDataTypes());
@@ -23,23 +21,5 @@ public class FormatDataTypeRule extends AbstractCasingRule implements IFormattin
 
     public FormatDataTypeRule(Map<String, String> dataTypes, KeywordCasingStyle keywordCasingStyle) {
         super(dataTypes, keywordCasingStyle);
-    }
-
-    @Override
-    public String format(String value) {
-
-        String result;
-
-        Map<String, String> keywordsMap = getFormattingMap();
-
-        String key = value.toUpperCase();
-        String canonical = keywordsMap.get(key);
-        if (canonical != null) {
-            result = KeywordCasingUtils.apply(canonical, getKeywordCasingStyle());
-        } else {
-            result = value;
-        }
-
-        return result;
     }
 }

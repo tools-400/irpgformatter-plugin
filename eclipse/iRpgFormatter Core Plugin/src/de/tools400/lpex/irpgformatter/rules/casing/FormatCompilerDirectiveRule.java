@@ -8,8 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.rules.casing;
 
-import java.util.Map;
-
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
@@ -29,11 +27,11 @@ import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
 public class FormatCompilerDirectiveRule extends AbstractCasingRule implements IFormattingRule, RpgleSourceConstants {
 
     public FormatCompilerDirectiveRule() {
-        super(null);
+        super();
     }
 
     public FormatCompilerDirectiveRule(KeywordCasingStyle keywordCasingStyle) {
-        super(null, keywordCasingStyle);
+        super(keywordCasingStyle);
     }
 
     @Override
@@ -103,10 +101,5 @@ public class FormatCompilerDirectiveRule extends AbstractCasingRule implements I
         default:
             return directive.toLowerCase();
         }
-    }
-
-    @Override
-    protected Map<String, String> getFormattingMap() {
-        throw new IllegalAccessError("Not implemented.");
     }
 }

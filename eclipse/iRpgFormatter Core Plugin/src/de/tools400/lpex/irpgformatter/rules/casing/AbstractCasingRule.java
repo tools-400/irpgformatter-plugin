@@ -8,28 +8,26 @@
 
 package de.tools400.lpex.irpgformatter.rules.casing;
 
-import java.util.Map;
-
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 
+/**
+ * Base class of the casing rules. Holds the keyword casing style.
+ */
 public abstract class AbstractCasingRule {
 
-    private Map<String, String> formattingMap;
-    private KeywordCasingStyle keywordCasingStyle;
+    private final KeywordCasingStyle keywordCasingStyle;
 
-    public AbstractCasingRule(Map<String, String> formattingMap) {
-        this.formattingMap = formattingMap;
-        this.keywordCasingStyle = null;
+    /**
+     * Creates a rule, that takes the keyword casing style from the
+     * {@link Preferences}.
+     */
+    public AbstractCasingRule() {
+        this(null);
     }
 
-    public AbstractCasingRule(Map<String, String> formattingMap, KeywordCasingStyle keywordCasingStyle) {
-        this.formattingMap = formattingMap;
+    public AbstractCasingRule(KeywordCasingStyle keywordCasingStyle) {
         this.keywordCasingStyle = keywordCasingStyle;
-    }
-
-    protected Map<String, String> getFormattingMap() {
-        return formattingMap;
     }
 
     /**

@@ -8,7 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.rules.casing;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,11 +42,11 @@ public class FormatCompileTimeArrayRule extends AbstractCasingRule implements IF
     private static final Pattern CTDATA_PATTERN = Pattern.compile("^\\s*\\*\\*\\s*(ctdata)\\b", Pattern.CASE_INSENSITIVE);
 
     public FormatCompileTimeArrayRule() {
-        super(null);
+        super();
     }
 
     public FormatCompileTimeArrayRule(KeywordCasingStyle keywordCasingStyle) {
-        super(null, keywordCasingStyle);
+        super(keywordCasingStyle);
     }
 
     @Override
@@ -83,10 +82,5 @@ public class FormatCompileTimeArrayRule extends AbstractCasingRule implements IF
         default:
             return keyword.toLowerCase();
         }
-    }
-
-    @Override
-    protected Map<String, String> getFormattingMap() {
-        throw new IllegalAccessError("Not implemented.");
     }
 }
