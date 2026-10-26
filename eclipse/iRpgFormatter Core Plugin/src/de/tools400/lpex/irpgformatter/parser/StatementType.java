@@ -12,6 +12,11 @@ import java.util.regex.Pattern;
 
 /**
  * Enumeration of RPGLE statement types that the formatter handles.
+ * <p>
+ * {@link StatementIdentifier#identifyStatementType(String)} tries the patterns
+ * in the order of declaration. Only a <code>**FREE</code> line matches two
+ * patterns, therefore <code>FREE_DIRECTIVE</code> must be declared before
+ * <code>COMPILE_TIME_ARRAY</code>.
  */
 public enum StatementType {
 
@@ -39,6 +44,8 @@ public enum StatementType {
     /** Standalone variable (dcl-s) */
     DCL_S ("^\\s*dcl-s\\b"),
 
+    /* End block statements */
+
     /** End of data structure (end-ds) */
     END_DS ("^\\s*end-ds\\b"),
 
@@ -53,6 +60,8 @@ public enum StatementType {
 
     /** End of enumeration (end-enum) */
     END_ENUM ("^\\s*end-enum\\b"),
+
+    /* Start block statements */
 
     /** Start of data structure (dcl-ds) */
     DCL_DS ("^\\s*dcl-ds\\b", true, END_DS),
@@ -72,7 +81,7 @@ public enum StatementType {
     /** Subfield declaration (dcl-subf) */
     DCL_SUBF (null),
 
-    /** Subfield declaration (dcl-subf) */
+    /** Compile-time data (**CTDATA, **ALTSEQ, **FTRANS) */
     COMPILE_TIME_ARRAY ("^[*]{2}(\\s*ctdata.*)?"),
 
     /** Other statement types (not formatted) */

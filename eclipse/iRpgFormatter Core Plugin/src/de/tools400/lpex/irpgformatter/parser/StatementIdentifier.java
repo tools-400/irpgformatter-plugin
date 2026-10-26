@@ -19,8 +19,8 @@ public class StatementIdentifier implements RpgleSourceConstants {
 
     /**
      * Identifies statement type with block context awareness. If inside a block
-     * (dcl-ds, dcl-pr, dcl-pi) and statement is OTHER, it is treated as a
-     * sub-statement (DCL_SUBF).
+     * (dcl-ds, dcl-pr, dcl-pi, dcl-enum) and statement is OTHER, it is treated
+     * as a sub-statement (DCL_SUBF).
      */
     public static StatementType identifyStatementTypeInContext(CollectedStatement statement) throws RpgleFormatterException {
 
@@ -104,9 +104,11 @@ public class StatementIdentifier implements RpgleSourceConstants {
     }
 
     /**
-     * Identifies the type of RPGLE statement. Note: Sub-statements (DCL_SUBF)
-     * are identified based on block context, not by leading whitespace. Use
-     * identifyStatementTypeInContext() for context-aware identification.
+     * Identifies the type of RPGLE statement by the first statement type, whose
+     * pattern matches, in the order of declaration. Note: Sub-statements
+     * (DCL_SUBF) are identified based on block context, not by leading
+     * whitespace. Use identifyStatementTypeInContext() for context-aware
+     * identification.
      */
     public static StatementType identifyStatementType(String line) {
 
@@ -114,67 +116,10 @@ public class StatementIdentifier implements RpgleSourceConstants {
             return StatementType.BLANK;
         }
 
-        if (StatementType.FREE_DIRECTIVE.pattern().matcher(line).find()) {
-            return StatementType.FREE_DIRECTIVE;
-        }
-        if (StatementType.COMPILE_TIME_ARRAY.pattern().matcher(line).find()) {
-            return StatementType.COMPILE_TIME_ARRAY;
-        }
-
-        if (StatementType.COMMENT.pattern().matcher(line).find()) {
-            return StatementType.COMMENT;
-        }
-        if (StatementType.COMPILER_DIRECTIVE.pattern().matcher(line).find()) {
-            return StatementType.COMPILER_DIRECTIVE;
-        }
-
-        if (StatementType.CTL_OPT.pattern().matcher(line).find()) {
-            return StatementType.CTL_OPT;
-        }
-        if (StatementType.DCL_F.pattern().matcher(line).find()) {
-            return StatementType.DCL_F;
-        }
-        if (StatementType.DCL_C.pattern().matcher(line).find()) {
-            return StatementType.DCL_C;
-        }
-        if (StatementType.DCL_S.pattern().matcher(line).find()) {
-            return StatementType.DCL_S;
-        }
-
-        /* End block statements */
-
-        if (StatementType.END_DS.pattern().matcher(line).find()) {
-            return StatementType.END_DS;
-        }
-        if (StatementType.END_ENUM.pattern().matcher(line).find()) {
-            return StatementType.END_ENUM;
-        }
-        if (StatementType.END_PROC.pattern().matcher(line).find()) {
-            return StatementType.END_PROC;
-        }
-        if (StatementType.END_PR.pattern().matcher(line).find()) {
-            return StatementType.END_PR;
-        }
-        if (StatementType.END_PI.pattern().matcher(line).find()) {
-            return StatementType.END_PI;
-        }
-
-        /* Start block statements */
-
-        if (StatementType.DCL_DS.pattern().matcher(line).find()) {
-            return StatementType.DCL_DS;
-        }
-        if (StatementType.DCL_ENUM.pattern().matcher(line).find()) {
-            return StatementType.DCL_ENUM;
-        }
-        if (StatementType.DCL_PROC.pattern().matcher(line).find()) {
-            return StatementType.DCL_PROC;
-        }
-        if (StatementType.DCL_PR.pattern().matcher(line).find()) {
-            return StatementType.DCL_PR;
-        }
-        if (StatementType.DCL_PI.pattern().matcher(line).find()) {
-            return StatementType.DCL_PI;
+        for (StatementType type : StatementType.values()) {
+            if (type.pattern() != null && type.pattern().matcher(line).find()) {
+                return type;
+            }
         }
 
         return StatementType.OTHER;
