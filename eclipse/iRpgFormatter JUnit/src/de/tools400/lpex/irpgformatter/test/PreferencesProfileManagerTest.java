@@ -10,14 +10,18 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -33,6 +37,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXParseException;
 
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
@@ -238,6 +243,44 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     public void importProfile_invalidNumberFails() throws Exception {
 
         importProfile(writeProfile("<setting id=\"maxNameLength\" value=\"abc\"/>"));
+    }
+
+    @Test
+    public void importProfile_doesNotResolveExternalEntities() throws Exception {
+
+        File secret = folder.newFile("secret.txt");
+        Files.write(secret.toPath(), "SECRET".getBytes(StandardCharsets.UTF_8));
+        File file = writeFile("<!DOCTYPE profiles [ <!ENTITY ext SYSTEM \"" + secret.toURI() + "\"> ]>"
+            + "<profiles version=\"1\"><profile kind=\"iRPGFormatterProfile\" name=\"iRPGFormatter\" version=\"1\">"
+            + "<setting id=\"customPreviewSource\">&ext;</setting></profile></profiles>");
+
+        ProfileData data = new ProfileData();
+        try {
+            importProfile(file, data);
+            fail("SAXParseException expected");
+        } catch (SAXParseException e) {
+            // A profile must not have a DOCTYPE
+        }
+        assertNull(data.getCustomPreviewSource());
+    }
+
+    @Test
+    public void importProfile_reportsInvalidFileOnlyByException() throws Exception {
+
+        File file = writeFile("<profiles version=\"1\"><profile kind=\"iRPGFormatterProfile\">");
+
+        PrintStream originalErr = System.err;
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        System.setErr(new PrintStream(err, true));
+        try {
+            importProfile(file, new ProfileData());
+            fail("SAXParseException expected");
+        } catch (SAXParseException e) {
+            // The file is not complete
+        } finally {
+            System.setErr(originalErr);
+        }
+        assertEquals("", err.toString());
     }
 
     /**

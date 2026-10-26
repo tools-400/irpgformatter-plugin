@@ -32,6 +32,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Handles import and export of iRPGFormatter preference profiles as XML files.
@@ -66,6 +67,8 @@ public final class PreferencesProfileManager {
     private static final String ATTR_ID = "id";
     private static final String ATTR_VALUE = "value";
     private static final String ATTR_KEY = "key";
+
+    private static final String FEATURE_DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
 
     /*
      * The settings of the profile file in the order of the export. Their IDs
@@ -218,7 +221,14 @@ public final class PreferencesProfileManager {
     private static Element readProfileElement(String filePath) throws Exception {
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        // A profile has no DOCTYPE. Without a DOCTYPE the parser cannot resolve
+        // external entities, which would read local files or URLs.
+        factory.setFeature(FEATURE_DISALLOW_DOCTYPE_DECL, true);
         DocumentBuilder builder = factory.newDocumentBuilder();
+        // DefaultHandler throws fatal errors and ignores the others like the
+        // default error handler of the parser, but does not print them on
+        // System.err.
+        builder.setErrorHandler(new DefaultHandler());
         Document doc = builder.parse(new File(filePath));
         doc.getDocumentElement().normalize();
 
