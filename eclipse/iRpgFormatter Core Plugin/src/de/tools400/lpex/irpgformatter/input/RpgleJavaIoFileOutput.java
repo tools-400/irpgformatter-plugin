@@ -8,18 +8,25 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Writes formatted source lines back to a {@link java.io.File}.
+ * Writes formatted source lines back to a {@link java.io.File}. The line
+ * separator of the file is kept.
  */
 public class RpgleJavaIoFileOutput implements IRpgleOutput {
 
@@ -36,20 +43,31 @@ public class RpgleJavaIoFileOutput implements IRpgleOutput {
 
         try {
 
-            String[] lines = result.toLines();
-            String content = String.join(System.lineSeparator(), lines);
+            String content = FileUtils.joinLines(result.toLines(), getLineSeparator());
 
-            Writer writer = new OutputStreamWriter(new FileOutputStream(file, false), charset);
-            try {
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, false), charset)) {
                 writer.write(content);
-            } finally {
-                writer.close();
             }
 
             return true;
 
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, file.getName()), e);
+        }
+    }
+
+    /**
+     * Returns the line separator of the existing file, so that formatting does
+     * not change it.
+     */
+    private String getLineSeparator() throws IOException {
+
+        if (!file.exists()) {
+            return System.lineSeparator();
+        }
+
+        try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
+            return FileUtils.detectLineSeparator(reader, System.lineSeparator());
         }
     }
 }

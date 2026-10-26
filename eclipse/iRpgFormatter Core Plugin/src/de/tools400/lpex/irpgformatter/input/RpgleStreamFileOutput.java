@@ -8,18 +8,25 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Writes formatted source lines back to an Eclipse IFile.
+ * Writes formatted source lines back to an Eclipse IFile. The line separator
+ * of the file is kept.
  */
 public class RpgleStreamFileOutput implements IRpgleOutput {
 
@@ -34,9 +41,8 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
 
         try {
 
-            String[] lines = result.toLines();
-            String content = String.join(System.lineSeparator(), lines);
             Charset charset = Charset.forName(file.getCharset());
+            String content = FileUtils.joinLines(result.toLines(), getLineSeparator(charset));
             InputStream stream = new ByteArrayInputStream(content.getBytes(charset));
             file.setContents(stream, true, true, null);
 
@@ -44,6 +50,17 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
 
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, file.getName()), e);
+        }
+    }
+
+    /**
+     * Returns the line separator of the existing file, so that formatting does
+     * not change it.
+     */
+    private String getLineSeparator(Charset charset) throws CoreException, IOException {
+
+        try (Reader reader = new BufferedReader(new InputStreamReader(file.getContents(), charset))) {
+            return FileUtils.detectLineSeparator(reader, System.lineSeparator());
         }
     }
 }
