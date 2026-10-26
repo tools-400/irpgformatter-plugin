@@ -185,6 +185,34 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         assertEquals("dcl-s msg char(100) inz('Hello   World');", result);
     }
 
+    /**
+     * The compiler ignores blanks behind the continuation character (checked
+     * on IBM i 7.5).
+     */
+    @Test
+    public void joinContinuedLines_plusContinuationWithTrailingBlanks() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-s msg char(100) inz('Hello +   ",
+            "  World');"
+        };
+        // @formatter:on
+        String result = joinStatements(lines).getStatement();
+        assertEquals("dcl-s msg char(100) inz('Hello World');", result);
+    }
+
+    @Test
+    public void joinContinuedLines_hyphenContinuationWithTrailingBlanks() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-s msg char(100) inz('Hello -   ",
+            "  World');"
+        };
+        // @formatter:on
+        String result = joinStatements(lines).getStatement();
+        assertEquals("dcl-s msg char(100) inz('Hello   World');", result);
+    }
+
     @Test
     public void joinContinuedLines_noMarkers() throws RpgleFormatterException {
         // @formatter:off

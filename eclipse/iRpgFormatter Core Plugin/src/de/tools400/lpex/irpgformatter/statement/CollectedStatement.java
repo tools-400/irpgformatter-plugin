@@ -267,10 +267,11 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     /**
      * Returns <code>true</code>, if the character inside a literal is a plus
-     * or hyphen at the end of the line, which continues the literal.
+     * or hyphen, which continues the literal: the last character of the line
+     * except blanks, which the compiler ignores there.
      */
     private boolean isLiteralContinuation(String line, int i) {
-        return i == line.length() - 1 && (line.startsWith(PLUS, i) || line.startsWith(HYPHEN, i));
+        return (line.startsWith(PLUS, i) || line.startsWith(HYPHEN, i)) && line.substring(i + 1).trim().isEmpty();
     }
 
     /**

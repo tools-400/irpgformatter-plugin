@@ -1342,6 +1342,19 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertArrayEquals(source, formatter.format(new TextLinesInput(result), 0).toLines());
     }
 
+    /**
+     * Blanks behind the continuation character of a literal must not change
+     * its value: the compiler ignores them.
+     */
+    @Test
+    public void format_literalContinuationWithTrailingBlanks() throws RpgleFormatterException {
+
+        String[] expected = formatter.format(new TextLinesInput("**free", "dcl-c TEXT 'abc+", "  def';"), 0).toLines();
+        String[] result = formatter.format(new TextLinesInput("**free", "dcl-c TEXT 'abc+   ", "  def';"), 0).toLines();
+
+        assertArrayEquals(expected, result);
+    }
+
     @Test
     public void format_subFieldAlignment_mixedDclSubfPrefix() throws RpgleFormatterException {
         // Sub-fields may optionally start with `dcl-subf`. The prefix
