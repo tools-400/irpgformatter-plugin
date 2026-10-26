@@ -212,12 +212,12 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         return statement.length() == 0;
     }
 
+    /**
+     * Adds a line to the statement. Outside a literal a semicolon ends the
+     * statement and three dots continue a name on the next line; inside a
+     * literal a plus or hyphen at the end of the line continues the literal.
+     */
     private void buildStatement(String line) throws RpgleFormatterException {
-
-        String currentChar;
-        String nextChar;
-        String nameContinuation;
-        boolean isLastChar;
 
         String lineTrimmed;
         if (!leftTrimNextLine) {
@@ -228,18 +228,9 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
         for (int i = 0; i < lineTrimmed.length(); i++) {
 
-            isLastChar = (i == lineTrimmed.length() - 1);
-
-            currentChar = lineTrimmed.substring(i, i + 1);
-            if (i + 1 < lineTrimmed.length()) {
-                nextChar = lineTrimmed.substring(i + SINGLE_QUOTE.length());
-            } else {
-                nextChar = null;
-            }
-
-            if (SINGLE_QUOTE.equals(currentChar)) {
-                if (SINGLE_QUOTE.equals(nextChar)) {
-                    // skip 2 single quotes in a row
+            if (lineTrimmed.startsWith(SINGLE_QUOTE, i)) {
+                if (lineTrimmed.startsWith(SINGLE_QUOTE, i + 1)) {
+                    // Two single quotes: an escaped quote
                     i++;
                 } else {
                     insideLiteral = !insideLiteral;
@@ -247,49 +238,66 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
             }
 
             if (!insideLiteral) {
-                // Outside a literal the is no continuation character or there
-                // are three dots indicating that a name is continued in the
-                // next line.
-                if (SEMICOLON.equals(currentChar)) {
+                if (lineTrimmed.startsWith(SEMICOLON, i)) {
                     appendLineSegment(lineTrimmed);
                     setStatementComplete();
                     return;
-                } else if (".".equals(currentChar)) {
-                    if (i + 2 < lineTrimmed.length()) {
-                        nameContinuation = lineTrimmed.substring(i, i + ELLIPSIS.length());
-                        if (nameContinuation.equals(ELLIPSIS)) {
-                            appendLineSegment(lineTrimmed, i);
-                            collectComment(lineTrimmed, i + ELLIPSIS.length());
-                            return;
-                        }
-                    }
                 }
-            } else {
-                // Inside a literal we expect PLUS and HYPHEN as continuation
-                // characters.
-                if (isLastChar) {
-                    if (PLUS.equals(currentChar)) {
-                        appendLineSegment(lineTrimmed, i);
-                        return;
-                    } else if (HYPHEN.equals(currentChar)) {
-                        appendLineSegment(lineTrimmed, i);
-                        leftTrimNextLine = false;
-                        return;
-                    }
+                if (lineTrimmed.startsWith(ELLIPSIS, i)) {
+                    continueName(lineTrimmed, i);
+                    return;
                 }
+            } else if (isLiteralContinuation(lineTrimmed, i)) {
+                continueLiteral(lineTrimmed, i);
+                return;
             }
         }
 
-        if (isLineComment(lineTrimmed)) {
-            // embedded line comment
-            collectComment(lineTrimmed.trim());
+        appendLineOrComment(lineTrimmed);
+    }
+
+    /**
+     * Appends the name up to the three dots, which continue it on the next
+     * line, and collects a comment behind them.
+     */
+    private void continueName(String line, int ellipsis) {
+        appendLineSegment(line, ellipsis);
+        collectComment(line, ellipsis + ELLIPSIS.length());
+    }
+
+    /**
+     * Returns <code>true</code>, if the character inside a literal is a plus
+     * or hyphen at the end of the line, which continues the literal.
+     */
+    private boolean isLiteralContinuation(String line, int i) {
+        return i == line.length() - 1 && (line.startsWith(PLUS, i) || line.startsWith(HYPHEN, i));
+    }
+
+    /**
+     * Appends the literal up to the continuation character. A plus continues
+     * the literal at the first non-blank character of the next line, a hyphen
+     * at its first character.
+     */
+    private void continueLiteral(String line, int continuation) {
+
+        appendLineSegment(line, continuation);
+        if (line.startsWith(HYPHEN, continuation)) {
+            leftTrimNextLine = false;
+        }
+    }
+
+    /**
+     * Collects a comment line or appends a line, that continues the statement,
+     * with a blank, unless it ends with an opening bracket.
+     */
+    private void appendLineOrComment(String line) {
+
+        if (isLineComment(line)) {
+            collectComment(line.trim());
+        } else if (line.endsWith(OPEN_BRACKET)) {
+            appendLineSegment(line);
         } else {
-            // simple continued line
-            if (lineTrimmed.endsWith(OPEN_BRACKET)) {
-                appendLineSegment(lineTrimmed);
-            } else {
-                appendLineSegment(lineTrimmed + " ");
-            }
+            appendLineSegment(line + " ");
         }
     }
 
