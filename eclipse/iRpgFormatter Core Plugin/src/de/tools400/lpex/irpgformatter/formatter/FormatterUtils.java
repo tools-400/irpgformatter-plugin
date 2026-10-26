@@ -574,29 +574,46 @@ public class FormatterUtils implements RpgleSourceConstants {
 
             String continuation = splitter.getContinuation();
 
-            String remaining = addPart(firstLine, value, breakPoint, continuation);
+            String remaining = addPart(firstLine, value, breakPoint);
             while (remaining.length() > 0) {
                 if (subIndent.length() + remaining.length() + suffix.length() <= maxNameLengthRule.apply(maxLineLength)) {
-                    remaining = addPart(subIndent, remaining, remaining.length(), suffix);
+                    parts.add(subIndent + remaining + suffix);
+                    remaining = "";
                 } else {
                     int maxLength = maxLineLength - subIndent.length() - continuation.length();
-                    remaining = addPart(subIndent, remaining, splitter.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength)), continuation);
+                    remaining = addPart(subIndent, remaining, splitter.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength)));
                 }
             }
         }
 
         /**
-         * Adds the line with the value up to the break point and the end.
+         * Adds the line with the value up to the break point and the
+         * continuation character. A part, that takes the whole rest of the
+         * value, is the last part instead: it ends with the suffix, if that
+         * fits into the line; otherwise its last character moves to the next
+         * line. A continuation character, that nothing continues, breaks the
+         * source.
          *
          * @return the rest of the value
+         * @throws LineOverflowException - not even one character fits into the
+         *         line, e.g. the last character with the suffix into a
+         *         continuation line; the next line would be no longer
          */
-        private String addPart(String line, String value, int breakPoint, String end) throws RpgleFormatterException {
+        private String addPart(String line, String value, int breakPoint) throws RpgleFormatterException {
+
+            if (breakPoint >= value.length()) {
+                if (line.length() + value.length() + suffix.length() <= maxLineLength) {
+                    parts.add(line + value + suffix);
+                    return "";
+                }
+                breakPoint = value.length() - 1;
+            }
 
             if (breakPoint <= 0) {
                 throw new LineOverflowException(value, getLineNumber());
             }
 
-            parts.add(line + value.substring(0, breakPoint) + end);
+            parts.add(line + value.substring(0, breakPoint) + splitter.getContinuation());
 
             return value.substring(breakPoint);
         }
