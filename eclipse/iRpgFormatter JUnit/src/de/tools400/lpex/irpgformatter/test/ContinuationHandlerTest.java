@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -211,6 +212,58 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         // @formatter:on
         String result = joinStatements(lines).getStatement();
         assertEquals("dcl-s msg char(100) inz('Hello   World');", result);
+    }
+
+    /**
+     * A comment at the end of a line, that does not end the statement, is
+     * collected like a whole comment line; the code goes on in the next line.
+     */
+    @Test
+    public void joinContinuedLines_commentAtEndOfContinuedLine() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-s x   // the name",
+            "  char(10);"
+        };
+        // @formatter:on
+        CollectedStatement statement = joinStatements(lines);
+        assertEquals("dcl-s x char(10);", statement.getStatement());
+        assertArrayEquals(new String[] { "// the name" }, statement.getEmbeddedComments());
+    }
+
+    /**
+     * A single quote in a comment line must not start a literal.
+     */
+    @Test
+    public void joinContinuedLines_quoteInEmbeddedComment() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-s x",
+            "  // it's the name",
+            "  char(10);",
+            "dcl-s y int(10);"
+        };
+        // @formatter:on
+        ContinuationHandler.setTestMode(true);
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals(2, statements.length);
+        assertEquals("dcl-s x char(10);", statements[0].getStatement());
+        assertEquals("dcl-s y int(10);", statements[1].getStatement());
+    }
+
+    /**
+     * A semicolon in a comment does not end the statement.
+     */
+    @Test
+    public void joinContinuedLines_semicolonInCommentAtEndOfContinuedLine() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-s z   // no end;",
+            "  int(10);"
+        };
+        // @formatter:on
+        String result = joinStatements(lines).getStatement();
+        assertEquals("dcl-s z int(10);", result);
     }
 
     @Test

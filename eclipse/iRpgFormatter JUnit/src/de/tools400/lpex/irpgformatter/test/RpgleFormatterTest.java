@@ -1355,6 +1355,19 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertArrayEquals(expected, result);
     }
 
+    /**
+     * A comment at the end of a line, that does not end the statement, goes in
+     * front of the statement, like a whole comment line; it must not swallow
+     * the code of the next line.
+     */
+    @Test
+    public void format_commentAtEndOfContinuedLine() throws RpgleFormatterException {
+
+        String[] result = formatter.format(new TextLinesInput("**free", "dcl-s x   // the name", "  char(10);"), 0).toLines();
+
+        assertArrayEquals(new String[] { "**free", "// the name", "dcl-s x char(10);" }, result);
+    }
+
     @Test
     public void format_subFieldAlignment_mixedDclSubfPrefix() throws RpgleFormatterException {
         // Sub-fields may optionally start with `dcl-subf`. The prefix

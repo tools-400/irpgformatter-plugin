@@ -247,6 +247,10 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
                     continueName(lineTrimmed, i);
                     return;
                 }
+                if (lineTrimmed.startsWith(COMMENT, i)) {
+                    continueBeforeComment(lineTrimmed, i);
+                    return;
+                }
             } else if (isLiteralContinuation(lineTrimmed, i)) {
                 continueLiteral(lineTrimmed, i);
                 return;
@@ -263,6 +267,21 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private void continueName(String line, int ellipsis) {
         appendLineSegment(line, ellipsis);
         collectComment(line, ellipsis + ELLIPSIS.length());
+    }
+
+    /**
+     * Appends the code in front of a comment, which ends the line, and
+     * collects the comment. The statement goes on in the next line, also if the
+     * comment contains a semicolon or a single quote. Like a whole comment
+     * line, the comment is put in front of the formatted statement.
+     */
+    private void continueBeforeComment(String line, int comment) {
+
+        String code = StringUtils.trimR(line.substring(0, comment));
+        if (!code.isEmpty()) {
+            appendLineOrComment(code);
+        }
+        collectComment(line.substring(comment));
     }
 
     /**
