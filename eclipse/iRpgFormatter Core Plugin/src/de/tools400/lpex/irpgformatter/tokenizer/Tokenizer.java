@@ -260,94 +260,76 @@ public class Tokenizer implements RpgleSourceConstants {
 
     private IToken parseTokenWithArgs(String line, int offset, TokenType type) throws RpgleFormatterException {
 
-        String name = null;
-        StringBuilder parameters = new StringBuilder();
-        boolean insideParameters = false;
-        int bracketDepth = 0;
+        int endOfName = findEndOfName(line);
+        String name = line.substring(0, endOfName);
 
-        String currentChar;
-
-        int i;
-        for (i = 0; i < line.length(); i++) {
-
-            currentChar = line.substring(i, i + 1);
-
-            // Collect a literal of the parameters as a whole, so that its
-            // brackets do not count
-            if (insideParameters && SINGLE_QUOTE.equals(currentChar)) {
-                int endOfLiteral = findEndOfLiteral(line, i);
-                parameters.append(line, i, endOfLiteral);
-                i = endOfLiteral - 1;
-                continue;
-            }
-
-            if (OPEN_BRACKET.equals(currentChar)) {
-                if (!insideParameters) {
-                    // Get keyword name and start collecting parameters
-                    name = line.substring(0, i);
-                    insideParameters = true;
-                    bracketDepth = 1;
-                } else {
-                    // Nested open bracket inside parameters (e.g.
-                    // dim(%elem(...)))
-                    parameters.append(currentChar);
-                    bracketDepth++;
-                }
-                continue;
-            }
-
-            if (insideParameters && CLOSE_BRACKET.equals(currentChar)) {
-                bracketDepth--;
-                if (bracketDepth == 0) {
-                    i++;
-                    break;
-                } else {
-                    // Nested close bracket — keep collecting
-                    parameters.append(currentChar);
-                }
-                continue;
-            }
-
-            if (insideParameters) {
-                // Collect keyword parameters
-                parameters.append(currentChar);
-            }
-
-            // Keyword without parameters
-            if (!insideParameters) {
-                if (SEMICOLON.equals(currentChar)) {
-                    name = line.substring(0, i);
-                    break;
-                } else if (SPACE.equals(currentChar)) {
-                    if (line.substring(i).trim().startsWith(OPEN_BRACKET)) {
-                        i = StringUtils.skipLeadingSpaces(line, i) - 1;
-                    } else {
-                        name = line.substring(0, i);
-                        break;
-                    }
-                }
-            }
+        String parameters = "";
+        int end = endOfName;
+        if (line.startsWith(OPEN_BRACKET, endOfName)) {
+            int closeBracket = findCloseBracket(line, endOfName);
+            parameters = line.substring(endOfName + 1, closeBracket);
+            end = Math.min(closeBracket + 1, line.length());
         }
 
-        // Bare token: loop exhausted input without finding any delimiter
-        // (e.g. `char` inside overlay(char) — no '(', space, or ';').
-        if (name == null) {
-            name = line.substring(0, i);
-        }
-
-        int rawLength = skipSpaceAndColon(line.substring(i)) + i;
+        int rawLength = skipSpaceAndColon(line.substring(end)) + end;
         String rawValue = line.substring(0, rawLength);
 
         IToken token = createToken(type, name, rawValue, offset);
 
         if (parameters.length() > 0) {
-            IToken[] argTokens = tokenize(parameters.toString());
+            IToken[] argTokens = tokenize(parameters);
             for (IToken argToken : argTokens) {
                 token.addChild(argToken);
             }
         }
 
         return token;
+    }
+
+    /**
+     * Returns the end of the name of a keyword, function or data type: the
+     * index of the opening bracket of its arguments, of the semicolon or blank
+     * behind a name without arguments or the length of the line, e.g. for
+     * <code>char</code> inside <code>overlay(char)</code>. Blanks before the
+     * opening bracket belong to the name.
+     */
+    private static int findEndOfName(String line) {
+
+        for (int i = 0; i < line.length(); i++) {
+            if (line.startsWith(OPEN_BRACKET, i) || line.startsWith(SEMICOLON, i)) {
+                return i;
+            }
+            if (line.startsWith(SPACE, i) && !line.substring(i).trim().startsWith(OPEN_BRACKET)) {
+                return i;
+            }
+        }
+
+        return line.length();
+    }
+
+    /**
+     * Returns the index of the bracket, that closes the given opening bracket,
+     * or the length of the line, if it is not closed. A literal is skipped as a
+     * whole, so that its brackets do not count, e.g. in
+     * <code>inz(')')</code>.
+     */
+    private static int findCloseBracket(String line, int openBracket) {
+
+        int bracketDepth = 0;
+        for (int i = openBracket; i < line.length(); i++) {
+            if (line.startsWith(SINGLE_QUOTE, i)) {
+                i = findEndOfLiteral(line, i) - 1;
+            } else if (line.startsWith(OPEN_BRACKET, i)) {
+                bracketDepth++;
+            } else if (line.startsWith(CLOSE_BRACKET, i)) {
+                bracketDepth--;
+                if (bracketDepth == 0) {
+                    return i;
+                }
+            }
+        }
+
+        return line.length();
     }
 
     private IToken createToken(TokenType type, String value, String rawValue, int offset) {
