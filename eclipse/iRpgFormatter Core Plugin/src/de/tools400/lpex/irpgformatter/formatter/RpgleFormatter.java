@@ -352,75 +352,59 @@ public class RpgleFormatter implements ILineNumberProvider {
      * Formats a single line based on its statement type.
      */
     private List<String> formatLine(CollectedStatement statement, StatementType type, int defaultIndent) throws RpgleFormatterException {
-        List<String> result = new ArrayList<>();
 
         int indent = statement.getIndentLevel() * config.getIndent() + defaultIndent;
 
         switch (type) {
         case BLANK:
-            // Add blank line without indent
-            result.add("");
-            break;
+            // Blank line without indent
+            return new ArrayList<>(Collections.singletonList(""));
         case FREE_DIRECTIVE:
-            // Add **free without indent, but case formatted
-            String freeSpecialWord = statement.getStatement();
-            freeSpecialWord = FormattingRules.applyFormattingRule(freeSpecialWord,
-                new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
-            result.add(freeSpecialWord);
-            break;
+            return formatFreeDirective(statement);
         case COMMENT:
-            // Keep original line
-            result.addAll(formatKeepOriginal(statement));
-            break;
+            return formatKeepOriginal(statement);
         case COMPILER_DIRECTIVE:
-            // Format with indent
-            result.addAll(formatCompilerDirective(statement, indent));
-            break;
+            return formatCompilerDirective(statement, indent);
         case COMPILE_TIME_ARRAY:
             // apply casing only
-            result.addAll(formatCompileTimeArray(statement, indent));
-            break;
+            return formatCompileTimeArray(statement, indent);
         case CTL_OPT:
-            // Format with indent
-            result.addAll(formatCtlOpt(statement, indent));
-            break;
+            return formatCtlOpt(statement, indent);
         case DCL_C:
-            // Format with indent
-            result.addAll(formatDclC(statement, indent));
-            break;
+            return formatDclC(statement, indent);
         case DCL_DS:
         case DCL_PR:
         case DCL_PI:
         case DCL_ENUM:
         case DCL_PROC:
-            // Format with indent
-            result.addAll(formatDclBlock(statement, type, indent));
-            break;
+            return formatDclBlock(statement, type, indent);
         case DCL_F:
         case DCL_S:
-            // Format with indent
-            result.addAll(formatDclStatement(statement, type, indent));
-            break;
+            return formatDclStatement(statement, type, indent);
         case DCL_SUBF:
-            // Format with indent
-            result.addAll(formatSubField(statement, indent));
-            break;
+            return formatSubField(statement, indent);
         case END_DS:
         case END_PR:
         case END_PI:
         case END_ENUM:
         case END_PROC:
-            // Format with indent
-            result.addAll(formatEndStatement(statement, type, indent));
-            break;
+            return formatEndStatement(statement, type, indent);
         case OTHER:
         default:
-            // Keep original line
-            result.addAll(formatKeepOriginal(statement));
-            break;
+            return formatKeepOriginal(statement);
         }
+    }
 
-        return result;
+    /**
+     * Formats the **free directive: without indent, but in the casing of the
+     * special words.
+     */
+    private List<String> formatFreeDirective(CollectedStatement statement) {
+
+        String freeSpecialWord = FormattingRules.applyFormattingRule(statement.getStatement(),
+            new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
+
+        return new ArrayList<>(Collections.singletonList(freeSpecialWord));
     }
 
     /**
