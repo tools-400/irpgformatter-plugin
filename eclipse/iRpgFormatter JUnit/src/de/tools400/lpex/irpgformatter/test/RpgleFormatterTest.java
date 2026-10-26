@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -1320,6 +1321,25 @@ public class RpgleFormatterTest extends AbstractTestCase {
         formatter.format(new TextLinesInput("**free", "dcl-s f int(10);"), 0);
 
         assertEquals(0, formatter.getErrorMessages().length);
+    }
+
+    /**
+     * A statement, that cannot be formatted, stays unchanged; its embedded
+     * comment must not be added a second time, not even by further runs.
+     */
+    @Test
+    public void format_errorKeepsEmbeddedCommentOnce() throws RpgleFormatterException {
+
+        // Source length 3: the statement cannot be formatted.
+        formatter.setSourceLength(3);
+        String[] source = { "**free", "dcl-s f", "  // embedded comment", "  extproc('m') ; // end comment" };
+
+        String[] result = formatter.format(new TextLinesInput(source), 0).toLines();
+        assertEquals(1, formatter.getErrorCount());
+        assertArrayEquals("Statement must stay unchanged", source, result);
+
+        // A second run must not change the source either.
+        assertArrayEquals(source, formatter.format(new TextLinesInput(result), 0).toLines());
     }
 
     @Test

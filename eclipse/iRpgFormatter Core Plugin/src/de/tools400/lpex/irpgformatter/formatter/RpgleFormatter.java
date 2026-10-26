@@ -234,10 +234,10 @@ public class RpgleFormatter implements ILineNumberProvider {
      */
     private List<String> formatOrKeepOriginal(CollectedStatement statement, StatementType type, int indent) {
 
-        List<String> stmtOutput = new ArrayList<>(Arrays.asList(statement.getEmbeddedComments()));
-
         try {
+            List<String> stmtOutput = new ArrayList<>(Arrays.asList(statement.getEmbeddedComments()));
             stmtOutput.addAll(formatLine(statement, type, indent));
+            return stmtOutput;
         } catch (Exception e) {
             Throwable unexpectedCause = null;
             if (e instanceof LineOverflowException) {
@@ -245,15 +245,14 @@ public class RpgleFormatter implements ILineNumberProvider {
             } else {
                 unexpectedCause = e;
             }
-            // Original-source fallback: keep the statement verbatim in the
-            // output so that later lines remain numbered correctly; the caller
-            // is informed via getErrors().
-            stmtOutput.addAll(statement.getOriginalStatements());
             errors.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, getMessageWithLineNumber(e),
                 unexpectedCause));
+            // Original-source fallback: keep the statement verbatim, so that
+            // later lines remain numbered correctly; the caller is informed
+            // via getErrors(). The original lines contain the embedded
+            // comments, too, so they must not be added again.
+            return new ArrayList<>(statement.getOriginalStatements());
         }
-
-        return stmtOutput;
     }
 
     /**
