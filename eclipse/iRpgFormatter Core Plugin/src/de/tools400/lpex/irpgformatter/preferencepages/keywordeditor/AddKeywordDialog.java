@@ -124,9 +124,9 @@ public class AddKeywordDialog extends TitleAreaDialog {
         });
 
         if (isSpecialWord) {
-            keyText.setMessage("e.g., *NOPASS");
+            keyText.setMessage(Messages.bind(Messages.Label_For_example_A, "*NOPASS"));
         } else {
-            keyText.setMessage("e.g., DCL-DS");
+            keyText.setMessage(Messages.bind(Messages.Label_For_example_A, "DCL-DS"));
         }
     }
 
@@ -146,9 +146,9 @@ public class AddKeywordDialog extends TitleAreaDialog {
         });
 
         if (isSpecialWord) {
-            valueText.setMessage("e.g., *NoPass");
+            valueText.setMessage(Messages.bind(Messages.Label_For_example_A, "*NoPass"));
         } else {
-            valueText.setMessage("e.g., Dcl-Ds");
+            valueText.setMessage(Messages.bind(Messages.Label_For_example_A, "Dcl-Ds"));
         }
     }
 

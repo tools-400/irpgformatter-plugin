@@ -54,6 +54,7 @@ public class Messages extends NLS {
     public static String Label_Remove;
     public static String Label_Key;
     public static String Label_Value;
+    public static String Label_For_example_A;
 
     public static String Label_All_Uppercase;
     public static String Label_UpperCamelCase;
