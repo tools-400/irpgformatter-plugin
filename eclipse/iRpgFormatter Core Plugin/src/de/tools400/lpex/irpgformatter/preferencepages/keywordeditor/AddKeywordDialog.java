@@ -24,7 +24,8 @@ import org.eclipse.swt.widgets.Text;
 import de.tools400.lpex.irpgformatter.Messages;
 
 /**
- * Dialog for adding a new keyword or keyword parameter.
+ * Dialog for adding or changing an entry of a keyword table: data type,
+ * declaration type, keyword or special word.
  */
 public class AddKeywordDialog extends TitleAreaDialog {
 
@@ -86,7 +87,20 @@ public class AddKeywordDialog extends TitleAreaDialog {
         container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         container.setLayout(new GridLayout(2, false));
 
-        // Key field
+        createKeyText(container);
+        createValueText(container);
+        setInitialValues();
+
+        return area;
+    }
+
+    /**
+     * Creates the key field. Its listener generates the canonical value from
+     * the key, as long as the value is empty or the canonical value of the
+     * previous key.
+     */
+    private void createKeyText(Composite container) {
+
         Label keyLabel = new Label(container, SWT.NONE);
         keyLabel.setText(Messages.Label_Key);
 
@@ -107,7 +121,15 @@ public class AddKeywordDialog extends TitleAreaDialog {
             }
         });
 
-        // Value field
+        if (isSpecialWord) {
+            keyText.setMessage("e.g., *NOPASS");
+        } else {
+            keyText.setMessage("e.g., DCL-DS");
+        }
+    }
+
+    private void createValueText(Composite container) {
+
         Label valueLabel = new Label(container, SWT.NONE);
         valueLabel.setText(Messages.Label_Value);
 
@@ -121,16 +143,18 @@ public class AddKeywordDialog extends TitleAreaDialog {
             }
         });
 
-        // Set initial hint
         if (isSpecialWord) {
-            keyText.setMessage("e.g., *NOPASS");
             valueText.setMessage("e.g., *NoPass");
         } else {
-            keyText.setMessage("e.g., DCL-DS");
             valueText.setMessage("e.g., Dcl-Ds");
         }
+    }
 
-        // Pre-fill with initial values (for change mode)
+    /**
+     * Pre-fills the fields with the entry to change.
+     */
+    private void setInitialValues() {
+
         if (initialKey != null) {
             key = initialKey.toUpperCase();
             keyText.setText(initialKey);
@@ -139,8 +163,6 @@ public class AddKeywordDialog extends TitleAreaDialog {
             value = initialValue;
             valueText.setText(initialValue);
         }
-
-        return area;
     }
 
     /**
