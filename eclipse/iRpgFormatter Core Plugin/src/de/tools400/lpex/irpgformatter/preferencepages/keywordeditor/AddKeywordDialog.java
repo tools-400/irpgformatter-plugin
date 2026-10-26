@@ -76,6 +76,9 @@ public class AddKeywordDialog extends TitleAreaDialog {
         setTitle(dialogTitle);
         setMessage(Messages.Label_Enter_the_keyword_key_and_its_canonical_value + "\n"
             + Messages.Label_The_key_will_be_converted_to_uppercase_automatically);
+        // Not in createDialogArea(): the listeners of the fields validate the
+        // input and enable the OK button, which does not exist there yet.
+        setInitialValues();
         validateInput();
     }
 
@@ -89,7 +92,6 @@ public class AddKeywordDialog extends TitleAreaDialog {
 
         createKeyText(container);
         createValueText(container);
-        setInitialValues();
 
         return area;
     }
