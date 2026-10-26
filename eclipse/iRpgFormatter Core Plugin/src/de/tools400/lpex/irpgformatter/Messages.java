@@ -164,6 +164,7 @@ public class Messages extends NLS {
     public static String Error_Export_failed_A;
     public static String Error_Import_failed_A;
     public static String Error_Invalid_profile_format_A;
+    public static String Info_Profile_does_not_contain_all_settings;
 
     public static String Job_Formatting_stream_files;
     public static String Job_Formatting_remote_stream_files;

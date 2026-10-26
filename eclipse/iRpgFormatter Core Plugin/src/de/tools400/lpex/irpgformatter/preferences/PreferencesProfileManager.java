@@ -10,9 +10,11 @@ package de.tools400.lpex.irpgformatter.preferences;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.ObjIntConsumer;
@@ -166,20 +168,23 @@ public final class PreferencesProfileManager {
     }
 
     /**
-     * Imports profile data from an XML file.
+     * Imports the settings of an XML file into the given profile data.
      * <p>
-     * Missing settings leave corresponding fields at their defaults, so partial
-     * profiles are supported.
+     * Settings, that are missing in the file, keep their values in the profile
+     * data, so partial profiles are supported. The custom preview source is
+     * not required, because it is only exported, if there is one.
      *
      * @param filePath the source file path
-     * @return the imported profile data
+     * @param data the profile data, that receives the settings of the file
+     * @return <code>true</code>, if the file contains all settings, otherwise
+     *         <code>false</code>
      * @throws Exception if reading or parsing fails
      */
-    public static ProfileData importProfile(String filePath) throws Exception {
+    public static boolean importProfile(String filePath, ProfileData data) throws Exception {
 
         Element profileElement = readProfileElement(filePath);
 
-        ProfileData data = new ProfileData();
+        Set<String> ids = new HashSet<>();
 
         // Read all <setting> elements
         NodeList settings = profileElement.getElementsByTagName(TAG_SETTING);
@@ -190,10 +195,20 @@ public final class PreferencesProfileManager {
             // levels; only the direct children of <profile> are settings.
             if (setting.getParentNode().equals(profileElement)) {
                 readSetting(setting, data);
+                ids.add(setting.getAttribute(ATTR_ID));
             }
         }
 
-        return data;
+        return containsAll(ids, SCALAR_SETTINGS) && containsAll(ids, MAP_SETTINGS);
+    }
+
+    private static boolean containsAll(Set<String> ids, List<? extends Setting<?>> settings) {
+        for (Setting<?> setting : settings) {
+            if (!ids.contains(setting.getId())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -348,20 +363,20 @@ public final class PreferencesProfileManager {
      */
     public static class ProfileData {
 
-        private String parameterSpacingStyle = ParameterSpacingStyle.BEFORE.name();
+        private String parameterSpacingStyle;
         private boolean useConstKeyword;
         private boolean delimiterBeforeParameter;
-        private boolean alignSubFields = true;
+        private boolean alignSubFields;
         private boolean breakBetweenCaseChange;
         private boolean breakBeforeKeyword;
         private boolean sortConstValueToEnd;
-        private boolean replacePiName = true;
-        private boolean removeEndProcName = true;
-        private boolean unindentCompilerDirectives = true;
-        private int maxNameLength = 60;
-        private int minNameLength = 20;
-        private boolean executeIbmFormatter = true;
-        private boolean executeIrpgFormatter = true;
+        private boolean replacePiName;
+        private boolean removeEndProcName;
+        private boolean unindentCompilerDirectives;
+        private int maxNameLength;
+        private int minNameLength;
+        private boolean executeIbmFormatter;
+        private boolean executeIrpgFormatter;
         private boolean formatOnSave;
         private boolean removeEmptyCommentLines;
         private boolean removeEmptyLinesBeforeDclPi;

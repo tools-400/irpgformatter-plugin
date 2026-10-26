@@ -9,7 +9,6 @@
 package de.tools400.lpex.irpgformatter.preferencepages;
 
 import java.io.File;
-import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -431,8 +430,13 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         try {
-            ProfileData data = PreferencesProfileManager.importProfile(filePath);
+            // Settings missing in a partial profile keep the values of the page.
+            ProfileData data = collectProfileDataFromUI();
+            boolean isComplete = PreferencesProfileManager.importProfile(filePath, data);
             applyProfileDataToUI(data);
+            if (!isComplete) {
+                MessageDialog.openInformation(getShell(), Messages.I_N_F_O_R_M_A_T_I_O_N, Messages.Info_Profile_does_not_contain_all_settings);
+            }
         } catch (IllegalArgumentException e) {
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Invalid_profile_format_A, ExceptionUtils.getLocalizedMessage(e)));
@@ -547,26 +551,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         removeEmptyCommentLinesCheckbox.setSelection(data.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(data.isRemoveEmptyLinesBeforeDclPi());
 
-        // Map settings (only apply if present in profile)
-        Map<String, String> dataTypes = data.getDataTypes();
-        if (dataTypes != null) {
-            dataTypesEditor.load(KeywordUtils.mapToEntries(dataTypes));
-        }
-
-        Map<String, String> declarationTypes = data.getDeclarationTypes();
-        if (declarationTypes != null) {
-            declarationTypesEditor.load(KeywordUtils.mapToEntries(declarationTypes));
-        }
-
-        Map<String, String> keywords = data.getKeywords();
-        if (keywords != null) {
-            keywordsEditor.load(KeywordUtils.mapToEntries(keywords));
-        }
-
-        Map<String, String> specialWords = data.getSpecialWords();
-        if (specialWords != null) {
-            specialWordsEditor.load(KeywordUtils.mapToEntries(specialWords));
-        }
+        // Map settings
+        dataTypesEditor.load(KeywordUtils.mapToEntries(data.getDataTypes()));
+        declarationTypesEditor.load(KeywordUtils.mapToEntries(data.getDeclarationTypes()));
+        keywordsEditor.load(KeywordUtils.mapToEntries(data.getKeywords()));
+        specialWordsEditor.load(KeywordUtils.mapToEntries(data.getSpecialWords()));
 
         // Custom preview source
         String customSource = data.getCustomPreviewSource();

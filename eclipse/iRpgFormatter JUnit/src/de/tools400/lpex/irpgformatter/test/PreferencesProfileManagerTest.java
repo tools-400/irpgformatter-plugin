@@ -10,7 +10,6 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -44,13 +43,23 @@ import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.Prof
  */
 public class PreferencesProfileManagerTest extends AbstractTestCase {
 
+    /**
+     * IDs of the settings, that a complete profile contains. The custom preview
+     * source is only exported, if there is one.
+     */
+    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("executeIbmFormatter", "useConstKeyword",
+        "delimiterBeforeParameter", "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword",
+        "sortConstValueToEnd", "replacePiName", "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength",
+        "executeIrpgFormatter", "formatOnSave", "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "dataTypes", "declarationTypes",
+        "keywords", "specialWords");
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
     public void exportProfile_writesProfileHeader() throws Exception {
 
-        Element profiles = parse(export(new ProfileData())).getDocumentElement();
+        Element profiles = parse(export(createData())).getDocumentElement();
         Element profile = (Element)profiles.getElementsByTagName("profile").item(0);
 
         assertEquals("profiles", profiles.getTagName());
@@ -63,10 +72,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     @Test
     public void exportProfile_writesSettingsInOrder() throws Exception {
 
-        List<String> expected = Arrays.asList("executeIbmFormatter", "useConstKeyword", "delimiterBeforeParameter", "parameterSpacingStyle",
-            "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName", "removeEndProcName",
-            "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatOnSave", "removeEmptyCommentLines",
-            "removeEmptyLinesBeforeDclPi", "dataTypes", "declarationTypes", "keywords", "specialWords", "customPreviewSource");
+        List<String> expected = new ArrayList<>(REQUIRED_SETTING_IDS);
+        expected.add("customPreviewSource");
 
         assertEquals(expected, getSettingIds(export(createData())));
     }
@@ -89,7 +96,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     @Test
     public void exportProfile_omitsEmptyCustomPreviewSource() throws Exception {
 
-        ProfileData data = new ProfileData();
+        ProfileData data = createData();
+        data.setCustomPreviewSource(null);
         assertFalse(getSettingIds(export(data)).contains("customPreviewSource"));
 
         data.setCustomPreviewSource("");
@@ -107,7 +115,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     @Test
     public void exportAndImport_normalizeCustomPreviewSource() throws Exception {
 
-        ProfileData data = new ProfileData();
+        ProfileData data = createData();
         data.setCustomPreviewSource("  \r\n**free\r\ndcl-s x char(10);\rreturn;\n  ");
 
         assertEquals("**free\ndcl-s x char(10);\nreturn;", importProfile(export(data)).getCustomPreviewSource());
@@ -116,22 +124,57 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     @Test
     public void exportAndImport_turnMissingMapIntoEmptyMap() throws Exception {
 
-        ProfileData imported = importProfile(export(new ProfileData()));
+        ProfileData data = createData();
+        data.setDataTypes(null);
+        data.setSpecialWords(null);
+
+        ProfileData imported = importProfile(export(data));
 
         assertTrue(imported.getDataTypes().isEmpty());
         assertTrue(imported.getSpecialWords().isEmpty());
     }
 
     @Test
-    public void importProfile_missingSettingsKeepDefaultsOfProfileData() throws Exception {
+    public void importProfile_missingSettingsKeepCurrentValues() throws Exception {
 
-        ProfileData imported = importProfile(writeProfile("<setting id=\"useConstKeyword\" value=\"true\"/>"));
+        ProfileData data = createData();
+        importProfile(writeProfile("<setting id=\"useConstKeyword\" value=\"false\"/>"), data);
 
-        ProfileData expected = new ProfileData();
-        expected.setUseConstKeyword(true);
-        assertEquals(dump(expected), dump(imported));
-        assertNull(imported.getDataTypes());
-        assertNull(imported.getCustomPreviewSource());
+        ProfileData expected = createData();
+        expected.setUseConstKeyword(false);
+        assertEquals(dump(expected), dump(data));
+    }
+
+    @Test
+    public void importProfile_completeProfileReturnsTrue() throws Exception {
+
+        assertTrue(importProfile(export(createData()), new ProfileData()));
+        assertTrue(importProfile(writeProfileWithout(null), new ProfileData()));
+    }
+
+    @Test
+    public void importProfile_profileWithoutCustomPreviewSourceReturnsTrue() throws Exception {
+
+        ProfileData data = createData();
+        data.setCustomPreviewSource(null);
+
+        assertTrue(importProfile(export(data), new ProfileData()));
+    }
+
+    @Test
+    public void importProfile_missingSettingReturnsFalse() throws Exception {
+
+        assertFalse(importProfile(writeProfileWithout("minNameLength"), new ProfileData()));
+        assertFalse(importProfile(writeProfileWithout("keywords"), new ProfileData()));
+    }
+
+    @Test
+    public void importProfile_unknownOrNestedSettingDoesNotReplaceMissingOne() throws Exception {
+
+        assertFalse(importProfile(writeProfileWithout("minNameLength", "<setting id=\"unknownSetting\" value=\"1\"/>"), new ProfileData()));
+        assertFalse(importProfile(
+            writeProfileWithout("minNameLength", "<setting id=\"dataTypes\"><setting id=\"minNameLength\" value=\"1\"/></setting>"),
+            new ProfileData()));
     }
 
     @Test
@@ -158,12 +201,15 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     @Test
     public void importProfile_readsBooleanOtherThanTrueAsFalse() throws Exception {
 
-        ProfileData imported = importProfile(writeProfile( //
-            "<setting id=\"alignSubFields\" value=\"yes\"/>", //
-            "<setting id=\"formatOnSave\" value=\"TRUE\"/>"));
+        ProfileData data = new ProfileData();
+        data.setAlignSubFields(true);
 
-        assertFalse(imported.isAlignSubFields());
-        assertTrue(imported.isFormatOnSave());
+        importProfile(writeProfile( //
+            "<setting id=\"alignSubFields\" value=\"yes\"/>", //
+            "<setting id=\"formatOnSave\" value=\"TRUE\"/>"), data);
+
+        assertFalse(data.isAlignSubFields());
+        assertTrue(data.isFormatOnSave());
     }
 
     @Test
@@ -253,7 +299,31 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     }
 
     private ProfileData importProfile(File file) throws Exception {
-        return PreferencesProfileManager.importProfile(file.getPath());
+
+        ProfileData data = new ProfileData();
+        importProfile(file, data);
+        return data;
+    }
+
+    private boolean importProfile(File file, ProfileData data) throws Exception {
+        return PreferencesProfileManager.importProfile(file.getPath(), data);
+    }
+
+    /**
+     * Writes a profile with all required settings except the given one and with
+     * the given additional settings.
+     */
+    private File writeProfileWithout(String missingId, String... additionalSettings) throws Exception {
+
+        List<String> settings = new ArrayList<>();
+        for (String id : REQUIRED_SETTING_IDS) {
+            if (!id.equals(missingId)) {
+                settings.add("<setting id=\"" + id + "\" value=\"1\"/>");
+            }
+        }
+        settings.addAll(Arrays.asList(additionalSettings));
+
+        return writeProfile(settings.toArray(new String[settings.size()]));
     }
 
     private File writeProfile(String... settings) throws Exception {
