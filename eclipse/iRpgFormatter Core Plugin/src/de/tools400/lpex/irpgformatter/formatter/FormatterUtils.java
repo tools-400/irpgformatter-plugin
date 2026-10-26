@@ -294,74 +294,99 @@ public class FormatterUtils implements RpgleSourceConstants {
     public String[] formatWithParameters(String line, IToken token, int maxLineLength, IFormattingRule... formattingRule)
         throws RpgleFormatterException {
 
-        boolean isBreakBeforeKeyword = config.isBreakBeforeKeyword();
+        String startKeyword = FormattingRules.applyFormattingRule(token.getValue(), formattingRule) + OPEN_BRACKET;
+        IToken[] children = token.getChildren();
+        String completeFunction = startKeyword + buildParameters(children) + CLOSE_BRACKET;
+
+        // Try the complete line.
+        if (line.length() + completeFunction.length() <= maxLineLength) {
+            return new String[] { line + completeFunction };
+        }
 
         List<String> result = new LinkedList<>();
 
-        String subIndent = formattingRules.createIndent(1);
-
-        String keyword = FormattingRules.applyFormattingRule(token.getValue(), formattingRule);
-        String startKeyword = keyword + OPEN_BRACKET;
-        IToken[] children = token.getChildren();
-        String parameters = buildParameters(children);
-
-        String endKeyword = CLOSE_BRACKET;
-
-        // Try the complete line.
-        String completeFunction = startKeyword + parameters + endKeyword;
-        if (line.length() + completeFunction.length() <= maxLineLength) {
-            result.add(line + completeFunction);
+        String currentLine;
+        if (config.isBreakBeforeKeyword()) {
+            currentLine = startOnNewLine(result, line, startKeyword, maxLineLength);
         } else {
-
-            String[] parameterLines;
-
-            String currentLine;
-            if (isBreakBeforeKeyword) {
-                if (!StringUtils.isNullOrEmpty(line)) {
-                    // Line overflow. Trim line.
-                    result.add(StringUtils.trimR(line));
-                }
-                if (subIndent.length() + startKeyword.length() < maxLineLength) {
-                    currentLine = subIndent + startKeyword;
-                } else {
-                    throw new LineOverflowException(startKeyword, getLineNumber());
-                }
-            } else {
-                if (line.length() + startKeyword.length() < maxLineLength) {
-                    currentLine = line + startKeyword;
-                } else {
-                    // Line overflow. Trim line.
-                    result.add(StringUtils.trimR(line));
-                    currentLine = subIndent + startKeyword;
-                }
-
-                // Break before parameter if closing bracket would go to next
-                // line
-                if (line.length() + completeFunction.length() - endKeyword.length() == maxLineLength) {
-                    // Line overflow. Trim line.
-                    result.add(StringUtils.trimR(currentLine));
-                    currentLine = subIndent;
-                }
-            }
-
-            parameterLines = formatParameters(currentLine, children, maxLineLength);
-
-            for (String parameterLine : parameterLines) {
-                result.add(StringUtils.trimR(parameterLine));
-            }
-
-            // Close function
-            int lastIndex = result.size() - 1;
-            String lastLine = result.get(lastIndex);
-            if (lastLine.length() + endKeyword.length() <= maxLineLength) {
-                lastLine = lastLine + endKeyword;
-                updateLastListItem(result, lastLine);
-            } else {
-                result.add(subIndent + endKeyword);
-            }
+            currentLine = startOnSameLine(result, line, startKeyword, completeFunction, maxLineLength);
         }
 
+        for (String parameterLine : formatParameters(currentLine, children, maxLineLength)) {
+            result.add(StringUtils.trimR(parameterLine));
+        }
+
+        closeBracket(result, maxLineLength);
+
         return result.toArray(new String[0]);
+    }
+
+    /**
+     * Ends the line and starts the keyword with the opening bracket on a
+     * continuation line ("break before keyword").
+     *
+     * @param result the complete lines; gets the ended line
+     * @return the line, to which the parameters are added
+     */
+    private String startOnNewLine(List<String> result, String line, String startKeyword, int maxLineLength) throws RpgleFormatterException {
+
+        if (!StringUtils.isNullOrEmpty(line)) {
+            // Line overflow. Trim line.
+            result.add(StringUtils.trimR(line));
+        }
+
+        String subIndent = formattingRules.createIndent(1);
+        if (subIndent.length() + startKeyword.length() >= maxLineLength) {
+            throw new LineOverflowException(startKeyword, getLineNumber());
+        }
+
+        return subIndent + startKeyword;
+    }
+
+    /**
+     * Adds the keyword with the opening bracket to the line, if it fits, or
+     * starts it on a continuation line. If the complete function would fit
+     * except for the closing bracket, the parameters start on a continuation
+     * line, so that the bracket does not stand alone on the next line.
+     *
+     * @param result the complete lines; gets the ended lines
+     * @return the line, to which the parameters are added
+     */
+    private String startOnSameLine(List<String> result, String line, String startKeyword, String completeFunction, int maxLineLength) {
+
+        String subIndent = formattingRules.createIndent(1);
+
+        String currentLine;
+        if (line.length() + startKeyword.length() < maxLineLength) {
+            currentLine = line + startKeyword;
+        } else {
+            // Line overflow. Trim line.
+            result.add(StringUtils.trimR(line));
+            currentLine = subIndent + startKeyword;
+        }
+
+        if (line.length() + completeFunction.length() - CLOSE_BRACKET.length() == maxLineLength) {
+            // Line overflow. Trim line.
+            result.add(StringUtils.trimR(currentLine));
+            currentLine = subIndent;
+        }
+
+        return currentLine;
+    }
+
+    /**
+     * Adds the closing bracket to the last line or, if it does not fit, on a
+     * continuation line.
+     */
+    private void closeBracket(List<String> result, int maxLineLength) {
+
+        int lastIndex = result.size() - 1;
+        String lastLine = result.get(lastIndex);
+        if (lastLine.length() + CLOSE_BRACKET.length() <= maxLineLength) {
+            result.set(lastIndex, lastLine + CLOSE_BRACKET);
+        } else {
+            result.add(formattingRules.createIndent(1) + CLOSE_BRACKET);
+        }
     }
 
     public String buildParameters(IToken[] tokens) {
@@ -673,20 +698,6 @@ public class FormatterUtils implements RpgleSourceConstants {
         }
 
         return parameter;
-    }
-
-    private static String updateLastListItem(List<String> listItems, String value) {
-
-        int lastIndex = listItems.size() - 1;
-
-        return updateListItem(listItems, lastIndex, value);
-    }
-
-    private static String updateListItem(List<String> listItems, int index, String value) {
-
-        listItems.set(index, value);
-
-        return value;
     }
 
     /**
