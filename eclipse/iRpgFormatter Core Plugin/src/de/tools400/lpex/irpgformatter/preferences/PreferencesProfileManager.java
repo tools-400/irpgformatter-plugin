@@ -9,8 +9,15 @@
 package de.tools400.lpex.irpgformatter.preferences;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.ObjIntConsumer;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,30 +66,41 @@ public final class PreferencesProfileManager {
     private static final String ATTR_KEY = "key";
 
     /*
-     * IDs of the settings in the profile file. They are part of the file format
-     * of exported profiles and must not change.
+     * The settings of the profile file in the order of the export. Their IDs
+     * are part of the file format of exported profiles and must not change.
      */
-    private static final String SETTING_EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
-    private static final String SETTING_USE_CONST_KEYWORD = "useConstKeyword";
-    private static final String SETTING_DELIMITER_BEFORE_PARAMETER = "delimiterBeforeParameter";
-    private static final String SETTING_PARAMETER_SPACING_STYLE = "parameterSpacingStyle";
-    private static final String SETTING_ALIGN_SUB_FIELDS = "alignSubFields";
-    private static final String SETTING_BREAK_BETWEEN_CASE_CHANGE = "breakBetweenCaseChange";
-    private static final String SETTING_BREAK_BEFORE_KEYWORD = "breakBeforeKeyword";
-    private static final String SETTING_SORT_CONST_VALUE_TO_END = "sortConstValueToEnd";
-    private static final String SETTING_REPLACE_PI_NAME = "replacePiName";
-    private static final String SETTING_REMOVE_END_PROC_NAME = "removeEndProcName";
-    private static final String SETTING_UNINDENT_COMPILER_DIRECTIVES = "unindentCompilerDirectives";
-    private static final String SETTING_MAX_NAME_LENGTH = "maxNameLength";
-    private static final String SETTING_MIN_NAME_LENGTH = "minNameLength";
-    private static final String SETTING_EXECUTE_IRPG_FORMATTER = "executeIrpgFormatter";
-    private static final String SETTING_FORMAT_ON_SAVE = "formatOnSave";
-    private static final String SETTING_REMOVE_EMPTY_COMMENT_LINES = "removeEmptyCommentLines";
-    private static final String SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "removeEmptyLinesBeforeDclPi";
-    private static final String SETTING_DATA_TYPES = "dataTypes";
-    private static final String SETTING_DECLARATION_TYPES = "declarationTypes";
-    private static final String SETTING_KEYWORDS = "keywords";
-    private static final String SETTING_SPECIAL_WORDS = "specialWords";
+    private static final List<Setting<String>> SCALAR_SETTINGS = Arrays.asList(
+        // IBM Settings
+        booleanSetting("executeIbmFormatter", ProfileData::isExecuteIbmFormatter, ProfileData::setExecuteIbmFormatter),
+
+        // General Settings
+        booleanSetting("useConstKeyword", ProfileData::isUseConstKeyword, ProfileData::setUseConstKeyword),
+        booleanSetting("delimiterBeforeParameter", ProfileData::isDelimiterBeforeParameter, ProfileData::setDelimiterBeforeParameter),
+        stringSetting("parameterSpacingStyle", ProfileData::getParameterSpacingStyle, ProfileData::setParameterSpacingStyle),
+        booleanSetting("alignSubFields", ProfileData::isAlignSubFields, ProfileData::setAlignSubFields),
+        booleanSetting("breakBetweenCaseChange", ProfileData::isBreakBetweenCaseChange, ProfileData::setBreakBetweenCaseChange),
+        booleanSetting("breakBeforeKeyword", ProfileData::isBreakBeforeKeyword, ProfileData::setBreakBeforeKeyword),
+        booleanSetting("sortConstValueToEnd", ProfileData::isSortConstValueToEnd, ProfileData::setSortConstValueToEnd),
+        booleanSetting("replacePiName", ProfileData::isReplacePiName, ProfileData::setReplacePiName),
+        booleanSetting("removeEndProcName", ProfileData::isRemoveEndProcName, ProfileData::setRemoveEndProcName),
+        booleanSetting("unindentCompilerDirectives", ProfileData::isUnindentCompilerDirectives, ProfileData::setUnindentCompilerDirectives),
+        intSetting("maxNameLength", ProfileData::getMaxNameLength, ProfileData::setMaxNameLength),
+        intSetting("minNameLength", ProfileData::getMinNameLength, ProfileData::setMinNameLength),
+        booleanSetting("executeIrpgFormatter", ProfileData::isExecuteIrpgFormatter, ProfileData::setExecuteIrpgFormatter),
+
+        // Save Actions
+        booleanSetting("formatOnSave", ProfileData::isFormatOnSave, ProfileData::setFormatOnSave),
+
+        // Experimental Settings
+        booleanSetting("removeEmptyCommentLines", ProfileData::isRemoveEmptyCommentLines, ProfileData::setRemoveEmptyCommentLines),
+        booleanSetting("removeEmptyLinesBeforeDclPi", ProfileData::isRemoveEmptyLinesBeforeDclPi, ProfileData::setRemoveEmptyLinesBeforeDclPi));
+
+    private static final List<Setting<Map<String, String>>> MAP_SETTINGS = Arrays.asList(
+        new Setting<>("dataTypes", ProfileData::getDataTypes, ProfileData::setDataTypes),
+        new Setting<>("declarationTypes", ProfileData::getDeclarationTypes, ProfileData::setDeclarationTypes),
+        new Setting<>("keywords", ProfileData::getKeywords, ProfileData::setKeywords),
+        new Setting<>("specialWords", ProfileData::getSpecialWords, ProfileData::setSpecialWords));
+
     private static final String SETTING_CUSTOM_PREVIEW_SOURCE = "customPreviewSource";
 
     private PreferencesProfileManager() {
@@ -115,43 +133,27 @@ public final class PreferencesProfileManager {
         profile.setAttribute(ATTR_VERSION, PROFILE_VERSION);
         profiles.appendChild(profile);
 
-        // Scalar settings: IBM Settings
-        addScalarSetting(doc, profile, SETTING_EXECUTE_IBM_FORMATTER, String.valueOf(data.isExecuteIbmFormatter()));
+        for (Setting<String> setting : SCALAR_SETTINGS) {
+            addScalarSetting(doc, profile, setting.getId(), setting.get(data));
+        }
 
-        // Scalar settings: General Settings
-        addScalarSetting(doc, profile, SETTING_USE_CONST_KEYWORD, String.valueOf(data.isUseConstKeyword()));
-        addScalarSetting(doc, profile, SETTING_DELIMITER_BEFORE_PARAMETER, String.valueOf(data.isDelimiterBeforeParameter()));
-        addScalarSetting(doc, profile, SETTING_PARAMETER_SPACING_STYLE, data.getParameterSpacingStyle());
-        addScalarSetting(doc, profile, SETTING_ALIGN_SUB_FIELDS, String.valueOf(data.isAlignSubFields()));
-        addScalarSetting(doc, profile, SETTING_BREAK_BETWEEN_CASE_CHANGE, String.valueOf(data.isBreakBetweenCaseChange()));
-        addScalarSetting(doc, profile, SETTING_BREAK_BEFORE_KEYWORD, String.valueOf(data.isBreakBeforeKeyword()));
-        addScalarSetting(doc, profile, SETTING_SORT_CONST_VALUE_TO_END, String.valueOf(data.isSortConstValueToEnd()));
-        addScalarSetting(doc, profile, SETTING_REPLACE_PI_NAME, String.valueOf(data.isReplacePiName()));
-        addScalarSetting(doc, profile, SETTING_REMOVE_END_PROC_NAME, String.valueOf(data.isRemoveEndProcName()));
-        addScalarSetting(doc, profile, SETTING_UNINDENT_COMPILER_DIRECTIVES, String.valueOf(data.isUnindentCompilerDirectives()));
-        addScalarSetting(doc, profile, SETTING_MAX_NAME_LENGTH, String.valueOf(data.getMaxNameLength()));
-        addScalarSetting(doc, profile, SETTING_MIN_NAME_LENGTH, String.valueOf(data.getMinNameLength()));
-        addScalarSetting(doc, profile, SETTING_EXECUTE_IRPG_FORMATTER, String.valueOf(data.isExecuteIrpgFormatter()));
-
-        // Scalar settings: Save Actions
-        addScalarSetting(doc, profile, SETTING_FORMAT_ON_SAVE, String.valueOf(data.isFormatOnSave()));
-
-        // Scalar settings: Experimental Settings
-        addScalarSetting(doc, profile, SETTING_REMOVE_EMPTY_COMMENT_LINES, String.valueOf(data.isRemoveEmptyCommentLines()));
-        addScalarSetting(doc, profile, SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI, String.valueOf(data.isRemoveEmptyLinesBeforeDclPi()));
-
-        // Map settings
-        addMapSetting(doc, profile, SETTING_DATA_TYPES, data.getDataTypes());
-        addMapSetting(doc, profile, SETTING_DECLARATION_TYPES, data.getDeclarationTypes());
-        addMapSetting(doc, profile, SETTING_KEYWORDS, data.getKeywords());
-        addMapSetting(doc, profile, SETTING_SPECIAL_WORDS, data.getSpecialWords());
+        for (Setting<Map<String, String>> setting : MAP_SETTINGS) {
+            addMapSetting(doc, profile, setting.getId(), setting.get(data));
+        }
 
         // Text content settings (CDATA for multi-line content)
         if (data.getCustomPreviewSource() != null && !data.getCustomPreviewSource().isEmpty()) {
             addTextSetting(doc, profile, SETTING_CUSTOM_PREVIEW_SOURCE, data.getCustomPreviewSource());
         }
 
-        // Write to file with pretty-printing
+        writeDocument(doc, filePath);
+    }
+
+    /**
+     * Writes the document to the file with pretty-printing.
+     */
+    private static void writeDocument(Document doc, String filePath) throws Exception {
+
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -175,6 +177,31 @@ public final class PreferencesProfileManager {
      */
     public static ProfileData importProfile(String filePath) throws Exception {
 
+        Element profileElement = readProfileElement(filePath);
+
+        ProfileData data = new ProfileData();
+
+        // Read all <setting> elements
+        NodeList settings = profileElement.getElementsByTagName(TAG_SETTING);
+        for (int i = 0; i < settings.getLength(); i++) {
+            Element setting = (Element)settings.item(i);
+
+            // getElementsByTagName() returns the <setting> elements of all
+            // levels; only the direct children of <profile> are settings.
+            if (setting.getParentNode().equals(profileElement)) {
+                readSetting(setting, data);
+            }
+        }
+
+        return data;
+    }
+
+    /**
+     * Reads the file and returns the <code>profile</code> element of the
+     * iRPGFormatter profile.
+     */
+    private static Element readProfileElement(String filePath) throws Exception {
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(new File(filePath));
@@ -186,98 +213,43 @@ public final class PreferencesProfileManager {
             throw new IllegalArgumentException("No iRPGFormatterProfile found in file.");
         }
 
-        ProfileData data = new ProfileData();
+        return profileElement;
+    }
 
-        // Read all <setting> elements
-        NodeList settings = profileElement.getElementsByTagName(TAG_SETTING);
-        for (int i = 0; i < settings.getLength(); i++) {
-            Element setting = (Element)settings.item(i);
+    /**
+     * Reads a setting into the profile data. Unknown settings are ignored for
+     * forward compatibility.
+     */
+    private static void readSetting(Element setting, ProfileData data) {
 
-            // getElementsByTagName() returns the <setting> elements of all
-            // levels; only the direct children of <profile> are settings.
-            if (!setting.getParentNode().equals(profileElement)) {
-                continue;
-            }
+        String id = setting.getAttribute(ATTR_ID);
 
-            String id = setting.getAttribute(ATTR_ID);
-            String value = setting.getAttribute(ATTR_VALUE);
-
-            switch (id) {
-            case SETTING_PARAMETER_SPACING_STYLE:
-                data.setParameterSpacingStyle(value);
-                break;
-            case SETTING_USE_CONST_KEYWORD:
-                data.setUseConstKeyword(Boolean.parseBoolean(value));
-                break;
-            case SETTING_DELIMITER_BEFORE_PARAMETER:
-                data.setDelimiterBeforeParameter(Boolean.parseBoolean(value));
-                break;
-            case SETTING_ALIGN_SUB_FIELDS:
-                data.setAlignSubFields(Boolean.parseBoolean(value));
-                break;
-            case SETTING_BREAK_BETWEEN_CASE_CHANGE:
-                data.setBreakBetweenCaseChange(Boolean.parseBoolean(value));
-                break;
-            case SETTING_BREAK_BEFORE_KEYWORD:
-                data.setBreakBeforeKeyword(Boolean.parseBoolean(value));
-                break;
-            case SETTING_SORT_CONST_VALUE_TO_END:
-                data.setSortConstValueToEnd(Boolean.parseBoolean(value));
-                break;
-            case SETTING_REPLACE_PI_NAME:
-                data.setReplacePiName(Boolean.parseBoolean(value));
-                break;
-            case SETTING_REMOVE_END_PROC_NAME:
-                data.setRemoveEndProcName(Boolean.parseBoolean(value));
-                break;
-            case SETTING_UNINDENT_COMPILER_DIRECTIVES:
-                data.setUnindentCompilerDirectives(Boolean.parseBoolean(value));
-                break;
-            case SETTING_MAX_NAME_LENGTH:
-                data.setMaxNameLength(Integer.parseInt(value));
-                break;
-            case SETTING_MIN_NAME_LENGTH:
-                data.setMinNameLength(Integer.parseInt(value));
-                break;
-            case SETTING_EXECUTE_IBM_FORMATTER:
-                data.setExecuteIbmFormatter(Boolean.parseBoolean(value));
-                break;
-            case SETTING_EXECUTE_IRPG_FORMATTER:
-                data.setExecuteIrpgFormatter(Boolean.parseBoolean(value));
-                break;
-            case SETTING_FORMAT_ON_SAVE:
-                data.setFormatOnSave(Boolean.parseBoolean(value));
-                break;
-            case SETTING_REMOVE_EMPTY_COMMENT_LINES:
-                data.setRemoveEmptyCommentLines(Boolean.parseBoolean(value));
-                break;
-            case SETTING_REMOVE_EMPTY_LINES_BEFORE_DCL_PI:
-                data.setRemoveEmptyLinesBeforeDclPi(Boolean.parseBoolean(value));
-                break;
-            case SETTING_DATA_TYPES:
-                data.setDataTypes(readMapEntries(setting));
-                break;
-            case SETTING_DECLARATION_TYPES:
-                data.setDeclarationTypes(readMapEntries(setting));
-                break;
-            case SETTING_KEYWORDS:
-                data.setKeywords(readMapEntries(setting));
-                break;
-            case SETTING_SPECIAL_WORDS:
-                data.setSpecialWords(readMapEntries(setting));
-                break;
-            case SETTING_CUSTOM_PREVIEW_SOURCE:
-                String content = setting.getTextContent().trim();
-                content = content.replace("\r\n", "\n").replace("\r", "\n");
-                data.setCustomPreviewSource(content);
-                break;
-            default:
-                // Ignore unknown settings for forward compatibility
-                break;
-            }
+        Setting<String> scalarSetting = findSetting(SCALAR_SETTINGS, id);
+        if (scalarSetting != null) {
+            scalarSetting.set(data, setting.getAttribute(ATTR_VALUE));
+            return;
         }
 
-        return data;
+        Setting<Map<String, String>> mapSetting = findSetting(MAP_SETTINGS, id);
+        if (mapSetting != null) {
+            mapSetting.set(data, readMapEntries(setting));
+            return;
+        }
+
+        if (SETTING_CUSTOM_PREVIEW_SOURCE.equals(id)) {
+            String content = setting.getTextContent().trim();
+            content = content.replace("\r\n", "\n").replace("\r", "\n");
+            data.setCustomPreviewSource(content);
+        }
+    }
+
+    private static <T> Setting<T> findSetting(List<Setting<T>> settings, String id) {
+        for (Setting<T> setting : settings) {
+            if (setting.getId().equals(id)) {
+                return setting;
+            }
+        }
+        return null;
     }
 
     private static Element findProfileElement(Document doc) {
@@ -328,6 +300,47 @@ public final class PreferencesProfileManager {
             map.put(entry.getAttribute(ATTR_KEY), entry.getAttribute(ATTR_VALUE));
         }
         return map;
+    }
+
+    private static Setting<String> booleanSetting(String id, Predicate<ProfileData> getter, BiConsumer<ProfileData, Boolean> setter) {
+        return new Setting<>(id, data -> String.valueOf(getter.test(data)), (data, value) -> setter.accept(data, Boolean.parseBoolean(value)));
+    }
+
+    private static Setting<String> intSetting(String id, ToIntFunction<ProfileData> getter, ObjIntConsumer<ProfileData> setter) {
+        return new Setting<>(id, data -> String.valueOf(getter.applyAsInt(data)), (data, value) -> setter.accept(data, Integer.parseInt(value)));
+    }
+
+    private static Setting<String> stringSetting(String id, Function<ProfileData, String> getter, BiConsumer<ProfileData, String> setter) {
+        return new Setting<>(id, getter, setter);
+    }
+
+    /**
+     * A setting of the profile file with its ID and the accessors of its value
+     * in the profile data.
+     */
+    private static final class Setting<T> {
+
+        private final String id;
+        private final Function<ProfileData, T> getter;
+        private final BiConsumer<ProfileData, T> setter;
+
+        private Setting(String id, Function<ProfileData, T> getter, BiConsumer<ProfileData, T> setter) {
+            this.id = id;
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public T get(ProfileData data) {
+            return getter.apply(data);
+        }
+
+        public void set(ProfileData data, T value) {
+            setter.accept(data, value);
+        }
     }
 
     /**
