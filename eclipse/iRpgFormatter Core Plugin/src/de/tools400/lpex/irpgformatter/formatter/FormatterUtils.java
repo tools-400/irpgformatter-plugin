@@ -40,18 +40,39 @@ public class FormatterUtils implements RpgleSourceConstants {
 
     private ILineNumberProvider lineNumberProvider;
 
-    private interface BreakpointStrategy {
-        int findBreakpoint(String text, int maxLength);
+    /**
+     * How a name or a literal is split: the continuation character at the end
+     * of a part and the search for the end of a part.
+     */
+    private abstract static class Splitter {
+
+        private final String continuation;
+
+        Splitter(String continuation) {
+            this.continuation = continuation;
+        }
+
+        String getContinuation() {
+            return continuation;
+        }
+
+        /**
+         * Returns the length of the next part of the text, that is not longer
+         * than the given length.
+         */
+        abstract int findBreakpoint(String text, int maxLength);
     }
 
-    private final BreakpointStrategy NAME_BREAKPOINT = new BreakpointStrategy() {
-        public int findBreakpoint(String text, int maxLength) {
+    private final Splitter NAME_SPLITTER = new Splitter(ELLIPSIS) {
+        @Override
+        int findBreakpoint(String text, int maxLength) {
             return findBreakpointInName(text, maxLength);
         }
     };
 
-    private final BreakpointStrategy LITERAL_BREAKPOINT = new BreakpointStrategy() {
-        public int findBreakpoint(String text, int maxLength) {
+    private final Splitter LITERAL_SPLITTER = new Splitter(PLUS) {
+        @Override
+        int findBreakpoint(String text, int maxLength) {
             return findBreakpointInLiteral(text, maxLength);
         }
     };
@@ -421,10 +442,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     private String[] notBreakableWithRules(String line, IToken token, int maxLineLength, String prefix, String suffix, IFormattingRule... rules)
         throws RpgleFormatterException {
 
-        String subIndent = StringUtils.getIndent(line);
-        if (subIndent.length() == 0) {
-            subIndent = formattingRules.createIndent(1);
-        }
+        String subIndent = getSubIndent(line);
 
         List<String> parts = new LinkedList<>();
 
@@ -453,110 +471,135 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     public String[] breakLiteral(String line, IToken token, int maxLineLength, String prefix, String suffix) throws RpgleFormatterException {
-        return breakNameOrLiteral(line, token, PLUS, maxLineLength, prefix, suffix, LITERAL_BREAKPOINT);
+        return breakNameOrLiteral(line, token, maxLineLength, prefix, suffix, LITERAL_SPLITTER);
     }
 
     public String[] breakName(String line, IToken token, int maxLineLength, String prefix, String suffix) throws RpgleFormatterException {
-        return breakNameOrLiteral(line, token, ELLIPSIS, maxLineLength, prefix, suffix, NAME_BREAKPOINT);
+        return breakNameOrLiteral(line, token, maxLineLength, prefix, suffix, NAME_SPLITTER);
     }
 
-    private String[] breakNameOrLiteral(String line, IToken token, String contChar, int maxLineLength, String prefix, String suffix,
-        BreakpointStrategy strategy) throws RpgleFormatterException {
+    private String[] breakNameOrLiteral(String line, IToken token, int maxLineLength, String prefix, String suffix, Splitter splitter)
+        throws RpgleFormatterException {
 
         if (token.getType() != TokenType.NAME && token.getType() != TokenType.LITERAL) {
             throw new UnexpectedTokenException(token, getLineNumber());
         }
 
-        List<String> parts = new LinkedList<>();
+        NameOrLiteralBreaker breaker = new NameOrLiteralBreaker(getSubIndent(line), maxLineLength, suffix, splitter);
+        breaker.breakValue(line, prefix, token.getValue());
+
+        return breaker.getParts();
+    }
+
+    /**
+     * Returns the indent of a continuation line: the indent of the line, but
+     * at least one indent level.
+     */
+    private String getSubIndent(String line) {
 
         String subIndent = StringUtils.getIndent(line);
         if (subIndent.length() == 0) {
             subIndent = formattingRules.createIndent(1);
         }
 
-        String value = token.getValue();
+        return subIndent;
+    }
 
-        // Space left for prefix and continuation character?
-        if (maxLineLength - prefix.length() - line.length() - contChar.length() <= 0) {
-            parts.add(StringUtils.trimR(line));
-            line = subIndent;
-            // Drop leading whitespace from prefix on the new line — the indent
-            // already provides the separation, so a leading space (e.g. from
-            // BEFORE/BOTH spacing in delimiter-after-parameter mode) would just
-            // shift the value one column to the right.
-            prefix = StringUtils.trimL(prefix);
+    /**
+     * Breaks a name or a literal, that does not fit into the line, into parts.
+     * The first part follows the line and the prefix, the middle parts end with
+     * the continuation character and the last part ends with the suffix. Each
+     * part after the first one starts on a continuation line.
+     */
+    private final class NameOrLiteralBreaker {
+
+        private final String subIndent;
+        private final int maxLineLength;
+        private final String suffix;
+        private final Splitter splitter;
+        private final List<String> parts = new LinkedList<>();
+
+        NameOrLiteralBreaker(String subIndent, int maxLineLength, String suffix, Splitter splitter) {
+            this.subIndent = subIndent;
+            this.maxLineLength = maxLineLength;
+            this.suffix = suffix;
+            this.splitter = splitter;
         }
 
-        int maxLength = maxLineLength - prefix.length() - line.length() - StringUtils.trimR(suffix).length();
-        if (value.length() <= maxLength && value.length() <= maxNameLengthRule.apply(value.length())) {
-            parts.add(line + prefix + value + StringUtils.trimR(suffix));
-        } else {
+        String[] getParts() {
+            return parts.toArray(new String[0]);
+        }
 
-            String currentLine = line;
-            String remaining = value;
+        void breakValue(String line, String prefix, String value) throws RpgleFormatterException {
 
-            boolean isFirstPart = true;
-            boolean isLastPart = false;
+            String continuation = splitter.getContinuation();
 
+            // Space left for prefix and continuation character?
+            if (maxLineLength - prefix.length() - line.length() - continuation.length() <= 0) {
+                parts.add(StringUtils.trimR(line));
+                line = subIndent;
+                // Drop leading whitespace from prefix on the new line — the
+                // indent already provides the separation, so a leading space
+                // (e.g. from BEFORE/BOTH spacing in delimiter-after-parameter
+                // mode) would just shift the value one column to the right.
+                prefix = StringUtils.trimL(prefix);
+            }
+
+            int maxLength = maxLineLength - prefix.length() - line.length() - StringUtils.trimR(suffix).length();
+            if (value.length() <= maxLength && value.length() <= maxNameLengthRule.apply(value.length())) {
+                parts.add(line + prefix + value + StringUtils.trimR(suffix));
+                return;
+            }
+
+            maxLength = maxLineLength - line.length() - prefix.length() - continuation.length();
+            int breakPoint = splitter.findBreakpoint(value, maxNameLengthRule.apply(maxLength));
+
+            // The first part would be shorter than the minimum length: start on
+            // a continuation line. That ends the recursion, because the line is
+            // the sub indent then.
+            if (!line.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint)) {
+                parts.add(StringUtils.trimR(line));
+                breakValue(subIndent, prefix, value);
+                return;
+            }
+
+            addParts(line + prefix, value, breakPoint);
+        }
+
+        /**
+         * Adds the first part, which ends at the break point, and the parts of
+         * the rest of the value.
+         */
+        private void addParts(String firstLine, String value, int breakPoint) throws RpgleFormatterException {
+
+            String continuation = splitter.getContinuation();
+
+            String remaining = addPart(firstLine, value, breakPoint, continuation);
             while (remaining.length() > 0) {
-
-                int breakPoint;
-                if (isFirstPart) {
-                    // First part
-                    maxLength = maxLineLength - currentLine.length() - prefix.length() - contChar.length();
-                    breakPoint = strategy.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength));
-                    // Check minimum name length — move to a fresh line when the
-                    // breakpoint is too small. Recursion is safe because the
-                    // recursive call uses subIndent, making condition 1 false.
-                    if (!currentLine.equals(subIndent) && !minNameLengthRule.isSatisfiedBy(breakPoint)) {
-                        parts.add(StringUtils.trimR(currentLine));
-                        currentLine = subIndent;
-                        String[] nameParts = breakNameOrLiteral(currentLine, token, contChar, maxLineLength, prefix, suffix, strategy);
-                        for (String namePart : nameParts) {
-                            parts.add(namePart);
-                        }
-                        return parts.toArray(new String[0]);
-                    }
+                if (subIndent.length() + remaining.length() + suffix.length() <= maxNameLengthRule.apply(maxLineLength)) {
+                    remaining = addPart(subIndent, remaining, remaining.length(), suffix);
                 } else {
-                    if (currentLine.length() + remaining.length() + suffix.length() <= maxNameLengthRule.apply(maxLineLength)) {
-                        // Last parts
-                        breakPoint = remaining.length();
-                        isLastPart = true;
-                    } else {
-                        // Intermediate parts
-                        maxLength = maxLineLength - currentLine.length() + -contChar.length();
-                        breakPoint = strategy.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength));
-                    }
+                    int maxLength = maxLineLength - subIndent.length() - continuation.length();
+                    remaining = addPart(subIndent, remaining, splitter.findBreakpoint(remaining, maxNameLengthRule.apply(maxLength)), continuation);
                 }
-
-                if (breakPoint <= 0) {
-                    throw new LineOverflowException(remaining, getLineNumber());
-                }
-
-                String part = remaining.substring(0, breakPoint);
-                remaining = remaining.substring(breakPoint);
-
-                // First part
-                if (isFirstPart) {
-                    part = currentLine + prefix + part + contChar;
-                    parts.add(part);
-                    isFirstPart = false;
-                } else {
-                    if (isLastPart) {
-                        // Last part
-                        part = currentLine + part + suffix;
-                    } else {
-                        // Middle parts
-                        part = currentLine + part + contChar;
-                    }
-                    parts.add(part);
-                }
-
-                currentLine = subIndent;
             }
         }
 
-        return parts.toArray(new String[0]);
+        /**
+         * Adds the line with the value up to the break point and the end.
+         *
+         * @return the rest of the value
+         */
+        private String addPart(String line, String value, int breakPoint, String end) throws RpgleFormatterException {
+
+            if (breakPoint <= 0) {
+                throw new LineOverflowException(value, getLineNumber());
+            }
+
+            parts.add(line + value.substring(0, breakPoint) + end);
+
+            return value.substring(breakPoint);
+        }
     }
 
     private static int findBreakpointInLiteral(String literal, int maxLength) {
