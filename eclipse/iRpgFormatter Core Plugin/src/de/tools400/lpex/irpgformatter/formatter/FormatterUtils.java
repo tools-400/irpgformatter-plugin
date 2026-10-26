@@ -107,7 +107,6 @@ public class FormatterUtils implements RpgleSourceConstants {
         throws RpgleFormatterException {
 
         boolean isSubField = subFieldAlignCol != null;
-        boolean isAlignSubFieldsEnabled = config.isAlignSubFields();
 
         int maxLength = maxLineLength - indent;
 
@@ -117,62 +116,17 @@ public class FormatterUtils implements RpgleSourceConstants {
 
         for (int i = 0; i < tokens.length; i++) {
             IToken token = tokens[i];
-            String[] tokenResults;
-            if (token.getType() == TokenType.CTL) {
-                tokenResults = formatControl(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.DCL) {
-                tokenResults = formatDeclaration(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.NAME) {
-                tokenResults = breakName(formattedLine, token, maxLength, "", "");
-            } else if (token.getType() == TokenType.SPECIAL_WORD) {
-                tokenResults = formatSpecialWord(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.LITERAL) {
-                tokenResults = breakLiteral(formattedLine, token, maxLength, "", "");
-            } else if (token.getType() == TokenType.DATE_TIME_LITERAL) {
-                tokenResults = formatNone(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.FUNCTION) {
-                tokenResults = formatFunctionWithParameters(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.KEYWORD) {
-                tokenResults = formatKeywordWithParameters(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.DATA_TYPE) {
-                tokenResults = formatDataTypeWithParameters(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.EOL) {
-                tokenResults = formatEndOfLine(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.COMMENT) {
-                tokenResults = formatComment(formattedLine, token, maxLength);
-            } else if (token.getType() == TokenType.OTHER) {
-                tokenResults = formatNone(formattedLine, token, maxLength);
-            } else {
-                throw new UnexpectedTokenException(token, getLineNumber());
+            String[] tokenResults = formatToken(formattedLine, token, maxLength);
+
+            // All lines but the last are complete; the last one takes the next
+            // token.
+            for (int j = 0; j < tokenResults.length - 1; j++) {
+                results.add(tokenResults[j]);
             }
+            formattedLine = tokenResults[tokenResults.length - 1];
 
-            if (tokenResults.length == 1) {
-                // Only 1 line returned. Use this line for next iteration.
-                formattedLine = tokenResults[tokenResults.length - 1];
-            } else {
-                // Multiple lines returned, so the current line is full.
-
-                // Add lines up to length -1 to result.
-                for (int j = 0; j < tokenResults.length - 1; j++) {
-                    results.add(tokenResults[j]);
-                }
-
-                // Use last line returned for next iteration.
-                formattedLine = tokenResults[tokenResults.length - 1];
-            }
-
-            if (token.getType() == TokenType.NAME || isSpecialWordStarN(token)) {
-                if (isSubField) {
-                    if (isAlignSubFieldsEnabled) {
-                        if (formattedLine.trim().length() > subFieldAlignCol) {
-                            throw new UnexpectedErrorException("Cannot align sub-field. Current line length " + formattedLine.length()
-                                + " exceeds alignment column " + subFieldAlignCol + ".", getLineNumber());
-                        }
-                        formattedLine = StringUtils.padR(formattedLine.trim(), subFieldAlignCol);
-                    } else if (subFieldAlignCol == 0) {
-                        formattedLine = formattedLine.trim();
-                    }
-                }
+            if (isSubField && (token.getType() == TokenType.NAME || isSpecialWordStarN(token))) {
+                formattedLine = alignSubField(formattedLine, subFieldAlignCol);
             }
 
             // Add space if not end-of-line marker.
@@ -196,6 +150,62 @@ public class FormatterUtils implements RpgleSourceConstants {
         return results.toArray(new String[0]);
     }
 
+    /**
+     * Formats a token, that follows the line.
+     *
+     * @return the lines; all but the last one are complete
+     */
+    private String[] formatToken(String line, IToken token, int maxLength) throws RpgleFormatterException {
+
+        switch (token.getType()) {
+        case CTL:
+        case DCL:
+            return formatDeclaration(line, token, maxLength);
+        case NAME:
+            return breakName(line, token, maxLength, "", "");
+        case SPECIAL_WORD:
+            return formatSpecialWord(line, token, maxLength);
+        case LITERAL:
+            return breakLiteral(line, token, maxLength, "", "");
+        case FUNCTION:
+            return formatFunctionWithParameters(line, token, maxLength);
+        case KEYWORD:
+            return formatKeywordWithParameters(line, token, maxLength);
+        case DATA_TYPE:
+            return formatDataTypeWithParameters(line, token, maxLength);
+        case DATE_TIME_LITERAL:
+        case EOL:
+        case COMMENT:
+        case OTHER:
+            return formatNone(line, token, maxLength);
+        default:
+            throw new UnexpectedTokenException(token, getLineNumber());
+        }
+    }
+
+    /**
+     * Aligns the line after the name of a sub-field: pads it to the alignment
+     * column, so that the data types of all sub-fields start in the same
+     * column, or trims it, if the alignment column is 0.
+     */
+    private String alignSubField(String line, int subFieldAlignCol) throws UnexpectedErrorException {
+
+        if (config.isAlignSubFields()) {
+            if (line.trim().length() > subFieldAlignCol) {
+                throw new UnexpectedErrorException(
+                    "Cannot align sub-field. Current line length " + line.length() + " exceeds alignment column " + subFieldAlignCol + ".",
+                    getLineNumber());
+            }
+            return StringUtils.padR(line.trim(), subFieldAlignCol);
+        }
+
+        if (subFieldAlignCol == 0) {
+            return line.trim();
+        }
+
+        return line;
+    }
+
     private static List<String> indentLines(List<String> lines, int indent) {
 
         String indentSpaces = StringUtils.spaces(indent);
@@ -210,21 +220,9 @@ public class FormatterUtils implements RpgleSourceConstants {
         return formatOther(line, token, maxLineLength, new NullFormattingRule());
     }
 
-    private String[] formatControl(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
-        return formatOther(line, token, maxLineLength, new FormatDeclarationTypeRule(config.getDeclarationTypes(), config.getKeywordCasingStyle()));
-    }
-
     private String[] formatDeclaration(String currentLine, IToken token, int maxLineLength) throws RpgleFormatterException {
         return formatOther(currentLine, token, maxLineLength,
             new FormatDeclarationTypeRule(config.getDeclarationTypes(), config.getKeywordCasingStyle()));
-    }
-
-    private String[] formatComment(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
-        return formatOther(line, token, maxLineLength, new NullFormattingRule());
-    }
-
-    private String[] formatEndOfLine(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
-        return formatOther(line, token, maxLineLength, new NullFormattingRule());
     }
 
     private String[] formatSpecialWord(String line, IToken token, int maxLineLength) throws RpgleFormatterException {
@@ -234,10 +232,7 @@ public class FormatterUtils implements RpgleSourceConstants {
     private String[] formatOther(String line, IToken token, int maxLineLength, IFormattingRule formattingRule) throws RpgleFormatterException {
         List<String> parts = new LinkedList<>();
 
-        String subIndent = StringUtils.getIndent(line);
-        if (subIndent.length() == 0) {
-            subIndent = formattingRules.createIndent(1);
-        }
+        String subIndent = getSubIndent(line);
 
         String value = FormattingRules.applyFormattingRule(token.getValue(), formattingRule);
 
@@ -247,7 +242,6 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else {
             // Line overflow. Trim line.
             parts.add(StringUtils.trimR(line));
-            maxLength = maxLineLength - subIndent.length();
             if (subIndent.length() + value.length() <= maxLineLength) {
                 parts.add(subIndent + value);
             } else {
