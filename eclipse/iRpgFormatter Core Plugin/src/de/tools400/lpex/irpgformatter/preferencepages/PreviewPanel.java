@@ -53,6 +53,7 @@ import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -524,64 +525,94 @@ public class PreviewPanel implements IPropertyChangeListener {
                 return;
             }
 
-            int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
-
-            RpgleFormatter previewFormatter = new RpgleFormatter(config);
-            previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
-
-            String[] unformatted = rawSource.split("\n");
-            FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), defaultIndent);
-            String[] lines = newResult.toLines();
-
-            if (previewFormatter.getErrorCount() == 0) {
-                errorHandler.accept(null);
-            } else {
-                // Surface the concrete reason inline (no modal dialog —
-                // would be intrusive while the user adjusts the spinner).
-                errorHandler.accept(previewFormatter.getErrors().get(0).getMessage());
-            }
-            String formattedSource = String.join("\n", lines);
-            StyledText styledText = previewViewer.getTextWidget();
-            int topIndex = styledText.getTopIndex();
-
-            int cursorVisualOffset = -1;
-            if (previewCursorLine >= 0 && previewCursorLine < styledText.getLineCount()) {
-                cursorVisualOffset = previewCursorLine - topIndex;
-            }
-
-            isUpdatingPreview = true;
-            try {
-                previewViewer.getDocument().set(formattedSource);
-
-                if (scrollToComment != null) {
-                    int commentLine = PreviewComments.findLine(lines, scrollToComment);
-                    if (commentLine >= 0) {
-                        previewCursorLine = commentLine;
-                        int visibleLines = styledText.getClientArea().height / styledText.getLineHeight();
-                        int newTopIndex = Math.max(0, commentLine - visibleLines / 3);
-                        styledText.setTopIndex(newTopIndex);
-                        if (commentLine < styledText.getLineCount()) {
-                            styledText.setCaretOffset(styledText.getOffsetAtLine(commentLine));
-                        }
-                    }
-                } else if (previousFormattedResult != null && previewCursorLine >= 0) {
-                    previewCursorLine = previousFormattedResult.mapLineTo(previewCursorLine, newResult);
-                    int newTopIndex = Math.max(0, previewCursorLine - cursorVisualOffset);
-                    styledText.setTopIndex(newTopIndex);
-                    if (previewCursorLine < styledText.getLineCount()) {
-                        styledText.setCaretOffset(styledText.getOffsetAtLine(previewCursorLine));
-                    }
-                } else {
-                    styledText.setTopIndex(topIndex);
-                }
-            } finally {
-                isUpdatingPreview = false;
-            }
+            FormattedResult newResult = formatSource(rawSource, config);
+            showFormattedResult(newResult, scrollToComment);
 
             previousFormattedResult = newResult;
 
         } catch (Exception e) {
             errorHandler.accept(e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Formats the raw source with the line width of the preview and shows the
+     * first error or clears the error message.
+     */
+    private FormattedResult formatSource(String rawSource, FormatterConfig config) throws RpgleFormatterException {
+
+        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+
+        RpgleFormatter previewFormatter = new RpgleFormatter(config);
+        previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());
+
+        String[] unformatted = rawSource.split("\n");
+        FormattedResult newResult = previewFormatter.format(new TextLinesInput(unformatted), defaultIndent);
+
+        if (previewFormatter.getErrorCount() == 0) {
+            errorHandler.accept(null);
+        } else {
+            // Surface the concrete reason inline (no modal dialog —
+            // would be intrusive while the user adjusts the spinner).
+            errorHandler.accept(previewFormatter.getErrors().get(0).getMessage());
+        }
+
+        return newResult;
+    }
+
+    /**
+     * Shows the formatted result in the preview. Scrolls to the given comment
+     * line, if there is one, otherwise keeps the cursor on its statement or
+     * keeps the scroll position.
+     */
+    private void showFormattedResult(FormattedResult newResult, String scrollToComment) {
+
+        String[] lines = newResult.toLines();
+        String formattedSource = String.join("\n", lines);
+        StyledText styledText = previewViewer.getTextWidget();
+        int topIndex = styledText.getTopIndex();
+
+        int cursorVisualOffset = -1;
+        if (previewCursorLine >= 0 && previewCursorLine < styledText.getLineCount()) {
+            cursorVisualOffset = previewCursorLine - topIndex;
+        }
+
+        isUpdatingPreview = true;
+        try {
+            previewViewer.getDocument().set(formattedSource);
+
+            if (scrollToComment != null) {
+                int commentLine = PreviewComments.findLine(lines, scrollToComment);
+                if (commentLine >= 0) {
+                    int visibleLines = styledText.getClientArea().height / styledText.getLineHeight();
+                    moveCursorTo(styledText, commentLine, commentLine - visibleLines / 3);
+                }
+            } else if (previousFormattedResult != null && previewCursorLine >= 0) {
+                int cursorLine = previousFormattedResult.mapLineTo(previewCursorLine, newResult);
+                moveCursorTo(styledText, cursorLine, cursorLine - cursorVisualOffset);
+            } else {
+                styledText.setTopIndex(topIndex);
+            }
+        } finally {
+            isUpdatingPreview = false;
+        }
+    }
+
+    /**
+     * Moves the cursor to the given line and makes the given line the first
+     * visible line of the preview.
+     *
+     * @param styledText the text widget of the preview
+     * @param line the line of the cursor
+     * @param topIndex the first visible line; values below 0 show the first
+     *        line
+     */
+    private void moveCursorTo(StyledText styledText, int line, int topIndex) {
+
+        previewCursorLine = line;
+        styledText.setTopIndex(Math.max(0, topIndex));
+        if (line < styledText.getLineCount()) {
+            styledText.setCaretOffset(styledText.getOffsetAtLine(line));
         }
     }
 
