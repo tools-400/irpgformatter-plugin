@@ -183,8 +183,7 @@ public class RpgleFormatter implements ILineNumberProvider {
             // Check for formatter directive
             int directive = getFormatterDirective(currentStatement, type);
             if (directive != 0) {
-                results.add(new FormattedStatement(currentStatement.getStartLineNumber(), currentStatement.numLines(),
-                    currentStatement.getOriginalStatements().toArray(new String[0])));
+                results.add(asUnformatted(currentStatement));
                 formatterTemporarilyDisabled = (directive == -1);
                 continue;
             }
@@ -195,39 +194,66 @@ public class RpgleFormatter implements ILineNumberProvider {
                 continue;
             }
 
-            List<String> stmtOutput = new ArrayList<>();
-            if (type == StatementType.OTHER) {
-                stmtOutput.addAll(currentStatement.getOriginalStatements());
-            } else if (suppressBeforeDclPi[stmtIdx] && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
-                // stmtOutput remains empty → line is completely removed
-            } else if (type == StatementType.COMMENT && suppressComment[stmtIdx]) {
-                stmtOutput.add("");
-            } else {
-                for (String embeddedComment : currentStatement.getEmbeddedComments()) {
-                    stmtOutput.add(embeddedComment);
-                }
-                try {
-                    stmtOutput.addAll(formatLine(currentStatement, type, indent));
-                } catch (Exception e) {
-                    Throwable unexpectedCause = null;
-                    if (e instanceof LineOverflowException) {
-                        ((LineOverflowException)e).setLineNumbers(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber());
-                    } else {
-                        unexpectedCause = e;
-                    }
-                    // Original-source fallback: keep the statement verbatim
-                    // in the output so that later lines remain numbered
-                    // correctly; the caller is informed via getErrors().
-                    stmtOutput.addAll(currentStatement.getOriginalStatements());
-                    errors.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type,
-                        getMessageWithLineNumber(e), unexpectedCause));
-                }
-            }
+            List<String> stmtOutput = formatStatement(currentStatement, type, suppressBeforeDclPi[stmtIdx], suppressComment[stmtIdx], indent);
             results
                 .add(new FormattedStatement(currentStatement.getStartLineNumber(), currentStatement.numLines(), stmtOutput.toArray(new String[0])));
         }
 
         return new FormattedResult(results.toArray(new FormattedStatement[0]));
+    }
+
+    /**
+     * Returns the output lines of a statement: unchanged for an OTHER
+     * statement, none for a comment or blank line, that is removed before a
+     * dcl-pi, a blank line for a comment, that is removed, and the formatted
+     * lines otherwise.
+     */
+    private List<String> formatStatement(CollectedStatement statement, StatementType type, boolean isRemovedBeforeDclPi, boolean isRemovedComment,
+        int indent) {
+
+        if (type == StatementType.OTHER) {
+            return new ArrayList<>(statement.getOriginalStatements());
+        }
+
+        if (isRemovedBeforeDclPi && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
+            // The line is completely removed.
+            return new ArrayList<>();
+        }
+
+        if (type == StatementType.COMMENT && isRemovedComment) {
+            return new ArrayList<>(Collections.singletonList(""));
+        }
+
+        return formatOrKeepOriginal(statement, type, indent);
+    }
+
+    /**
+     * Returns the embedded comments and the formatted lines of the statement.
+     * If the statement cannot be formatted, its original lines are returned
+     * instead and the error is recorded.
+     */
+    private List<String> formatOrKeepOriginal(CollectedStatement statement, StatementType type, int indent) {
+
+        List<String> stmtOutput = new ArrayList<>(Arrays.asList(statement.getEmbeddedComments()));
+
+        try {
+            stmtOutput.addAll(formatLine(statement, type, indent));
+        } catch (Exception e) {
+            Throwable unexpectedCause = null;
+            if (e instanceof LineOverflowException) {
+                ((LineOverflowException)e).setLineNumbers(statement.getStartLineNumber(), statement.getEndLineNumber());
+            } else {
+                unexpectedCause = e;
+            }
+            // Original-source fallback: keep the statement verbatim in the
+            // output so that later lines remain numbered correctly; the caller
+            // is informed via getErrors().
+            stmtOutput.addAll(statement.getOriginalStatements());
+            errors.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, getMessageWithLineNumber(e),
+                unexpectedCause));
+        }
+
+        return stmtOutput;
     }
 
     /**
