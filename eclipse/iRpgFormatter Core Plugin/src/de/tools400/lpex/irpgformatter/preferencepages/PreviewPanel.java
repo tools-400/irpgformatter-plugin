@@ -59,6 +59,7 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.ColorUtils;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 
 /**
@@ -531,7 +532,7 @@ public class PreviewPanel implements IPropertyChangeListener {
             previousFormattedResult = newResult;
 
         } catch (Exception e) {
-            errorHandler.accept(e.getLocalizedMessage());
+            errorHandler.accept(ExceptionUtils.getLocalizedMessage(e));
         }
     }
 

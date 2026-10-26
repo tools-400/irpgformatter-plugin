@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.progress.UIJob;
 
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
 
 public class DisplayErrorJob extends UIJob {
@@ -32,7 +33,7 @@ public class DisplayErrorJob extends UIJob {
     public IStatus runInUIThread(IProgressMonitor arg0) {
 
         Shell shell = UIUtils.getShell();
-        MessageDialog.openError(shell, Messages.E_R_R_O_R, exception.getLocalizedMessage());
+        MessageDialog.openError(shell, Messages.E_R_R_O_R, ExceptionUtils.getLocalizedMessage(exception));
 
         return Status.OK_STATUS;
     }
