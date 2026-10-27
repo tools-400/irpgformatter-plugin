@@ -430,7 +430,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         try {
-            // Settings missing in a partial profile keep the values of the page.
+            // Settings missing in a partial profile keep the values of the
+            // page.
             ProfileData data = collectProfileDataFromUI();
             boolean isComplete = PreferencesProfileManager.importProfile(filePath, data);
             applyProfileDataToUI(data);

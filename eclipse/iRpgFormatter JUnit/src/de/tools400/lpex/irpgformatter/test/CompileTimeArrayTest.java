@@ -23,9 +23,9 @@ import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
  * <p>
  * Compile-time data sections are introduced by lines starting with two
  * asterisks (e.g. <code>**CTDATA</code>, <code>**ALTSEQ</code>,
- * <code>**FTRANS</code>) and must be treated as single-line statements
- * by the formatter so that the data lines following them are never merged
- * into a multi-line statement.
+ * <code>**FTRANS</code>) and must be treated as single-line statements by the
+ * formatter so that the data lines following them are never merged into a
+ * multi-line statement.
  * </p>
  * <p>
  * The free-format marker <code>**FREE</code> also starts with two asterisks,
@@ -89,7 +89,8 @@ public class CompileTimeArrayTest extends AbstractTestCase {
 
     @Test
     public void identify_free_directive_takes_precedence() {
-        // **FREE must remain identified as FREE_DIRECTIVE, never as COMPILE_TIME_ARRAY
+        // **FREE must remain identified as FREE_DIRECTIVE, never as
+        // COMPILE_TIME_ARRAY
         assertEquals(StatementType.FREE_DIRECTIVE, StatementIdentifier.identifyStatementType("**FREE"));
     }
 
@@ -169,7 +170,8 @@ public class CompileTimeArrayTest extends AbstractTestCase {
 
     @Test
     public void collectedStatement_free_directive_stays_free_directive() throws RpgleFormatterException {
-        // Sanity check: **FREE is still classified as FREE_DIRECTIVE even though
+        // Sanity check: **FREE is still classified as FREE_DIRECTIVE even
+        // though
         // the new isCompileTimeArray() check would also match the ** prefix.
         CollectedStatement stmt = new CollectedStatement();
         stmt.add("**FREE");

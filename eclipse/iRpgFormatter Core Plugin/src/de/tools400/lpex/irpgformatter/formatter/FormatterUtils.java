@@ -511,8 +511,8 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     /**
-     * Returns the indent of a continuation line: the indent of the line, but
-     * at least one indent level.
+     * Returns the indent of a continuation line: the indent of the line, but at
+     * least one indent level.
      */
     private String getSubIndent(String line) {
 

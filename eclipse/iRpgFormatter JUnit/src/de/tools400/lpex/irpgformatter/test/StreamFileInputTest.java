@@ -29,9 +29,9 @@ import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 
 /**
- * Checks the reading of the stream file inputs with the input of the local
- * file system; the inputs of the workspace and of the IFS need the platform
- * or a system.
+ * Checks the reading of the stream file inputs with the input of the local file
+ * system; the inputs of the workspace and of the IFS need the platform or a
+ * system.
  */
 public class StreamFileInputTest extends AbstractTestCase {
 

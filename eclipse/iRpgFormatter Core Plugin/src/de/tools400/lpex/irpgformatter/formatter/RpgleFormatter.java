@@ -245,8 +245,8 @@ public class RpgleFormatter implements ILineNumberProvider {
             } else {
                 unexpectedCause = e;
             }
-            errors.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, getMessageWithLineNumber(e),
-                unexpectedCause));
+            errors.add(
+                new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), type, getMessageWithLineNumber(e), unexpectedCause));
             // Original-source fallback: keep the statement verbatim, so that
             // later lines remain numbered correctly; the caller is informed
             // via getErrors(). The original lines contain the embedded

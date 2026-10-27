@@ -24,6 +24,7 @@ public class TokenizerTest extends AbstractTestCase {
 
     private Tokenizer tokenizer;
 
+    @Override
     @Before
     public void setUp() {
         super.setUp();

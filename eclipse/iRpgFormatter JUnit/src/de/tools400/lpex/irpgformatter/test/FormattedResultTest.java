@@ -20,16 +20,8 @@ public class FormattedResultTest extends AbstractTestCase {
     @Test
     public void mapLineTo_unchangedStatements() {
 
-        FormattedResult source = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 1, "B1"),
-            stmt(4, 3, "C1", "C2", "C3")
-        );
-        FormattedResult target = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 1, "B1"),
-            stmt(4, 3, "C1", "C2", "C3")
-        );
+        FormattedResult source = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1"), stmt(4, 3, "C1", "C2", "C3"));
+        FormattedResult target = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1"), stmt(4, 3, "C1", "C2", "C3"));
 
         for (int i = 0; i < source.getLineCount(); i++) {
             assertEquals("Line " + i + " should map to itself", i, source.mapLineTo(i, target));
@@ -40,16 +32,8 @@ public class FormattedResultTest extends AbstractTestCase {
     public void mapLineTo_statementExpands() {
 
         // Statement B expands from 1 line to 3 lines
-        FormattedResult source = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 1, "B1"),
-            stmt(4, 2, "C1", "C2")
-        );
-        FormattedResult target = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 1, "B1", "B2", "B3"),
-            stmt(4, 2, "C1", "C2")
-        );
+        FormattedResult source = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1"), stmt(4, 2, "C1", "C2"));
+        FormattedResult target = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1", "B2", "B3"), stmt(4, 2, "C1", "C2"));
 
         // A1 -> A1
         assertEquals(0, source.mapLineTo(0, target));
@@ -67,16 +51,8 @@ public class FormattedResultTest extends AbstractTestCase {
     public void mapLineTo_statementContracts() {
 
         // Statement B shrinks from 3 lines to 1 line
-        FormattedResult source = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 3, "B1", "B2", "B3"),
-            stmt(6, 1, "C1")
-        );
-        FormattedResult target = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 3, "B1"),
-            stmt(6, 1, "C1")
-        );
+        FormattedResult source = result(stmt(1, 2, "A1", "A2"), stmt(3, 3, "B1", "B2", "B3"), stmt(6, 1, "C1"));
+        FormattedResult target = result(stmt(1, 2, "A1", "A2"), stmt(3, 3, "B1"), stmt(6, 1, "C1"));
 
         // A1 -> A1
         assertEquals(0, source.mapLineTo(0, target));
@@ -96,16 +72,8 @@ public class FormattedResultTest extends AbstractTestCase {
     public void mapLineTo_mixedChanges() {
 
         // A: 2->1 (shrink), B: 1->3 (expand), C: 2->2 (same)
-        FormattedResult source = result(
-            stmt(1, 2, "A1", "A2"),
-            stmt(3, 1, "B1"),
-            stmt(4, 2, "C1", "C2")
-        );
-        FormattedResult target = result(
-            stmt(1, 2, "A1x"),
-            stmt(3, 1, "B1x", "B2x", "B3x"),
-            stmt(4, 2, "C1x", "C2x")
-        );
+        FormattedResult source = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1"), stmt(4, 2, "C1", "C2"));
+        FormattedResult target = result(stmt(1, 2, "A1x"), stmt(3, 1, "B1x", "B2x", "B3x"), stmt(4, 2, "C1x", "C2x"));
 
         // A1 (offset 0) -> A1x (offset 0, line 0)
         assertEquals(0, source.mapLineTo(0, target));
@@ -122,15 +90,8 @@ public class FormattedResultTest extends AbstractTestCase {
     @Test
     public void mapLineTo_lineAfterEnd() {
 
-        FormattedResult source = result(
-            stmt(1, 1, "A1"),
-            stmt(2, 1, "B1")
-        );
-        FormattedResult target = result(
-            stmt(1, 1, "A1"),
-            stmt(2, 1, "B1"),
-            stmt(3, 1, "C1")
-        );
+        FormattedResult source = result(stmt(1, 1, "A1"), stmt(2, 1, "B1"));
+        FormattedResult target = result(stmt(1, 1, "A1"), stmt(2, 1, "B1"), stmt(3, 1, "C1"));
 
         // Line 99 is beyond source -> returns last line of target
         assertEquals(2, source.mapLineTo(99, target));

@@ -51,8 +51,8 @@ public class PreviewCommentsTest extends AbstractTestCase {
     }
 
     /**
-     * The preview scrolls in the formatted source, so the comments must
-     * survive the formatter.
+     * The preview scrolls in the formatted source, so the comments must survive
+     * the formatter.
      */
     @Test
     public void allCommentsExistInFormattedDefaultPreviewSource() throws Exception {

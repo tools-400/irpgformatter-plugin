@@ -15,8 +15,8 @@ import java.util.List;
 import de.tools400.lpex.irpgformatter.input.LineEditor;
 
 /**
- * In-memory {@link LineEditor} backed by an {@link ArrayList}.
- * Uses 1-based line numbers to match LPEX conventions.
+ * In-memory {@link LineEditor} backed by an {@link ArrayList}. Uses 1-based
+ * line numbers to match LPEX conventions.
  */
 class ArrayLineEditor implements LineEditor {
 

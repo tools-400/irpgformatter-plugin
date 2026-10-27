@@ -52,11 +52,10 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
      * IDs of the settings, that a complete profile contains. The custom preview
      * source is only exported, if there is one.
      */
-    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("executeIbmFormatter", "useConstKeyword",
-        "delimiterBeforeParameter", "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword",
-        "sortConstValueToEnd", "replacePiName", "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength",
-        "executeIrpgFormatter", "formatOnSave", "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "dataTypes", "declarationTypes",
-        "keywords", "specialWords");
+    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("executeIbmFormatter", "useConstKeyword", "delimiterBeforeParameter",
+        "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
+        "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatOnSave",
+        "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "dataTypes", "declarationTypes", "keywords", "specialWords");
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -177,9 +176,9 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     public void importProfile_unknownOrNestedSettingDoesNotReplaceMissingOne() throws Exception {
 
         assertFalse(importProfile(writeProfileWithout("minNameLength", "<setting id=\"unknownSetting\" value=\"1\"/>"), new ProfileData()));
-        assertFalse(importProfile(
-            writeProfileWithout("minNameLength", "<setting id=\"dataTypes\"><setting id=\"minNameLength\" value=\"1\"/></setting>"),
-            new ProfileData()));
+        assertFalse(
+            importProfile(writeProfileWithout("minNameLength", "<setting id=\"dataTypes\"><setting id=\"minNameLength\" value=\"1\"/></setting>"),
+                new ProfileData()));
     }
 
     @Test
@@ -326,12 +325,11 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     private String dump(ProfileData data) {
 
         return data.getParameterSpacingStyle() + "|" + data.isUseConstKeyword() + "|" + data.isDelimiterBeforeParameter() + "|"
-            + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|"
-            + data.isSortConstValueToEnd() + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|"
-            + data.isUnindentCompilerDirectives() + "|" + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|"
-            + data.isExecuteIbmFormatter() + "|" + data.isExecuteIrpgFormatter() + "|" + data.isFormatOnSave() + "|"
-            + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getDataTypes() + "|"
-            + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getCustomPreviewSource();
+            + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|" + data.isSortConstValueToEnd()
+            + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
+            + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.isExecuteIbmFormatter() + "|" + data.isExecuteIrpgFormatter() + "|"
+            + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getDataTypes()
+            + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getCustomPreviewSource();
     }
 
     private File export(ProfileData data) throws Exception {

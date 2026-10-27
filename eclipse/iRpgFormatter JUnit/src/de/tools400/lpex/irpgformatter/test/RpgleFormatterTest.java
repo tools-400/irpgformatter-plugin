@@ -1343,8 +1343,8 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     /**
-     * Blanks behind the continuation character of a literal must not change
-     * its value: the compiler ignores them.
+     * Blanks behind the continuation character of a literal must not change its
+     * value: the compiler ignores them.
      */
     @Test
     public void format_literalContinuationWithTrailingBlanks() throws RpgleFormatterException {

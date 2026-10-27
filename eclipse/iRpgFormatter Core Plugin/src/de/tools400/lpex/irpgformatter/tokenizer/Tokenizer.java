@@ -310,8 +310,7 @@ public class Tokenizer implements RpgleSourceConstants {
     /**
      * Returns the index of the bracket, that closes the given opening bracket,
      * or the length of the line, if it is not closed. A literal is skipped as a
-     * whole, so that its brackets do not count, e.g. in
-     * <code>inz(')')</code>.
+     * whole, so that its brackets do not count, e.g. in <code>inz(')')</code>.
      */
     private static int findCloseBracket(String line, int openBracket) {
 

@@ -93,7 +93,8 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
 
     @Test
     public void emptyCommentDirectlyBeforeSeparator_isSuppressed() throws RpgleFormatterException {
-        // The single empty comment directly before the separator has no structural
+        // The single empty comment directly before the separator has no
+        // structural
         // purpose (nothing but blank above it), so step 3 re-suppresses it.
         // @formatter:off
         String[] result = format(
@@ -121,7 +122,8 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
 
     @Test
     public void emptyThenContentThenSeparator_leadingEmptySuppressed() throws RpgleFormatterException {
-        // The leading empty comment has no structural role; the content comment does.
+        // The leading empty comment has no structural role; the content comment
+        // does.
         // @formatter:off
         String[] result = format(
             "//",
@@ -154,7 +156,8 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
 
     @Test
     public void separatorVariants_areAllRecognized() throws RpgleFormatterException {
-        // Each of these must be treated as a structural marker (not suppressed).
+        // Each of these must be treated as a structural marker (not
+        // suppressed).
         String[] separators = { "//---", "//===", "//***", "//+++", "//~~~" };
         for (String sep : separators) {
             String[] result = format(sep);
@@ -183,13 +186,15 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
         // @formatter:on
         assertEquals(3, result.length);
         assertEquals("///", result[0]);
-        assertEquals("//", result[1]);   // inside ILEDoc block — must not be suppressed
+        assertEquals("//", result[1]); // inside ILEDoc block — must not be
+                                       // suppressed
         assertEquals("///", result[2]);
     }
 
     @Test
     public void emptyCommentBeforeIledocBlock_isSuppressed() throws RpgleFormatterException {
-        // The opening "///" is a structural marker; the backward scan restores then
+        // The opening "///" is a structural marker; the backward scan restores
+        // then
         // step 3 re-suppresses the single empty comment directly above it.
         // @formatter:off
         String[] result = format(
@@ -200,7 +205,7 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
         );
         // @formatter:on
         assertEquals(4, result.length);
-        assertEquals("", result[0]);     // re-suppressed by step 3
+        assertEquals("", result[0]); // re-suppressed by step 3
         assertEquals("///", result[1]);
         assertEquals("// ILEDoc content", result[2]);
         assertEquals("///", result[3]);
@@ -236,7 +241,8 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
         // @formatter:on
         assertEquals(3, result.length);
         assertEquals("// @formatter:off", result[0]);
-        assertEquals("//", result[1]);   // inside disabled region — must not be touched
+        assertEquals("//", result[1]); // inside disabled region — must not be
+                                       // touched
         assertEquals("// @formatter:on", result[2]);
     }
 
@@ -256,9 +262,10 @@ public class RemoveEmptyCommentLinesRuleTest extends AbstractTestCase {
         // @formatter:on
         assertEquals(5, result.length);
         assertEquals("// @formatter:off", result[0]);
-        assertEquals("//", result[1]);   // inside disabled region — untouched
+        assertEquals("//", result[1]); // inside disabled region — untouched
         assertEquals("// @formatter:on", result[2]);
-        assertEquals("//", result[3]);   // restored by backward scan; step 3 skipped
+        assertEquals("//", result[3]); // restored by backward scan; step 3
+                                       // skipped
         assertEquals("//-------", result[4]);
     }
 

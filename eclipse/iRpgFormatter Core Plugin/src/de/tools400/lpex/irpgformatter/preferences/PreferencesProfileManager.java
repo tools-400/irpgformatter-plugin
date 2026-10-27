@@ -174,8 +174,8 @@ public final class PreferencesProfileManager {
      * Imports the settings of an XML file into the given profile data.
      * <p>
      * Settings, that are missing in the file, keep their values in the profile
-     * data, so partial profiles are supported. The custom preview source is
-     * not required, because it is only exported, if there is one.
+     * data, so partial profiles are supported. The custom preview source is not
+     * required, because it is only exported, if there is one.
      *
      * @param filePath the source file path
      * @param data the profile data, that receives the settings of the file

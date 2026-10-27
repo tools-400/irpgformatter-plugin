@@ -212,8 +212,8 @@ public class BreakNameOrLiteralTest extends AbstractTestCase {
     }
 
     /**
-     * For all lengths of the value, of the line and all suffixes: the last
-     * part ends with the suffix, never with the continuation character.
+     * For all lengths of the value, of the line and all suffixes: the last part
+     * ends with the suffix, never with the continuation character.
      */
     @Test
     public void breakNameOrLiteral_lastPartNeverEndsWithContinuation() throws RpgleFormatterException {

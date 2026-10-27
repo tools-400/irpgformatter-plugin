@@ -21,9 +21,9 @@ import de.tools400.lpex.irpgformatter.input.TextLinesInput;
  * Unit tests for the "remove empty lines before dcl-pi" feature.
  * <p>
  * Tests are run end-to-end through {@link RpgleFormatter} with the option
- * enabled so that the full pipeline is exercised in its natural context.
- * All inputs are complete, valid RPGLE snippets so the parent-stack validator
- * in {@code ContinuationHandler} does not throw.
+ * enabled so that the full pipeline is exercised in its natural context. All
+ * inputs are complete, valid RPGLE snippets so the parent-stack validator in
+ * {@code ContinuationHandler} does not throw.
  */
 public class RemoveEmptyLinesBeforeDclPiRuleTest extends AbstractTestCase {
 
@@ -172,8 +172,10 @@ public class RemoveEmptyLinesBeforeDclPiRuleTest extends AbstractTestCase {
 
     @Test
     public void bothFeatures_emptyCommentCompletelyRemoved() throws RpgleFormatterException {
-        // With removeEmptyCommentLines only: "//" becomes "" (blank line, 5 lines total).
-        // With removeEmptyLinesBeforeDclPi on as well: "//" is completely deleted (4 lines).
+        // With removeEmptyCommentLines only: "//" becomes "" (blank line, 5
+        // lines total).
+        // With removeEmptyLinesBeforeDclPi on as well: "//" is completely
+        // deleted (4 lines).
         formatter.getConfig().setRemoveEmptyCommentLines(true);
         // @formatter:off
         String[] result = format(
@@ -184,7 +186,8 @@ public class RemoveEmptyLinesBeforeDclPiRuleTest extends AbstractTestCase {
             "end-proc;"
         );
         // @formatter:on
-        // suppressBeforeDclPi takes priority: line is deleted, not blanked → 4 lines
+        // suppressBeforeDclPi takes priority: line is deleted, not blanked → 4
+        // lines
         assertEquals(4, result.length);
         assertEquals("dcl-proc myProc;", result[0]);
         assertEquals("  dcl-pi *n;", result[1]);

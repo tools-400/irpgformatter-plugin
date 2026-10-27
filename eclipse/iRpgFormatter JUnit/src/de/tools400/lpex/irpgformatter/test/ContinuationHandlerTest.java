@@ -187,8 +187,8 @@ public class ContinuationHandlerTest extends AbstractTestCase {
     }
 
     /**
-     * The compiler ignores blanks behind the continuation character (checked
-     * on IBM i 7.5).
+     * The compiler ignores blanks behind the continuation character (checked on
+     * IBM i 7.5).
      */
     @Test
     public void joinContinuedLines_plusContinuationWithTrailingBlanks() throws RpgleFormatterException {

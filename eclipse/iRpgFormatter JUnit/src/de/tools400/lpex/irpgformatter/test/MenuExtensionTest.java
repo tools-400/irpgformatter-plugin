@@ -21,8 +21,8 @@ import de.tools400.lpex.menuextension.model.UserAction;
 /**
  * Unit tests for {@link MenuExtension}. The prefixes identify the entries of
  * iRPGFormatter in the LPEX settings. They must cover all actions, otherwise
- * key actions of the user on these actions are left behind, when
- * iRPGFormatter is uninstalled.
+ * key actions of the user on these actions are left behind, when iRPGFormatter
+ * is uninstalled.
  */
 public class MenuExtensionTest {
 

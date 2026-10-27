@@ -25,8 +25,8 @@ import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Writes formatted source lines back to an Eclipse IFile. The line separator
- * of the file is kept.
+ * Writes formatted source lines back to an Eclipse IFile. The line separator of
+ * the file is kept.
  */
 public class RpgleStreamFileOutput implements IRpgleOutput {
 

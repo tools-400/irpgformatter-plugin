@@ -270,10 +270,10 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     /**
-     * Appends the code in front of a comment, which ends the line, and
-     * collects the comment. The statement goes on in the next line, also if the
-     * comment contains a semicolon or a single quote. Like a whole comment
-     * line, the comment is put in front of the formatted statement.
+     * Appends the code in front of a comment, which ends the line, and collects
+     * the comment. The statement goes on in the next line, also if the comment
+     * contains a semicolon or a single quote. Like a whole comment line, the
+     * comment is put in front of the formatted statement.
      */
     private void continueBeforeComment(String line, int comment) {
 
@@ -285,8 +285,8 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     /**
-     * Returns <code>true</code>, if the character inside a literal is a plus
-     * or hyphen, which continues the literal: the last character of the line
+     * Returns <code>true</code>, if the character inside a literal is a plus or
+     * hyphen, which continues the literal: the last character of the line
      * except blanks, which the compiler ignores there.
      */
     private boolean isLiteralContinuation(String line, int i) {

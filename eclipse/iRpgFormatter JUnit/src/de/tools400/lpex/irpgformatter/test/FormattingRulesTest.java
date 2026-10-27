@@ -186,7 +186,8 @@ public class FormattingRulesTest extends AbstractTestCase {
                 return value.toUpperCase();
             }
         };
-        // 'it''s' contains an escaped quote inside a literal - both '' must be preserved
+        // 'it''s' contains an escaped quote inside a literal - both '' must be
+        // preserved
         String result = FormattingRules.applyFormattingRule("inz('it''s a test')", toUpper);
         assertEquals("INZ('it''s a test')", result);
     }
