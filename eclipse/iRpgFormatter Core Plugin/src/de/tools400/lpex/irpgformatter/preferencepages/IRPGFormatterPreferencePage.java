@@ -66,6 +66,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Text spacesToIndentText;
     private Text selectIndentText;
     private Button preserveRelativeIndentCheckbox;
+    private Button sqlFormattingCheckbox;
+    private Button sqlUppercasingCheckbox;
     private Text casingStyleText;
 
     /* Local preferences */
@@ -239,6 +241,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         WidgetFactory.createLineSeparator(group);
 
+        createIBMSqlFormattingSettingsSubGroup(group);
+
+        WidgetFactory.createLineSeparator(group);
+
         createIBMKeyBehaviorSettingsSubGroup(group);
     }
 
@@ -279,6 +285,31 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Preserve relative indentation of continued lines
         preserveRelativeIndentCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_Preserve_relative_indent,
             Messages.Tooltip_IBM_Settings_Preserve_relative_indent);
+    }
+
+    private void createIBMSqlFormattingSettingsSubGroup(Composite parent) {
+
+        // Hint
+        Link ibmSqlFormattingSettingsHelp = new Link(parent, SWT.NONE);
+        ibmSqlFormattingSettingsHelp.setText(Messages.Label_IBM_SQL_Formatting_Settings_Help);
+        GridData helpData = new GridData();
+        helpData.horizontalSpan = 2;
+        ibmSqlFormattingSettingsHelp.setLayoutData(helpData);
+        ibmSqlFormattingSettingsHelp.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                PreferencesUtil.createPreferenceDialogOn(getShell(),
+                    "com.ibm.etools.iseries.edit.preferences.sql.ParserPreferencePageSQLRPGLEFormatting", null, null).open();
+            }
+        });
+
+        // Formatting
+        sqlFormattingCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_SQL_Formatting,
+            Messages.Tooltip_IBM_Settings_SQL_Formatting);
+
+        // Automatic uppercasing
+        sqlUppercasingCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_SQL_Uppercasing,
+            Messages.Tooltip_IBM_Settings_SQL_Uppercasing);
     }
 
     private void createIBMKeyBehaviorSettingsSubGroup(Composite parent) {
@@ -721,6 +752,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         spacesToIndentText.setText(Integer.toString(preferences.getIndent()));
         selectIndentText.setText(Integer.toString(preferences.getSelectIndent()));
         preserveRelativeIndentCheckbox.setSelection(preferences.isPreserveRelativeIndentOfContinuedLines());
+        sqlFormattingCheckbox.setSelection(preferences.isFormatEmbeddedSql());
+        sqlUppercasingCheckbox.setSelection(preferences.isSqlUppercasing());
         casingStyleText.setText(preferences.getKeywordCasingStyle().getDisplayName());
     }
 
@@ -842,6 +875,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
             loadIbmPreferences();
             previewPanel.formatPreview();
+        }
+
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Free-form SQL Formatting
+        // ----------------------------------------------------
+
+        // The preview panel formats the preview itself.
+        if (property.startsWith("SQLRPGLE.")) {
+            loadIbmPreferences();
         }
 
         // ----------------------------------------------------

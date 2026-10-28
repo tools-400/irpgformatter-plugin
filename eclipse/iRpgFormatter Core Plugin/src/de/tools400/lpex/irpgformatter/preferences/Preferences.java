@@ -207,6 +207,15 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     /**
+     * Returns <code>true</code>, if the casing of embedded SQL statements is
+     * changed, see IBM preference "Automatic uppercasing" of the ILE RPG SQL
+     * formatting.
+     */
+    public boolean isSqlUppercasing() {
+        return ibmPreferenceStore.getBoolean("SQLRPGLE.UPPERCASING.base");
+    }
+
+    /**
      * Returns the number of blanks of each indent level of an embedded SQL
      * statement, see IBM preference "Indent" of the ILE RPG SQL formatting.
      */

@@ -20,12 +20,15 @@ public class Messages extends NLS {
     public static String Label_The_key_will_be_converted_to_uppercase_automatically;
     public static String Label_IBM_Settings;
     public static String Label_IBM_Formatter_Settings_Help;
+    public static String Label_IBM_SQL_Formatting_Settings_Help;
     public static String Label_IBM_Key_Behavior_Settings_Help;
     public static String Label_IBM_Settings_Indent;
     public static String Label_IBM_Settings_Start_column;
     public static String Label_IBM_Settings_End_column;
     public static String Label_IBM_Settings_Select_indent;
     public static String Label_IBM_Settings_Preserve_relative_indent;
+    public static String Label_IBM_Settings_SQL_Formatting;
+    public static String Label_IBM_Settings_SQL_Uppercasing;
     public static String Label_General_Settings;
     public static String Label_Keyword_casing_style;
     public static String Label_Use_const_keyword;
@@ -105,6 +108,8 @@ public class Messages extends NLS {
     public static String Tooltip_IBM_Settings_Indent;
     public static String Tooltip_IBM_Settings_Select_indent;
     public static String Tooltip_IBM_Settings_Preserve_relative_indent;
+    public static String Tooltip_IBM_Settings_SQL_Formatting;
+    public static String Tooltip_IBM_Settings_SQL_Uppercasing;
     public static String Tooltip_Keyword_casing_style;
 
     public static String Tooltip_Use_const_keyword;
