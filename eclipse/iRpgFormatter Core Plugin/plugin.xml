@@ -72,6 +72,11 @@
          id="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage">
            <keywordReference id="de.tools400.lpex.irpgformatter.IRPGFormatterPreferencePage"/>
       </page>
+      <page
+         name="%Label_preferences"
+         class="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterProxyPreferencePage"
+         id="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterProxyPreferencePage">
+      </page>
    </extension>
 
    <extension point="org.eclipse.ui.keywords">

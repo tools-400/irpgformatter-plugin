@@ -21,6 +21,7 @@ public class Messages extends NLS {
     public static String Label_IBM_Settings;
     public static String Label_IBM_Formatter_Settings_Help;
     public static String Label_IBM_SQL_Formatting_Settings_Help;
+    public static String Label_iRPGFormatter_settings_are_located_beside_IBM_settings;
     public static String Label_IBM_Key_Behavior_Settings_Help;
     public static String Label_IBM_Settings_Indent;
     public static String Label_IBM_Settings_Start_column;
