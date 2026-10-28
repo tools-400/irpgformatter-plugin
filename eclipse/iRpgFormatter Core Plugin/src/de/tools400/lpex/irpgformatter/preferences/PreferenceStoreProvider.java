@@ -106,4 +106,35 @@ public final class PreferenceStoreProvider {
     public static boolean isTestMode() {
         return testMode;
     }
+
+    /**
+     * Sets a value of the test preference store, for example the value of a
+     * preference of a former version, that the preferences do not write any
+     * more. Unlike {@link #getPreferenceStore()}, the tests can call it without
+     * the type of the store, that belongs to JFace.
+     *
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static void setTestValue(String name, boolean value) {
+        getTestPreferenceStore().setValue(name, value);
+    }
+
+    /**
+     * Removes a value of the test preference store, like the Eclipse
+     * preference store does, when a value is set to its default value.
+     *
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static void setTestValueToDefault(String name) {
+        getTestPreferenceStore().setToDefault(name);
+    }
+
+    private static IPreferenceStore getTestPreferenceStore() {
+
+        if (!testMode) {
+            throw new IllegalStateException("Test mode is not enabled.");
+        }
+
+        return getPreferenceStore();
+    }
 }

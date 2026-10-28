@@ -194,13 +194,13 @@ public class PreferencesTest extends AbstractTestCase {
      */
     @Test
     public void getFormatCalculations_executeIbmFormatterSwitchedOff_isOff() {
-        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", false);
+        PreferenceStoreProvider.setTestValue("executeIbmFormatter", false);
         assertEquals(CalculationFormatter.OFF, Preferences.getInstance().getFormatCalculations());
     }
 
     @Test
     public void getFormatCalculations_executeIbmFormatterSwitchedOn_isDefault() {
-        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", true);
+        PreferenceStoreProvider.setTestValue("executeIbmFormatter", true);
         assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getFormatCalculations());
     }
 
@@ -211,9 +211,9 @@ public class PreferencesTest extends AbstractTestCase {
     @Test
     public void setFormatCalculations_replacesExecuteIbmFormatter() {
         Preferences prefs = Preferences.getInstance();
-        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", false);
+        PreferenceStoreProvider.setTestValue("executeIbmFormatter", false);
         prefs.setFormatCalculations(CalculationFormatter.IRPG_FORMATTER);
-        PreferenceStoreProvider.getPreferenceStore().setToDefault("formatCalculations");
+        PreferenceStoreProvider.setTestValueToDefault("formatCalculations");
         assertEquals(CalculationFormatter.IRPG_FORMATTER, prefs.getFormatCalculations());
     }
 
