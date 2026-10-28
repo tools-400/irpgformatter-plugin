@@ -45,8 +45,11 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
 /**
  * RPGLE source code formatter.
  * <p>
- * Formats control specifications, definition specifications, and compiler
- * directives according to the formatting rules defined in RPGLE-Formatter.md.
+ * Formats the control options, the declarations and the compiler directives,
+ * see preference "Format declarations", as well as the calculations, the
+ * comment lines in front of them and the embedded SQL statements, see
+ * preference "Format calculations". The formatting rules are described in the
+ * section "Formatting Rules" of the README.
  * </p>
  */
 public class RpgleFormatter implements ILineNumberProvider {
