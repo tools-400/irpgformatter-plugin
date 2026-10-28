@@ -522,7 +522,6 @@ public class RpgleFormatter implements ILineNumberProvider {
         case END_ENUM:
         case END_PROC:
             return formatEndStatement(statement, type, indent);
-        case OTHER:
         default:
             return formatKeepOriginal(statement);
         }
