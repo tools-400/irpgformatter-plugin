@@ -25,9 +25,7 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
-import de.tools400.lpex.irpgformatter.rules.casing.CalculationCasingRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
-import de.tools400.lpex.irpgformatter.rules.statements.ConditionParenthesesRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
@@ -76,9 +74,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private final SortConstValueToEndRule sortConstValueToEndRule;
     private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
     private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
-    private final EmbeddedSqlFormatter embeddedSqlFormatter;
-    private final ConditionParenthesesRule conditionParenthesesRule;
-    private final CalculationCasingRule calculationCasingRule;
+    private final CalculationStatementFormatter calculationStatementFormatter;
 
     private final List<FormatError> errors = new ArrayList<>();
     private final List<FormatError> warnings = new ArrayList<>();
@@ -93,9 +89,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
         this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
         this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
-        this.embeddedSqlFormatter = new EmbeddedSqlFormatter(config);
-        this.conditionParenthesesRule = new ConditionParenthesesRule(config);
-        this.calculationCasingRule = new CalculationCasingRule(config);
+        this.calculationStatementFormatter = new CalculationStatementFormatter(config);
     }
 
     public RpgleFormatter() {
@@ -491,7 +485,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         }
 
         if (isCalculation(type)) {
-            return formatCalculation(statement, type, indent);
+            return calculationStatementFormatter.format(statement, type, indent, ensureEndColumn());
         }
 
         switch (type) {
@@ -576,87 +570,6 @@ public class RpgleFormatter implements ILineNumberProvider {
      */
     private static boolean isCalculation(StatementType type) {
         return type == StatementType.OTHER || type.isCalculation();
-    }
-
-    /**
-     * Formats a calculation statement. An embedded SQL statement is formatted
-     * with the SQL formatter of IBM, all other statements are only indented.
-     */
-    private List<String> formatCalculation(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
-
-        List<String> lines = statement.getOriginalStatements();
-
-        if (type == StatementType.EXEC_SQL && embeddedSqlFormatter.isEnabled()) {
-            if (config.isFormatEmbeddedSql()) {
-                List<String> formatted = embeddedSqlFormatter.format(statement, indent, ensureEndColumn());
-                if (formatted != null) {
-                    return formatted;
-                }
-            } else {
-                List<String> adjusted = embeddedSqlFormatter.adjustCase(statement);
-                if (adjusted != null) {
-                    lines = adjusted;
-                }
-            }
-        } else if (ConditionParenthesesRule.isCondition(type)) {
-            lines = conditionParenthesesRule.apply(statement);
-        }
-
-        // The casing of embedded SQL follows the IBM settings.
-        if (type != StatementType.EXEC_SQL) {
-            lines = calculationCasingRule.apply(statement, lines);
-        }
-
-        return indentCalculation(statement, lines, indent);
-    }
-
-    /**
-     * Indents the lines of a calculation statement.
-     * <p>
-     * The first line gets the indent of the statement. Continued lines keep
-     * their indent relative to the first line or are lined up one level deeper,
-     * see IBM preference "Preserve relative indentation of continued lines".
-     * Lines, whose leading blanks belong to a literal continued with a hyphen,
-     * are left unchanged.
-     * </p>
-     *
-     * @param statement - the statement
-     * @param lines - the lines of the statement, unchanged or changed by a
-     *        rule, such as the casing of SQL or the parentheses of a condition
-     * @param indent - the indent of the statement
-     * @throws LineOverflowException if a line exceeds the end column
-     */
-    private List<String> indentCalculation(CollectedStatement statement, List<String> lines, int indent) throws RpgleFormatterException {
-
-        List<String> results = new ArrayList<>();
-
-        int shift = indent - StringUtils.getIndent(lines.get(0)).length();
-        for (int i = 0; i < lines.size(); i++) {
-
-            String line = lines.get(i);
-            String formatted;
-            if (i == 0) {
-                formatted = StringUtils.spaces(indent) + line.trim();
-            } else if (statement.isLeadingBlanksSignificant(i) || line.trim().isEmpty()) {
-                formatted = line;
-            } else if (config.isPreserveRelativeIndentOfContinuedLines()) {
-                int lineIndent = Math.max(0, StringUtils.getIndent(line).length() + shift);
-                formatted = StringUtils.spaces(lineIndent) + line.trim();
-            } else {
-                formatted = StringUtils.spaces(indent + config.getIndent()) + line.trim();
-            }
-
-            // A line, that is longer than the end column already, may keep its
-            // length. Compared with the original line, because a rule may have
-            // made the line longer.
-            if (formatted.length() > ensureEndColumn() && formatted.length() > statement.getLine(i).length()) {
-                throw new LineOverflowException(line.trim(), statement.getStartLineNumber() + i);
-            }
-
-            results.add(formatted);
-        }
-
-        return results;
     }
 
     /**
