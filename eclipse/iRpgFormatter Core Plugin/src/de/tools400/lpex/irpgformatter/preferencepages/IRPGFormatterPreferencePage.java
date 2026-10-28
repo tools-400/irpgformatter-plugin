@@ -602,7 +602,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         data.setMaxNameLength(maxNameLengthSpinner.getSelection());
         data.setMinNameLength(minNameLengthSpinner.getSelection());
-        data.setFormatCalculations(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()).name());
+        data.setCalculationFormatter(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()).name());
         data.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
         data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
         data.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
@@ -644,7 +644,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         maxNameLengthSpinner.setSelection(data.getMaxNameLength());
         minNameLengthSpinner.setSelection(data.getMinNameLength());
         try {
-            CalculationFormatter formatter = CalculationFormatter.valueOf(data.getFormatCalculations());
+            CalculationFormatter formatter = CalculationFormatter.valueOf(data.getCalculationFormatter());
             formatCalculationsCombo.select(formatter.ordinal());
         } catch (IllegalArgumentException | NullPointerException e) {
             // Keep current selection if the value is invalid
@@ -787,7 +787,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         maxNameLengthSpinner.setSelection(preferences.getMaxNameLength());
         minNameLengthSpinner.setSelection(preferences.getMinNameLength());
 
-        formatCalculationsCombo.select(preferences.getFormatCalculations().ordinal());
+        formatCalculationsCombo.select(preferences.getCalculationFormatter().ordinal());
         formatDeclarationsCheckbox.setSelection(preferences.isFormatDeclarations());
 
         dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDataTypes()));
@@ -838,7 +838,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setMaxNameLength(maxNameLengthSpinner.getSelection());
         preferences.setMinLiteralLength(minNameLengthSpinner.getSelection());
 
-        preferences.setFormatCalculations(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()));
+        preferences.setCalculationFormatter(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()));
         preferences.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
 
         preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
@@ -877,7 +877,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         minNameLengthSpinner.setSelection(preferences.getDefaultMinLiteralLength());
 
         // Reset formatters
-        formatCalculationsCombo.select(preferences.getDefaultFormatCalculations().ordinal());
+        formatCalculationsCombo.select(preferences.getDefaultCalculationFormatter().ordinal());
         formatDeclarationsCheckbox.setSelection(preferences.getDefaultFormatDeclarations());
 
         // Reset keyword editors

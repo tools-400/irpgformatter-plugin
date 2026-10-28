@@ -61,6 +61,6 @@ public enum CalculationFormatter {
                 }
             }
         }
-        return Preferences.getInstance().getDefaultFormatCalculations();
+        return Preferences.getInstance().getDefaultCalculationFormatter();
     }
 }

@@ -85,7 +85,7 @@ public class FormatLpexSourceAction implements LpexAction {
 
     private void executeFormatter(LpexView view, RpgleLpexInput input, boolean haveSelection, int startLine) throws RpgleFormatterException {
 
-        CalculationFormatter calculationFormatter = Preferences.getInstance().getFormatCalculations();
+        CalculationFormatter calculationFormatter = Preferences.getInstance().getCalculationFormatter();
         boolean executeIbmFormatter = calculationFormatter == CalculationFormatter.IBM_FORMATTER;
         boolean executeIrpgFormatter = Preferences.getInstance().isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER;
 

@@ -354,7 +354,7 @@ public class FormatterConfig {
 
         FormatterConfig config = new FormatterConfig();
         config.formatDeclarations = prefs.isFormatDeclarations();
-        config.calculationFormatter = prefs.getFormatCalculations();
+        config.calculationFormatter = prefs.getCalculationFormatter();
         config.indent = prefs.getIndent();
         config.selectIndent = prefs.getSelectIndent();
         config.preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();

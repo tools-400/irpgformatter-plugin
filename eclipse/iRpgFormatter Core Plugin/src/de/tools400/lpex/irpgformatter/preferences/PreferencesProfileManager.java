@@ -89,7 +89,7 @@ public final class PreferencesProfileManager {
         intSetting("maxNameLength", ProfileData::getMaxNameLength, ProfileData::setMaxNameLength),
         intSetting("minNameLength", ProfileData::getMinNameLength, ProfileData::setMinNameLength),
         booleanSetting("executeIrpgFormatter", ProfileData::isFormatDeclarations, ProfileData::setFormatDeclarations),
-        stringSetting("formatCalculations", ProfileData::getFormatCalculations, ProfileData::setFormatCalculations),
+        stringSetting("formatCalculations", ProfileData::getCalculationFormatter, ProfileData::setCalculationFormatter),
 
         // Save Actions
         booleanSetting("formatOnSave", ProfileData::isFormatOnSave, ProfileData::setFormatOnSave),
@@ -265,7 +265,7 @@ public final class PreferencesProfileManager {
 
         if (LEGACY_SETTING_EXECUTE_IBM_FORMATTER.equals(id)) {
             boolean isExecuteIbmFormatter = Boolean.parseBoolean(setting.getAttribute(ATTR_VALUE));
-            data.setFormatCalculations(isExecuteIbmFormatter ? CalculationFormatter.IRPG_FORMATTER.name() : CalculationFormatter.OFF.name());
+            data.setCalculationFormatter(isExecuteIbmFormatter ? CalculationFormatter.IRPG_FORMATTER.name() : CalculationFormatter.OFF.name());
             return;
         }
 
@@ -405,7 +405,7 @@ public final class PreferencesProfileManager {
         private boolean unindentCompilerDirectives;
         private int maxNameLength;
         private int minNameLength;
-        private String formatCalculations;
+        private String calculationFormatter;
         private boolean formatDeclarations;
         private boolean formatOnSave;
         private boolean removeEmptyCommentLines;
@@ -516,12 +516,12 @@ public final class PreferencesProfileManager {
             this.minNameLength = minNameLength;
         }
 
-        public String getFormatCalculations() {
-            return formatCalculations;
+        public String getCalculationFormatter() {
+            return calculationFormatter;
         }
 
-        public void setFormatCalculations(String formatCalculations) {
-            this.formatCalculations = formatCalculations;
+        public void setCalculationFormatter(String calculationFormatter) {
+            this.calculationFormatter = calculationFormatter;
         }
 
         public boolean isFormatDeclarations() {

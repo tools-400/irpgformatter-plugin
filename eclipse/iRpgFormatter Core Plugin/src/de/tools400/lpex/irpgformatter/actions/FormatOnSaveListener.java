@@ -70,7 +70,7 @@ public final class FormatOnSaveListener {
 
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 
-        CalculationFormatter calculationFormatter = Preferences.getInstance().getFormatCalculations();
+        CalculationFormatter calculationFormatter = Preferences.getInstance().getCalculationFormatter();
 
         if (calculationFormatter == CalculationFormatter.IBM_FORMATTER) {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);

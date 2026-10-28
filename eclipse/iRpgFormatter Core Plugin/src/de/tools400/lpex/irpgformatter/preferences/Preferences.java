@@ -58,11 +58,12 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
 
-    /** "Execute IBM formatter", replaced by {@link #FORMAT_CALCULATIONS} */
+    /** "Execute IBM formatter", replaced by {@link #CALCULATION_FORMATTER} */
     private static final String EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
     /** "Format declarations", formerly "Execute iRPG formatter" */
     private static final String FORMAT_DECLARATIONS = "executeIrpgFormatter";
-    private static final String FORMAT_CALCULATIONS = "formatCalculations";
+    /** "Format calculations" */
+    private static final String CALCULATION_FORMATTER = "formatCalculations";
     private static final String FORMAT_ON_SAVE = "formatOnSave";
 
     private static final String DATA_TYPES = "dataTypes";
@@ -100,7 +101,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_CUSTOM_PREVIEW_CONTENT = false;
 
     private static final boolean DEFAULT_FORMAT_DECLARATIONS = true;
-    private static final CalculationFormatter DEFAULT_FORMAT_CALCULATIONS = CalculationFormatter.IRPG_FORMATTER;
+    private static final CalculationFormatter DEFAULT_CALCULATION_FORMATTER = CalculationFormatter.IRPG_FORMATTER;
     private static final boolean DEFAULT_FORMAT_ON_SAVE = false;
 
     private static Map<String, String> cachedDataTypes;
@@ -527,22 +528,22 @@ public final class Preferences implements RpgleSourceConstants {
      * switched off, the calculations stay unchanged.
      * </p>
      */
-    public CalculationFormatter getFormatCalculations() {
+    public CalculationFormatter getCalculationFormatter() {
 
-        if (preferenceStore.isDefault(FORMAT_CALCULATIONS) && !preferenceStore.isDefault(EXECUTE_IBM_FORMATTER)
+        if (preferenceStore.isDefault(CALCULATION_FORMATTER) && !preferenceStore.isDefault(EXECUTE_IBM_FORMATTER)
             && !preferenceStore.getBoolean(EXECUTE_IBM_FORMATTER)) {
             return CalculationFormatter.OFF;
         }
 
         try {
-            return CalculationFormatter.valueOf(preferenceStore.getString(FORMAT_CALCULATIONS));
+            return CalculationFormatter.valueOf(preferenceStore.getString(CALCULATION_FORMATTER));
         } catch (Exception e) {
-            return getDefaultFormatCalculations();
+            return getDefaultCalculationFormatter();
         }
     }
 
-    public void setFormatCalculations(CalculationFormatter formatter) {
-        preferenceStore.setValue(FORMAT_CALCULATIONS, formatter.name());
+    public void setCalculationFormatter(CalculationFormatter formatter) {
+        preferenceStore.setValue(CALCULATION_FORMATTER, formatter.name());
         // The replaced preference must not override the new one, when it
         // becomes the default value.
         preferenceStore.setToDefault(EXECUTE_IBM_FORMATTER);
@@ -690,7 +691,7 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS, getDefaultFormatOperationCodesAndBuiltInFunctions());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, true);
         preferenceStore.setDefault(FORMAT_DECLARATIONS, getDefaultFormatDeclarations());
-        preferenceStore.setDefault(FORMAT_CALCULATIONS, getDefaultFormatCalculations().name());
+        preferenceStore.setDefault(CALCULATION_FORMATTER, getDefaultCalculationFormatter().name());
         preferenceStore.setDefault(FORMAT_ON_SAVE, getDefaultFormatOnSave());
         preferenceStore.setDefault(USER_KEY_ACTIONS, getDefaultUserKeyActions());
         preferenceStore.setDefault(DATA_TYPES, getDefaultDataTypesAsString());
@@ -779,8 +780,8 @@ public final class Preferences implements RpgleSourceConstants {
         return DEFAULT_FORMAT_DECLARATIONS;
     }
 
-    public CalculationFormatter getDefaultFormatCalculations() {
-        return DEFAULT_FORMAT_CALCULATIONS;
+    public CalculationFormatter getDefaultCalculationFormatter() {
+        return DEFAULT_CALCULATION_FORMATTER;
     }
 
     public boolean getDefaultFormatOnSave() {

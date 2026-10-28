@@ -216,10 +216,10 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         ProfileData data = new ProfileData();
 
         importProfile(writeProfile("<setting id=\"executeIbmFormatter\" value=\"false\"/>"), data);
-        assertEquals(CalculationFormatter.OFF.name(), data.getFormatCalculations());
+        assertEquals(CalculationFormatter.OFF.name(), data.getCalculationFormatter());
 
         importProfile(writeProfile("<setting id=\"executeIbmFormatter\" value=\"true\"/>"), data);
-        assertEquals(CalculationFormatter.IRPG_FORMATTER.name(), data.getFormatCalculations());
+        assertEquals(CalculationFormatter.IRPG_FORMATTER.name(), data.getCalculationFormatter());
     }
 
     @Test
@@ -268,7 +268,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         assertFalse(isComplete);
 
         ProfileData expected = createData();
-        expected.setFormatCalculations(CalculationFormatter.OFF.name());
+        expected.setCalculationFormatter(CalculationFormatter.OFF.name());
         expected.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES.name());
         expected.setFormatOperationCodesAndBuiltInFunctions(false);
         expected.setKeywords(createMap("LIKEDS", "LikeDS"));
@@ -376,7 +376,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         data.setUnindentCompilerDirectives(false);
         data.setMaxNameLength(33);
         data.setMinNameLength(7);
-        data.setFormatCalculations(CalculationFormatter.IBM_FORMATTER.name());
+        data.setCalculationFormatter(CalculationFormatter.IBM_FORMATTER.name());
         data.setFormatDeclarations(false);
         data.setFormatOnSave(true);
         data.setRemoveEmptyCommentLines(true);
@@ -407,7 +407,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         return data.getParameterSpacingStyle() + "|" + data.isUseConstKeyword() + "|" + data.isDelimiterBeforeParameter() + "|"
             + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|" + data.isSortConstValueToEnd()
             + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
-            + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getFormatCalculations() + "|" + data.isFormatDeclarations() + "|"
+            + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getCalculationFormatter() + "|" + data.isFormatDeclarations() + "|"
             + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|" + data.getDataTypes()
             + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|"
             + data.getBuiltInFunctions() + "|" + data.getCustomPreviewSource();

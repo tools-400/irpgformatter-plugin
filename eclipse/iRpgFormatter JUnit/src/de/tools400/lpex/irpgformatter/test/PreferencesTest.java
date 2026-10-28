@@ -98,8 +98,8 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void getDefaultFormatCalculations_isIrpgFormatter() {
-        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getDefaultFormatCalculations());
+    public void getDefaultCalculationFormatter_isIrpgFormatter() {
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getDefaultCalculationFormatter());
     }
 
     @Test
@@ -183,10 +183,10 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void setAndGetFormatCalculations() {
+    public void setAndGetCalculationFormatter() {
         Preferences prefs = Preferences.getInstance();
-        prefs.setFormatCalculations(CalculationFormatter.IBM_FORMATTER);
-        assertEquals(CalculationFormatter.IBM_FORMATTER, prefs.getFormatCalculations());
+        prefs.setCalculationFormatter(CalculationFormatter.IBM_FORMATTER);
+        assertEquals(CalculationFormatter.IBM_FORMATTER, prefs.getCalculationFormatter());
     }
 
     /**
@@ -194,15 +194,15 @@ public class PreferencesTest extends AbstractTestCase {
      * calculations stayed unchanged.
      */
     @Test
-    public void getFormatCalculations_executeIbmFormatterSwitchedOff_isOff() {
+    public void getCalculationFormatter_executeIbmFormatterSwitchedOff_isOff() {
         PreferenceStoreProvider.setTestValue("executeIbmFormatter", false);
-        assertEquals(CalculationFormatter.OFF, Preferences.getInstance().getFormatCalculations());
+        assertEquals(CalculationFormatter.OFF, Preferences.getInstance().getCalculationFormatter());
     }
 
     @Test
-    public void getFormatCalculations_executeIbmFormatterSwitchedOn_isDefault() {
+    public void getCalculationFormatter_executeIbmFormatterSwitchedOn_isDefault() {
         PreferenceStoreProvider.setTestValue("executeIbmFormatter", true);
-        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getFormatCalculations());
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getCalculationFormatter());
     }
 
     /**
@@ -210,12 +210,12 @@ public class PreferencesTest extends AbstractTestCase {
      * value.
      */
     @Test
-    public void setFormatCalculations_replacesExecuteIbmFormatter() {
+    public void setCalculationFormatter_replacesExecuteIbmFormatter() {
         Preferences prefs = Preferences.getInstance();
         PreferenceStoreProvider.setTestValue("executeIbmFormatter", false);
-        prefs.setFormatCalculations(CalculationFormatter.IRPG_FORMATTER);
+        prefs.setCalculationFormatter(CalculationFormatter.IRPG_FORMATTER);
         PreferenceStoreProvider.setTestValueToDefault("formatCalculations");
-        assertEquals(CalculationFormatter.IRPG_FORMATTER, prefs.getFormatCalculations());
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, prefs.getCalculationFormatter());
     }
 
     @Test
