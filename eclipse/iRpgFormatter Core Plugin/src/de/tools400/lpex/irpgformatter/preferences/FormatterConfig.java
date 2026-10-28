@@ -48,6 +48,7 @@ public class FormatterConfig {
     private boolean removeEmptyLinesBeforeDclPi;
     private ConditionParentheses conditionParentheses;
     private boolean formatOperationCodesAndBuiltInFunctions;
+    private boolean formatSpecialWordsOfCalculations;
     private KeywordCasingStyle keywordCasingStyle;
     private ParameterSpacingStyle parameterSpacingStyle;
     private Map<String, String> keywords;
@@ -166,6 +167,10 @@ public class FormatterConfig {
 
     public boolean isFormatOperationCodesAndBuiltInFunctions() {
         return formatOperationCodesAndBuiltInFunctions;
+    }
+
+    public boolean isFormatSpecialWordsOfCalculations() {
+        return formatSpecialWordsOfCalculations;
     }
 
     public Map<String, String> getOperationCodes() {
@@ -304,6 +309,10 @@ public class FormatterConfig {
         this.formatOperationCodesAndBuiltInFunctions = formatOperationCodesAndBuiltInFunctions;
     }
 
+    public void setFormatSpecialWordsOfCalculations(boolean formatSpecialWordsOfCalculations) {
+        this.formatSpecialWordsOfCalculations = formatSpecialWordsOfCalculations;
+    }
+
     public void setKeywordCasingStyle(KeywordCasingStyle keywordCasingStyle) {
         this.keywordCasingStyle = keywordCasingStyle;
     }
@@ -380,6 +389,7 @@ public class FormatterConfig {
         config.removeEmptyLinesBeforeDclPi = prefs.isRemoveEmptyLinesBeforeDclPi();
         config.conditionParentheses = prefs.getConditionParentheses();
         config.formatOperationCodesAndBuiltInFunctions = prefs.isFormatOperationCodesAndBuiltInFunctions();
+        config.formatSpecialWordsOfCalculations = prefs.isFormatSpecialWordsOfCalculations();
         config.keywordCasingStyle = prefs.getKeywordCasingStyle();
         config.parameterSpacingStyle = prefs.getParameterSpacingStyle();
         config.keywords = Collections.unmodifiableMap(prefs.getKeywords());

@@ -54,6 +54,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "removeEmptyLinesBeforeDclPi";
     private static final String CONDITION_PARENTHESES = "conditionParentheses";
     private static final String FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS = "formatOperationCodesAndBuiltInFunctions";
+    private static final String FORMAT_SPECIAL_WORDS_OF_CALCULATIONS = "formatSpecialWordsOfCalculations";
     private static final String MAX_NAME_LENGTH = "maxNameLength";
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
@@ -93,6 +94,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_REMOVE_EMPTY_LINES_BEFORE_DCL_PI = false;
     private static final ConditionParentheses DEFAULT_CONDITION_PARENTHESES = ConditionParentheses.OFF;
     private static final boolean DEFAULT_FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS = false;
+    private static final boolean DEFAULT_FORMAT_SPECIAL_WORDS_OF_CALCULATIONS = false;
     private static final int DEFAULT_MAX_NAME_LENGTH = 60;
     private static final int DEFAULT_MIN_NAME_LENGTH = 10;
     private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 35;
@@ -464,6 +466,18 @@ public final class Preferences implements RpgleSourceConstants {
         return DEFAULT_FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS;
     }
 
+    public boolean isFormatSpecialWordsOfCalculations() {
+        return preferenceStore.getBoolean(FORMAT_SPECIAL_WORDS_OF_CALCULATIONS);
+    }
+
+    public void setFormatSpecialWordsOfCalculations(boolean enabled) {
+        preferenceStore.setValue(FORMAT_SPECIAL_WORDS_OF_CALCULATIONS, enabled);
+    }
+
+    public boolean getDefaultFormatSpecialWordsOfCalculations() {
+        return DEFAULT_FORMAT_SPECIAL_WORDS_OF_CALCULATIONS;
+    }
+
     /**
      * Returns the canonical spellings of the operation codes by the operation
      * code in upper case.
@@ -689,6 +703,7 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(REMOVE_EMPTY_LINES_BEFORE_DCL_PI, getDefaultRemoveEmptyLinesBeforeDclPi());
         preferenceStore.setDefault(CONDITION_PARENTHESES, getDefaultConditionParentheses().name());
         preferenceStore.setDefault(FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS, getDefaultFormatOperationCodesAndBuiltInFunctions());
+        preferenceStore.setDefault(FORMAT_SPECIAL_WORDS_OF_CALCULATIONS, getDefaultFormatSpecialWordsOfCalculations());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, true);
         preferenceStore.setDefault(FORMAT_DECLARATIONS, getDefaultFormatDeclarations());
         preferenceStore.setDefault(CALCULATION_FORMATTER, getDefaultCalculationFormatter().name());

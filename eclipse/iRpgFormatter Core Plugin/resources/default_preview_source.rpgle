@@ -60,12 +60,13 @@ DCL-PROC myProc export;
   // Format calculations.
   // Outer parentheses of conditions.
   // Casing of operation codes and built-in functions.
+  // Casing of special words of the calculations.
   IF %PARMS() >= 2;
   Dsply message;
   exec sql select name, city
     into :name, :city
     from customer where id = :id;
-  elseif (id = 0);
+  elseif (id = *ZEROS);
   clear name;
   endif;
 

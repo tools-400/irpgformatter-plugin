@@ -54,6 +54,7 @@ public class Messages extends NLS {
     public static String Label_Condition_parentheses_With_parentheses;
     public static String Label_Condition_parentheses_Without_parentheses;
     public static String Label_Format_operation_codes_and_built_in_functions;
+    public static String Label_Format_special_words_of_calculations;
     public static String Label_Save_Actions;
     public static String Label_Format_on_save;
     public static String Label_Experimental_Settings;
@@ -142,6 +143,7 @@ public class Messages extends NLS {
     public static String Tooltip_Format_calculations;
     public static String Tooltip_Condition_parentheses;
     public static String Tooltip_Format_operation_codes_and_built_in_functions;
+    public static String Tooltip_Format_special_words_of_calculations;
     public static String Tooltip_Format_on_save;
     public static String Tooltip_Remove_empty_comment_lines;
     public static String Tooltip_Remove_empty_lines_before_dcl_pi;

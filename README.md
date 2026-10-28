@@ -143,6 +143,7 @@ These settings implement new formatting rules that are still being evaluated. Th
 | **Remove empty lines before dcl-pi** | Off     | Remove blank lines and empty `//` comments immediately before a `dcl-pi` statement (see [Empty Lines Before DCL-PI]) |
 | **Outer parentheses of conditions**  | Off     | Add or remove the parentheses around the condition of IF, ELSEIF, WHEN, DOW and DOU (see [Outer Parentheses of Conditions](#outer-parentheses-of-conditions)) |
 | **Apply keyword casing to operation codes and built-in functions** | Off | Format the operation codes and built-in functions of the calculations in the keyword casing style (see [Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions)) |
+| **Apply keyword casing to special words of the calculations** | Off | Format the special words of the calculations, such as `*ON` or `*ZEROS`, in the keyword casing style (see [Casing of Special Words in Calculations](#casing-of-special-words-in-calculations)) |
 
 ### Save Actions
 
@@ -157,7 +158,7 @@ These settings implement new formatting rules that are still being evaluated. Th
 | **Data Types**                  | (built-in list)  | Custom data type casing mappings                                         |
 | **Declaration Types**           | (built-in list)  | Custom declaration type casing mappings                                  |
 | **Keywords**                    | (built-in list)  | Custom keyword casing mappings                                           |
-| **Special Words**               | (built-in list)  | Custom keyword parameter casing mappings (e.g., \*NOPASS, \*OMIT)        |
+| **Special Words**               | (built-in list)  | Custom special word casing mappings (e.g., \*NOPASS, \*OMIT, \*ZEROS)  |
 | **Operation Codes**             | (built-in list)  | Custom operation code casing mappings (e.g., SETLL, EVAL-CORR)           |
 | **Built-in Functions**          | (built-in list)  | Custom built-in function casing mappings (e.g., %SUBDT)                  |
 
@@ -237,8 +238,9 @@ All keywords, data types, declaration types and special words (e.g. `*NOPASS`) a
 
 The default casing style is **All Lowercase**.
 
-Optionally the operation codes and built-in functions of the calculations are formatted in the same style, see
-[Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions).
+Optionally the operation codes, built-in functions and special words of the calculations are formatted in the same style, see
+[Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions) and
+[Casing of Special Words in Calculations](#casing-of-special-words-in-calculations).
 
 The keyword casing style is derived from the RDi setting at **Window > Preferences > IBM i > Parsers > ILE RPG > Content assist > Auto-close control structure** (the "endxx" setting). This ensures consistency between auto-completed code and formatted code.
 
@@ -606,6 +608,29 @@ calculation) and the built-in functions are formatted in the keyword casing styl
 
 - Literals, comments, operation extenders and embedded SQL are not changed. Words, that are not in the lists, stay as they are.
 - RPG ignores the casing outside of literals. A line is changed only, if it differs from the original line only in the casing outside of literals.
+- The rule applies only, if **Format calculations** is **iRPGFormatter**.
+
+#### Casing of Special Words in Calculations
+
+When **Apply keyword casing to special words of the calculations** is enabled, the special words of the calculations are
+formatted in the keyword casing style, using the list **Special Words**. Besides the figurative constants, such as `*ON` or
+`*ZEROS`, the list contains the special words of the built-in functions and operation codes, such as `*DAYS` in
+`%DIFF(d1 : d2 : *DAYS)`, `*START` in `SETLL *START file` or `*ESCAPE` in `SND-MSG *ESCAPE`.
+
+| Style            | Example `*INLR = *ON;` |
+| ---------------- | ---------------------- |
+| All Uppercase    | `*INLR = *ON;`         |
+| UpperCamelCase   | `*InLr = *On;`         |
+| First Char Upper | `*Inlr = *On;`         |
+| lowerCamelCase   | `*inLr = *on;`         |
+| All Lowercase    | `*inlr = *on;`         |
+
+- An asterisk directly after an operand is a multiplication. In `price*DAYS` the name `DAYS` stays as it is.
+- An asterisk starts a special word at the start of the statement, after an operator or an opening parenthesis, after the
+  operation code and its extender, after `AND`, `OR`, `NOT`, `TO`, `DOWNTO` and `BY` and after another special word, as in
+  `CLEAR *NOKEY *ALL ds;`.
+- Numbered indicators, such as `*IN03`, and date formats with the separator `0`, such as `*ISO0`, are not in the list and stay as they are.
+- Literals, comments and embedded SQL are not changed. A line is changed only, if it differs from the original line only in the casing outside of literals.
 - The rule applies only, if **Format calculations** is **iRPGFormatter**.
 
 ### Error Handling

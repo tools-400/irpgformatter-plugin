@@ -24,9 +24,10 @@ import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 
 /**
- * Unit tests for the casing of the operation codes and built-in functions of
- * the calculations, see preference "Apply keyword casing to operation codes and
- * built-in functions".
+ * Unit tests for the casing of the operation codes, built-in functions and
+ * special words of the calculations, see preferences "Apply keyword casing to
+ * operation codes and built-in functions" and "Apply keyword casing to special
+ * words of the calculations".
  */
 public class CalculationCasingTest extends AbstractTestCase {
 
@@ -187,6 +188,109 @@ public class CalculationCasingTest extends AbstractTestCase {
         formatter.getConfig().setBuiltInFunctions(builtInFunctions);
 
         assertEquals("SetLl %MyBif(k) file;", format("setll %mybif(k) file;")[0]);
+    }
+
+    @Test
+    public void specialWordsOff_leaveCasingUnchanged() throws RpgleFormatterException {
+
+        setStyle(KeywordCasingStyle.LOWERCASE);
+        formatter.getConfig().setFormatSpecialWordsOfCalculations(false);
+
+        assertEquals("x = *HIVAL;", format("x = *HIVAL;")[0]);
+    }
+
+    @Test
+    public void specialWords() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.UPPER_CAMEL);
+
+        assertEquals("*InLr = *On;", format("*inlr = *on;")[0]);
+        assertEquals("x = %SubDt(d: *Years) + *Zeros;", format("x = %subdt(d: *years) + *zeros;")[0]);
+    }
+
+    @Test
+    public void specialWordsWithoutOperationCodesAndBuiltInFunctions() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+        formatter.getConfig().setFormatOperationCodesAndBuiltInFunctions(false);
+
+        assertEquals("RETURN %SIZE(x) > *zeros;", format("RETURN %SIZE(x) > *ZEROS;")[0]);
+    }
+
+    @Test
+    public void specialWordAfterOperationCode() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+        formatter.getConfig().setFormatOperationCodesAndBuiltInFunctions(false);
+
+        assertEquals("RETURN *on;", format("RETURN *ON;")[0]);
+        assertEquals("TEST(DE) *iso date;", format("TEST(DE) *ISO date;")[0]);
+    }
+
+    @Test
+    public void specialWordAfterOperatorsAndSpecialWords() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+        formatter.getConfig().setFormatOperationCodesAndBuiltInFunctions(false);
+
+        assertEquals("IF a = *on AND NOT *inlr;", format("IF a = *ON AND NOT *INLR;")[0]);
+        assertEquals("CLEAR *nokey *all ds;", format("CLEAR *NOKEY *ALL ds;")[0]);
+        assertEquals("CLEAR *UNKNOWN *all ds;", format("CLEAR *UNKNOWN *ALL ds;")[0]);
+        assertEquals("myProc(*omit: *null);", format("myProc(*OMIT: *NULL);")[0]);
+    }
+
+    @Test
+    public void specialWordsOfOperationCodesAndBuiltInFunctions() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+
+        assertEquals("snd-msg *escape 'Error' %target(*caller: 1);", format("SND-MSG *ESCAPE 'Error' %TARGET(*CALLER: 1);")[0]);
+        assertEquals("days = %diff(d1: d2: *days);", format("days = %DIFF(d1: d2: *DAYS);")[0]);
+        assertEquals("setll *start file;", format("SETLL *START file;")[0]);
+    }
+
+    @Test
+    public void multiplication_staysUnchanged() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+
+        assertEquals("total = price*VALUE + (a)*STATUS;", format("total = price*VALUE + (a)*STATUS;")[0]);
+        assertEquals("x = a**VALUE * *zeros;", format("x = a**VALUE * *ZEROS;")[0]);
+    }
+
+    @Test
+    public void multiplicationOnContinuedLine_staysUnchanged() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "total = price",
+            "        *VALUE;",
+            "if a = *ON and",
+            "   *INLR;",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals("          *VALUE;", result[2]);
+        assertEquals("  if a = *on and", result[3]);
+        assertEquals("     *inlr;", result[4]);
+    }
+
+    @Test
+    public void specialWordsInLiteralsAndComments_stayUnchanged() throws RpgleFormatterException {
+
+        setSpecialWordsStyle(KeywordCasingStyle.LOWERCASE);
+
+        assertEquals("msg = '*ON' + *on; // *ON", format("msg = '*ON' + *ON; // *ON")[0]);
+    }
+
+    private void setSpecialWordsStyle(KeywordCasingStyle style) {
+        formatter.getConfig().setFormatSpecialWordsOfCalculations(true);
+        setStyle(style);
     }
 
     private void setStyle(KeywordCasingStyle style) {

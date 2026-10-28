@@ -99,7 +99,9 @@ public final class PreferencesProfileManager {
         booleanSetting("removeEmptyLinesBeforeDclPi", ProfileData::isRemoveEmptyLinesBeforeDclPi, ProfileData::setRemoveEmptyLinesBeforeDclPi),
         stringSetting("conditionParentheses", ProfileData::getConditionParentheses, ProfileData::setConditionParentheses),
         booleanSetting("formatOperationCodesAndBuiltInFunctions", ProfileData::isFormatOperationCodesAndBuiltInFunctions,
-            ProfileData::setFormatOperationCodesAndBuiltInFunctions));
+            ProfileData::setFormatOperationCodesAndBuiltInFunctions),
+        booleanSetting("formatSpecialWordsOfCalculations", ProfileData::isFormatSpecialWordsOfCalculations,
+            ProfileData::setFormatSpecialWordsOfCalculations));
 
     private static final List<Setting<Map<String, String>>> MAP_SETTINGS = Arrays.asList(
         new Setting<>("dataTypes", ProfileData::getDataTypes, ProfileData::setDataTypes),
@@ -412,6 +414,7 @@ public final class PreferencesProfileManager {
         private boolean removeEmptyLinesBeforeDclPi;
         private String conditionParentheses;
         private boolean formatOperationCodesAndBuiltInFunctions;
+        private boolean formatSpecialWordsOfCalculations;
         private Map<String, String> dataTypes;
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
@@ -570,6 +573,14 @@ public final class PreferencesProfileManager {
 
         public void setFormatOperationCodesAndBuiltInFunctions(boolean formatOperationCodesAndBuiltInFunctions) {
             this.formatOperationCodesAndBuiltInFunctions = formatOperationCodesAndBuiltInFunctions;
+        }
+
+        public boolean isFormatSpecialWordsOfCalculations() {
+            return formatSpecialWordsOfCalculations;
+        }
+
+        public void setFormatSpecialWordsOfCalculations(boolean formatSpecialWordsOfCalculations) {
+            this.formatSpecialWordsOfCalculations = formatSpecialWordsOfCalculations;
         }
 
         public Map<String, String> getDataTypes() {
