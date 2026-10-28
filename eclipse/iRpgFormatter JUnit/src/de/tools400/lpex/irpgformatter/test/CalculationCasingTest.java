@@ -11,6 +11,9 @@ package de.tools400.lpex.irpgformatter.test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -168,6 +171,22 @@ public class CalculationCasingTest extends AbstractTestCase {
         formatter.getConfig().setCalculationFormatter(CalculationFormatter.IBM_FORMATTER);
 
         assertEquals("if %eof(f);", format("if %eof(f);", "endif;")[0]);
+    }
+
+    @Test
+    public void changedTables() throws RpgleFormatterException {
+
+        setStyle(KeywordCasingStyle.UPPER_CAMEL);
+
+        Map<String, String> operationCodes = new HashMap<>(formatter.getConfig().getOperationCodes());
+        operationCodes.put("SETLL", "SetLl");
+        formatter.getConfig().setOperationCodes(operationCodes);
+
+        Map<String, String> builtInFunctions = new HashMap<>(formatter.getConfig().getBuiltInFunctions());
+        builtInFunctions.put("%MYBIF", "%MyBif");
+        formatter.getConfig().setBuiltInFunctions(builtInFunctions);
+
+        assertEquals("SetLl %MyBif(k) file;", format("setll %mybif(k) file;")[0]);
     }
 
     private void setStyle(KeywordCasingStyle style) {

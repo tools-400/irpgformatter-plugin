@@ -25,12 +25,13 @@ import de.tools400.lpex.irpgformatter.Messages;
 
 /**
  * Dialog for adding or changing an entry of a keyword table: data type,
- * declaration type, keyword or special word.
+ * declaration type, keyword, special word, operation code or built-in
+ * function.
  */
 public class AddKeywordDialog extends TitleAreaDialog {
 
     private final String dialogTitle;
-    private final boolean isSpecialWord;
+    private final KeywordKind kind;
 
     private Text keyText;
     private Text valueText;
@@ -46,12 +47,12 @@ public class AddKeywordDialog extends TitleAreaDialog {
      *
      * @param parentShell the parent shell
      * @param title the dialog title
-     * @param isSpecialWord true if adding a keyword parameter (starts with *)
+     * @param kind the kind of the entries
      */
-    public AddKeywordDialog(Shell parentShell, String title, boolean isSpecialWord) {
+    public AddKeywordDialog(Shell parentShell, String title, KeywordKind kind) {
         super(parentShell);
         this.dialogTitle = title;
-        this.isSpecialWord = isSpecialWord;
+        this.kind = kind;
     }
 
     /**
@@ -60,12 +61,12 @@ public class AddKeywordDialog extends TitleAreaDialog {
      *
      * @param parentShell the parent shell
      * @param title the dialog title
-     * @param isSpecialWord true if editing a keyword parameter (starts with *)
+     * @param kind the kind of the entries
      * @param initialKey the initial key to display
      * @param initialValue the initial value to display
      */
-    public AddKeywordDialog(Shell parentShell, String title, boolean isSpecialWord, String initialKey, String initialValue) {
-        this(parentShell, title, isSpecialWord);
+    public AddKeywordDialog(Shell parentShell, String title, KeywordKind kind, String initialKey, String initialValue) {
+        this(parentShell, title, kind);
         this.initialKey = initialKey;
         this.initialValue = initialValue;
     }
@@ -123,11 +124,7 @@ public class AddKeywordDialog extends TitleAreaDialog {
             }
         });
 
-        if (isSpecialWord) {
-            keyText.setMessage(Messages.bind(Messages.Label_For_example_A, "*NOPASS"));
-        } else {
-            keyText.setMessage(Messages.bind(Messages.Label_For_example_A, "DCL-DS"));
-        }
+        keyText.setMessage(Messages.bind(Messages.Label_For_example_A, kind.getExampleKey()));
     }
 
     private void createValueText(Composite container) {
@@ -145,11 +142,7 @@ public class AddKeywordDialog extends TitleAreaDialog {
             }
         });
 
-        if (isSpecialWord) {
-            valueText.setMessage(Messages.bind(Messages.Label_For_example_A, "*NoPass"));
-        } else {
-            valueText.setMessage(Messages.bind(Messages.Label_For_example_A, "Dcl-Ds"));
-        }
+        valueText.setMessage(Messages.bind(Messages.Label_For_example_A, kind.getExampleValue()));
     }
 
     /**
@@ -180,13 +173,13 @@ public class AddKeywordDialog extends TitleAreaDialog {
             return "";
         }
 
-        // Handle *params
-        if (text.startsWith("*")) {
+        // Handle *params and %functions
+        if (text.startsWith("*") || text.startsWith("%")) {
             String rest = text.substring(1);
             if (rest.isEmpty()) {
-                return "*";
+                return text;
             }
-            return "*" + capitalizeFirst(rest.toLowerCase());
+            return text.charAt(0) + capitalizeFirst(rest.toLowerCase());
         }
 
         // Handle hyphenated keywords
@@ -223,8 +216,8 @@ public class AddKeywordDialog extends TitleAreaDialog {
             errorMessage = Messages.Error_Key_is_required;
         } else if (currentValue.isEmpty()) {
             errorMessage = Messages.Error_Value_is_required;
-        } else if (isSpecialWord && !currentKey.startsWith("*")) {
-            errorMessage = Messages.Error_Keyword_parameters_must_start_with_A;
+        } else if (kind.getRequiredPrefix() != null && !currentKey.startsWith(kind.getRequiredPrefix())) {
+            errorMessage = kind.getPrefixErrorMessage();
         }
 
         setErrorMessage(errorMessage);

@@ -332,6 +332,14 @@ public class FormatterConfig {
         this.specialWords = Collections.unmodifiableMap(specialWords);
     }
 
+    public void setOperationCodes(Map<String, String> operationCodes) {
+        this.operationCodes = Collections.unmodifiableMap(operationCodes);
+    }
+
+    public void setBuiltInFunctions(Map<String, String> builtInFunctions) {
+        this.builtInFunctions = Collections.unmodifiableMap(builtInFunctions);
+    }
+
     public int getEndColumn(int sourceLength) {
         return Math.min(maxLineWidth, sourceLength);
     }

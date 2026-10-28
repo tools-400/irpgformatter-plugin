@@ -46,15 +46,15 @@ public class KeywordEditor {
     private final String changeDialogTitle;
     private final String duplicateDialogTitle;
     private final String duplicateErrorMessage;
-    private final boolean isSpecialWord;
+    private final KeywordKind kind;
 
     private KeywordEditor(String addDialogTitle, String changeDialogTitle, String duplicateDialogTitle, String duplicateErrorMessage,
-        boolean isSpecialWord) {
+        KeywordKind kind) {
         this.addDialogTitle = addDialogTitle;
         this.changeDialogTitle = changeDialogTitle;
         this.duplicateDialogTitle = duplicateDialogTitle;
         this.duplicateErrorMessage = duplicateErrorMessage;
-        this.isSpecialWord = isSpecialWord;
+        this.kind = kind;
     }
 
     /**
@@ -64,7 +64,7 @@ public class KeywordEditor {
      */
     public static KeywordEditor forDataTypes(Composite parent) {
         KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Data_Type, Messages.Title_Change_Data_Type, Messages.Title_Duplicate_Data_Type,
-            Messages.Error_A_data_type_with_key_A_already_exists, false);
+            Messages.Error_A_data_type_with_key_A_already_exists, KeywordKind.KEYWORD);
         editor.createControl(parent);
         return editor;
     }
@@ -76,7 +76,7 @@ public class KeywordEditor {
      */
     public static KeywordEditor forDeclarationTypes(Composite parent) {
         KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Declaration_Type, Messages.Title_Change_Declaration_Type,
-            Messages.Title_Duplicate_Declaration_Type, Messages.Error_A_declaration_type_with_key_A_already_exists, false);
+            Messages.Title_Duplicate_Declaration_Type, Messages.Error_A_declaration_type_with_key_A_already_exists, KeywordKind.KEYWORD);
         editor.createControl(parent);
         return editor;
     }
@@ -88,7 +88,7 @@ public class KeywordEditor {
      */
     public static KeywordEditor forKeywords(Composite parent) {
         KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Keyword, Messages.Title_Change_Keyword, Messages.Title_Duplicate_Keyword,
-            Messages.Error_A_keyword_with_key_A_already_exists, false);
+            Messages.Error_A_keyword_with_key_A_already_exists, KeywordKind.KEYWORD);
         editor.createControl(parent);
         return editor;
     }
@@ -101,7 +101,32 @@ public class KeywordEditor {
      */
     public static KeywordEditor forSpecialWords(Composite parent) {
         KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Special_Word, Messages.Title_Change_Special_Word,
-            Messages.Title_Duplicate_Special_Word, Messages.Error_A_special_word_with_key_A_already_exists, true);
+            Messages.Title_Duplicate_Special_Word, Messages.Error_A_special_word_with_key_A_already_exists, KeywordKind.SPECIAL_WORD);
+        editor.createControl(parent);
+        return editor;
+    }
+
+    /**
+     * Creates a keyword editor for the operation codes of the calculations.
+     *
+     * @param parent the parent composite (typically a TabFolder)
+     */
+    public static KeywordEditor forOperationCodes(Composite parent) {
+        KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Operation_Code, Messages.Title_Change_Operation_Code,
+            Messages.Title_Duplicate_Operation_Code, Messages.Error_An_operation_code_with_key_A_already_exists, KeywordKind.OPERATION_CODE);
+        editor.createControl(parent);
+        return editor;
+    }
+
+    /**
+     * Creates a keyword editor for built-in functions (starting with %).
+     *
+     * @param parent the parent composite (typically a TabFolder)
+     */
+    public static KeywordEditor forBuiltInFunctions(Composite parent) {
+        KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Built_in_Function, Messages.Title_Change_Built_in_Function,
+            Messages.Title_Duplicate_Built_in_Function, Messages.Error_A_built_in_function_with_key_A_already_exists,
+            KeywordKind.BUILT_IN_FUNCTION);
         editor.createControl(parent);
         return editor;
     }
@@ -238,7 +263,7 @@ public class KeywordEditor {
     }
 
     private void addEntry() {
-        AddKeywordDialog dialog = new AddKeywordDialog(addButton.getShell(), addDialogTitle, isSpecialWord);
+        AddKeywordDialog dialog = new AddKeywordDialog(addButton.getShell(), addDialogTitle, kind);
         if (dialog.open() == Window.OK) {
             String key = dialog.getKey();
             String value = dialog.getValue();
@@ -263,7 +288,7 @@ public class KeywordEditor {
         IStructuredSelection selection = tableViewer.getStructuredSelection();
         if (!selection.isEmpty()) {
             KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
-            AddKeywordDialog dialog = new AddKeywordDialog(changeButton.getShell(), changeDialogTitle, isSpecialWord, entry.getKey(),
+            AddKeywordDialog dialog = new AddKeywordDialog(changeButton.getShell(), changeDialogTitle, kind, entry.getKey(),
                 entry.getValue());
             if (dialog.open() == Window.OK) {
                 String newKey = dialog.getKey();

@@ -105,7 +105,9 @@ public final class PreferencesProfileManager {
         new Setting<>("dataTypes", ProfileData::getDataTypes, ProfileData::setDataTypes),
         new Setting<>("declarationTypes", ProfileData::getDeclarationTypes, ProfileData::setDeclarationTypes),
         new Setting<>("keywords", ProfileData::getKeywords, ProfileData::setKeywords),
-        new Setting<>("specialWords", ProfileData::getSpecialWords, ProfileData::setSpecialWords));
+        new Setting<>("specialWords", ProfileData::getSpecialWords, ProfileData::setSpecialWords),
+        new Setting<>("operationCodes", ProfileData::getOperationCodes, ProfileData::setOperationCodes),
+        new Setting<>("builtInFunctions", ProfileData::getBuiltInFunctions, ProfileData::setBuiltInFunctions));
 
     private static final String SETTING_CUSTOM_PREVIEW_SOURCE = "customPreviewSource";
 
@@ -414,6 +416,8 @@ public final class PreferencesProfileManager {
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
         private Map<String, String> specialWords;
+        private Map<String, String> operationCodes;
+        private Map<String, String> builtInFunctions;
         private String customPreviewSource;
 
         public String getParameterSpacingStyle() {
@@ -598,6 +602,22 @@ public final class PreferencesProfileManager {
 
         public void setSpecialWords(Map<String, String> specialWords) {
             this.specialWords = specialWords;
+        }
+
+        public Map<String, String> getOperationCodes() {
+            return operationCodes;
+        }
+
+        public void setOperationCodes(Map<String, String> operationCodes) {
+            this.operationCodes = operationCodes;
+        }
+
+        public Map<String, String> getBuiltInFunctions() {
+            return builtInFunctions;
+        }
+
+        public void setBuiltInFunctions(Map<String, String> builtInFunctions) {
+            this.builtInFunctions = builtInFunctions;
         }
 
         public String getCustomPreviewSource() {

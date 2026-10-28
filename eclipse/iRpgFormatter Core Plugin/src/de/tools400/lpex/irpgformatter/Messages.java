@@ -64,6 +64,14 @@ public class Messages extends NLS {
     public static String Label_Declaration_Types;
     public static String Label_Keywords;
     public static String Label_Special_Words;
+    public static String Label_Operation_Codes;
+    public static String Label_Built_in_Functions;
+    public static String Title_Add_Operation_Code;
+    public static String Title_Change_Operation_Code;
+    public static String Title_Duplicate_Operation_Code;
+    public static String Title_Add_Built_in_Function;
+    public static String Title_Change_Built_in_Function;
+    public static String Title_Duplicate_Built_in_Function;
     public static String Label_Add;
     public static String Label_Change;
     public static String Label_Remove;
@@ -162,6 +170,9 @@ public class Messages extends NLS {
     public static String Error_Key_is_required;
     public static String Error_Value_is_required;
     public static String Error_Keyword_parameters_must_start_with_A;
+    public static String Error_Built_in_functions_must_start_with_A;
+    public static String Error_An_operation_code_with_key_A_already_exists;
+    public static String Error_A_built_in_function_with_key_A_already_exists;
     public static String Error_A_data_type_with_key_A_already_exists;
     public static String Error_A_declaration_type_with_key_A_already_exists;
     public static String Error_A_keyword_with_key_A_already_exists;

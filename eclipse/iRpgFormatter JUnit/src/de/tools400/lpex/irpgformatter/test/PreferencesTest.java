@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -222,6 +223,31 @@ public class PreferencesTest extends AbstractTestCase {
         Preferences prefs = Preferences.getInstance();
         prefs.setFormatDeclarations(false);
         assertFalse(prefs.isFormatDeclarations());
+    }
+
+    @Test
+    public void getOperationCodesAndBuiltInFunctions_areTheDefaultsInitially() {
+        Preferences prefs = Preferences.getInstance();
+        assertEquals("SetLL", prefs.getOperationCodes().get("SETLL"));
+        assertEquals("%SubDt", prefs.getBuiltInFunctions().get("%SUBDT"));
+        assertEquals(prefs.getDefaultOperationCodes(), prefs.getOperationCodes());
+        assertEquals(prefs.getDefaultBuiltInFunctions(), prefs.getBuiltInFunctions());
+    }
+
+    @Test
+    public void setAndGetOperationCodesAndBuiltInFunctions() {
+        Preferences prefs = Preferences.getInstance();
+
+        Map<String, String> operationCodes = new LinkedHashMap<>(prefs.getOperationCodes());
+        operationCodes.put("SETLL", "SetLl");
+        prefs.setOperationCodes(operationCodes);
+
+        Map<String, String> builtInFunctions = new LinkedHashMap<>(prefs.getBuiltInFunctions());
+        builtInFunctions.put("%SUBST", "%SubSt");
+        prefs.setBuiltInFunctions(builtInFunctions);
+
+        assertEquals("SetLl", prefs.getOperationCodes().get("SETLL"));
+        assertEquals("%SubSt", prefs.getBuiltInFunctions().get("%SUBST"));
     }
 
     @Test

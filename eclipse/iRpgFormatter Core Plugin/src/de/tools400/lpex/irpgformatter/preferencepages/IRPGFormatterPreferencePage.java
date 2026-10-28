@@ -96,6 +96,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private KeywordEditor declarationTypesEditor;
     private KeywordEditor keywordsEditor;
     private KeywordEditor specialWordsEditor;
+    private KeywordEditor operationCodesEditor;
+    private KeywordEditor builtInFunctionsEditor;
 
     /**
      * Creates the preference page.
@@ -167,6 +169,14 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             return false;
         }
 
+        if (operationCodesEditor == null || operationCodesEditor.getEntries() == null) {
+            return false;
+        }
+
+        if (builtInFunctionsEditor == null || builtInFunctionsEditor.getEntries() == null) {
+            return false;
+        }
+
         return true;
     }
 
@@ -206,6 +216,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
         config.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
         config.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+        config.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+        config.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
         return config;
     }
 
@@ -601,6 +613,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
         data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+        data.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+        data.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
 
         // Custom preview source
         data.setCustomPreviewSource(previewPanel.getCustomSource());
@@ -651,6 +665,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         declarationTypesEditor.load(KeywordUtils.mapToEntries(data.getDeclarationTypes()));
         keywordsEditor.load(KeywordUtils.mapToEntries(data.getKeywords()));
         specialWordsEditor.load(KeywordUtils.mapToEntries(data.getSpecialWords()));
+        operationCodesEditor.load(KeywordUtils.mapToEntries(data.getOperationCodes()));
+        builtInFunctionsEditor.load(KeywordUtils.mapToEntries(data.getBuiltInFunctions()));
 
         // Custom preview source
         String customSource = data.getCustomPreviewSource();
@@ -705,6 +721,18 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         TabItem paramsTab = new TabItem(tabFolder, SWT.NONE);
         paramsTab.setText(Messages.Label_Special_Words);
         paramsTab.setControl(specialWordsEditor.getControl());
+
+        // Operation Codes tab
+        operationCodesEditor = KeywordEditor.forOperationCodes(tabFolder);
+        TabItem operationCodesTab = new TabItem(tabFolder, SWT.NONE);
+        operationCodesTab.setText(Messages.Label_Operation_Codes);
+        operationCodesTab.setControl(operationCodesEditor.getControl());
+
+        // Built-in Functions tab
+        builtInFunctionsEditor = KeywordEditor.forBuiltInFunctions(tabFolder);
+        TabItem builtInFunctionsTab = new TabItem(tabFolder, SWT.NONE);
+        builtInFunctionsTab.setText(Messages.Label_Built_in_Functions);
+        builtInFunctionsTab.setControl(builtInFunctionsEditor.getControl());
     }
 
     private Control createSettingsTab(Composite parent) {
@@ -766,6 +794,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         declarationTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDeclarationTypes()));
         keywordsEditor.load(KeywordUtils.mapToEntries(preferences.getKeywords()));
         specialWordsEditor.load(KeywordUtils.mapToEntries(preferences.getSpecialWords()));
+        operationCodesEditor.load(KeywordUtils.mapToEntries(preferences.getOperationCodes()));
+        builtInFunctionsEditor.load(KeywordUtils.mapToEntries(preferences.getBuiltInFunctions()));
 
         previewPanel.loadSources(preferences.getDefaultPluginFormatterSource(), preferences.getCustomFormatterSource(),
             preferences.isCustomPreviewContent(), preferences.getFormatterPreviewVerticalRulerColumn());
@@ -815,6 +845,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
         preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+        preferences.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+        preferences.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
 
         previewPanel.storeState(preferences);
     }
@@ -853,6 +885,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         declarationTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultDeclarationTypes()));
         keywordsEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultKeywords()));
         specialWordsEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultSpecialWords()));
+        operationCodesEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultOperationCodes()));
+        builtInFunctionsEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultBuiltInFunctions()));
 
         previewPanel.resetToDefaults(preferences.getDefaultPluginFormatterSource(), preferences.getDefaultCustomFormatterSource(),
             preferences.getDefaultFormatterPreviewVerticalRulerColumn());

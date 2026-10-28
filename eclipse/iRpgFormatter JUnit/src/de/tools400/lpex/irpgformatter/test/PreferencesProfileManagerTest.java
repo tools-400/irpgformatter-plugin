@@ -58,7 +58,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
         "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatCalculations",
         "formatOnSave",
-        "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "formatOperationCodesAndBuiltInFunctions", "dataTypes", "declarationTypes", "keywords", "specialWords");
+        "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "formatOperationCodesAndBuiltInFunctions", "dataTypes", "declarationTypes", "keywords", "specialWords",
+        "operationCodes", "builtInFunctions");
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -229,7 +230,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
 
     /**
      * A profile of the version before "formatCalculations",
-     * "conditionParentheses" and "formatOperationCodesAndBuiltInFunctions",
+     * "conditionParentheses", "formatOperationCodesAndBuiltInFunctions",
+     * "operationCodes" and "builtInFunctions",
      * with the settings in the order of its export: all its settings are
      * imported, the missing ones keep their values and the profile is reported
      * as incomplete.
@@ -270,6 +272,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         expected.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES.name());
         expected.setFormatOperationCodesAndBuiltInFunctions(false);
         expected.setKeywords(createMap("LIKEDS", "LikeDS"));
+        expected.setOperationCodes(null);
+        expected.setBuiltInFunctions(null);
         expected.setCustomPreviewSource(null);
         assertEquals(dump(expected), dump(data));
     }
@@ -383,6 +387,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         data.setDeclarationTypes(createMap("DCL-S", "Dcl-S"));
         data.setKeywords(createMap("LIKEDS", "LikeDS", "A&B<C\"", "Ä'ß"));
         data.setSpecialWords(createMap("*OMIT", "*Omit"));
+        data.setOperationCodes(createMap("SETLL", "SetLL"));
+        data.setBuiltInFunctions(createMap("%SUBDT", "%SubDt"));
         data.setCustomPreviewSource("**free\ndcl-s x char(10);");
         return data;
     }
@@ -403,7 +409,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
             + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
             + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getFormatCalculations() + "|" + data.isFormatDeclarations() + "|"
             + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|" + data.getDataTypes()
-            + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getCustomPreviewSource();
+            + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|"
+            + data.getBuiltInFunctions() + "|" + data.getCustomPreviewSource();
     }
 
     private File export(ProfileData data) throws Exception {

@@ -69,6 +69,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String DECLARATION_TYPES = "declarationTypes";
     private static final String KEYWORDS = "keywords";
     private static final String SPECIAL_WORDS = "keywordParameters";
+    private static final String OPERATION_CODES = "operationCodes";
+    private static final String BUILT_IN_FUNCTIONS = "builtInFunctions";
     private static final String USER_KEY_ACTIONS = "userKeyActions";
 
     private static final String DEFAULT_FORMATTER_SOURCE = "pluginFormatterSource";
@@ -105,6 +107,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static Map<String, String> cachedDeclarationTypes;
     private static Map<String, String> cachedKeywords;
     private static Map<String, String> cachedKeywordParameters;
+    private static Map<String, String> cachedOperationCodes;
+    private static Map<String, String> cachedBuiltInFunctions;
 
     private Preferences() {
         // Singleton class
@@ -136,6 +140,8 @@ public final class Preferences implements RpgleSourceConstants {
         cachedDeclarationTypes = null;
         cachedKeywords = null;
         cachedKeywordParameters = null;
+        cachedOperationCodes = null;
+        cachedBuiltInFunctions = null;
     }
 
     public String getStartColumnAsText() {
@@ -459,17 +465,45 @@ public final class Preferences implements RpgleSourceConstants {
 
     /**
      * Returns the canonical spellings of the operation codes by the operation
-     * code in upper case. The table cannot be changed yet.
+     * code in upper case.
      */
     public Map<String, String> getOperationCodes() {
+        if (cachedOperationCodes == null) {
+            String value = preferenceStore.getString(OPERATION_CODES);
+            cachedOperationCodes = KeywordUtils.stringToKeywords(value);
+        }
+        return cachedOperationCodes;
+    }
+
+    public void setOperationCodes(Map<String, String> operationCodes) {
+        String value = KeywordUtils.keywordsToString(operationCodes);
+        preferenceStore.setValue(OPERATION_CODES, value);
+        clearCache();
+    }
+
+    public Map<String, String> getDefaultOperationCodes() {
         return KeywordUtils.getDefaultOperationCodes();
     }
 
     /**
      * Returns the canonical spellings of the built-in functions by the
-     * built-in function in upper case. The table cannot be changed yet.
+     * built-in function in upper case.
      */
     public Map<String, String> getBuiltInFunctions() {
+        if (cachedBuiltInFunctions == null) {
+            String value = preferenceStore.getString(BUILT_IN_FUNCTIONS);
+            cachedBuiltInFunctions = KeywordUtils.stringToKeywords(value);
+        }
+        return cachedBuiltInFunctions;
+    }
+
+    public void setBuiltInFunctions(Map<String, String> builtInFunctions) {
+        String value = KeywordUtils.keywordsToString(builtInFunctions);
+        preferenceStore.setValue(BUILT_IN_FUNCTIONS, value);
+        clearCache();
+    }
+
+    public Map<String, String> getDefaultBuiltInFunctions() {
         return KeywordUtils.getDefaultBuiltInFunctions();
     }
 
@@ -663,6 +697,8 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(DECLARATION_TYPES, getDefaultDeclarationTypesAsString());
         preferenceStore.setDefault(KEYWORDS, getDefaultKeywordsAsString());
         preferenceStore.setDefault(SPECIAL_WORDS, getDefaultSpecialWordsAsString());
+        preferenceStore.setDefault(OPERATION_CODES, KeywordUtils.keywordsToString(getDefaultOperationCodes()));
+        preferenceStore.setDefault(BUILT_IN_FUNCTIONS, KeywordUtils.keywordsToString(getDefaultBuiltInFunctions()));
         preferenceStore.setDefault(MAX_NAME_LENGTH, getDefaultMaxNameLength());
         preferenceStore.setDefault(MIN_NAME_LENGTH, getDefaultMinLiteralLength());
         preferenceStore.setDefault(DEFAULT_FORMATTER_SOURCE, getDefaultPluginFormatterSource());
