@@ -191,6 +191,11 @@ public final class ContinuationHandler {
      * the first branch. All directives of a group get the indent level of the
      * <code>/IF</code> directive. Directives without a matching
      * <code>/IF</code> directive are ignored.
+     * <p>
+     * If the branches end with different blocks, the <code>/ENDIF</code>
+     * directive refers to the <code>/IF</code> directive of the group, see
+     * {@link CollectedStatement#getUnbalancedIfDirective()}.
+     * </p>
      *
      * @param conditionalGroups the conditional groups that enclose the
      *        directive
@@ -199,24 +204,26 @@ public final class ContinuationHandler {
      * @param directiveType the type of the compiler directive
      */
     private static void nestConditionalGroup(Stack<ConditionalGroup> conditionalGroups, Stack<CollectedStatement> parents,
-        CollectedStatement directive, DirectiveType directiveType) {
+        CollectedStatement directive, DirectiveType directiveType) throws RpgleFormatterException {
 
         switch (directiveType) {
         case IF:
-            conditionalGroups.push(new ConditionalGroup(directive.getIndentLevel(), parents));
+            conditionalGroups.push(new ConditionalGroup(directive, parents));
             break;
         case ELSEIF:
         case ELSE:
             if (!conditionalGroups.isEmpty()) {
                 ConditionalGroup group = conditionalGroups.peek();
-                group.startNextBranch(parents);
+                group.startNextBranch(parents, directiveType == DirectiveType.ELSE);
                 directive.setIndentLevel(group.getIndentLevel());
             }
             break;
         case ENDIF:
             if (!conditionalGroups.isEmpty()) {
                 ConditionalGroup group = conditionalGroups.pop();
-                group.end(parents);
+                if (!group.end(parents)) {
+                    directive.setUnbalancedIfDirective(group.getIfDirective());
+                }
                 directive.setIndentLevel(group.getIndentLevel());
             }
             break;

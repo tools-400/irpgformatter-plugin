@@ -14,6 +14,7 @@ public class Messages extends NLS {
     private static final String BUNDLE_NAME = "de.tools400.lpex.irpgformatter.messages"; //$NON-NLS-1$
 
     public static String E_R_R_O_R;
+    public static String W_A_R_N_I_N_G;
 
     public static String Label_Enter_the_keyword_key_and_its_canonical_value;
     public static String Label_The_key_will_be_converted_to_uppercase_automatically;
@@ -154,6 +155,7 @@ public class Messages extends NLS {
     public static String Error_Error_on_line_A_Token_of_type_B_not_found;
     public static String Error_Error_on_line_A_Unexpected_token_of_type_B;
     public static String Error_Error_on_line_A_Unexpected_statement_of_type_B;
+    public static String Warning_Warning_on_line_A_Branches_of_IF_group_of_line_B_end_in_different_blocks;
 
     public static String Label_Export;
     public static String Label_Import;
@@ -181,6 +183,7 @@ public class Messages extends NLS {
     public static String I_N_F_O_R_M_A_T_I_O_N;
 
     public static String Error_Source_formatted_with_N_errors;
+    public static String Warning_Source_formatted_with_N_warnings;
 
     public static String Info_Finished_formatting_stream_files_A;
     public static String Info_Finished_formatting_source_members_A;

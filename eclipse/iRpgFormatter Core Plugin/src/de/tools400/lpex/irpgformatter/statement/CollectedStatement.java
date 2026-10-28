@@ -32,6 +32,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private boolean leftTrimNextLine;
     private boolean hasEmbeddedDirectives;
     private boolean isAfterEof;
+    private CollectedStatement unbalancedIfDirective;
 
     private boolean insideLiteral;
     private StringBuilder statement;
@@ -157,6 +158,20 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public void setAfterEof() {
         this.isAfterEof = true;
+    }
+
+    /**
+     * For an <code>/ENDIF</code> directive, returns the <code>/IF</code>
+     * directive of the conditional group, if the branches of the group end with
+     * different blocks. Then the indentation of the following lines may be
+     * wrong. Returns <code>null</code> otherwise.
+     */
+    public CollectedStatement getUnbalancedIfDirective() {
+        return unbalancedIfDirective;
+    }
+
+    public void setUnbalancedIfDirective(CollectedStatement ifDirective) {
+        this.unbalancedIfDirective = ifDirective;
     }
 
     public String getStatement() {

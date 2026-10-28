@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.utils;
 
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -63,6 +64,18 @@ public class UIUtils {
 
     public static void displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails) {
         ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), message, errorDetails);
+        dialog.open();
+    }
+
+    /**
+     * Application-wide entry point for showing a warning message together with
+     * a scrollable list of detail entries.
+     * <p>
+     * Used by the {@link FormatLpexSourceAction}.
+     */
+    public static void displayWarningDetailsDialog(String message, String[] warningDetails) {
+        ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), Messages.W_A_R_N_I_N_G, message,
+            IMessageProvider.WARNING, warningDetails);
         dialog.open();
     }
 

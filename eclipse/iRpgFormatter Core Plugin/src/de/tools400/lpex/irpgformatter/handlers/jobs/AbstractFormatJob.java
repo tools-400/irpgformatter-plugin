@@ -169,8 +169,8 @@ public abstract class AbstractFormatJob<T> extends Job {
         IRpgleOutput output = input.getOutput();
         if (output.writeSourceLines(result)) {
             formattedCount++;
-            if (formatter.getErrorCount() > 0) {
-                statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorMessages()));
+            if (formatter.getErrorCount() > 0 || formatter.getWarningCount() > 0) {
+                statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorAndWarningMessages()));
             }
         } else {
             errors.add(new SourceError(getPath(source), Messages.Error_Could_not_format_member));

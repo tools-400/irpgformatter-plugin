@@ -70,6 +70,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
 
     private final List<FormatError> errors = new ArrayList<>();
+    private final List<FormatError> warnings = new ArrayList<>();
     private int endColumn;
     private CollectedStatement currentStatement;
 
@@ -150,6 +151,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         }
 
         errors.clear();
+        warnings.clear();
 
         String[] sourceLines = input.getSourceLines();
         List<FormattedStatement> results = new ArrayList<>();
@@ -178,6 +180,16 @@ public class RpgleFormatter implements ILineNumberProvider {
             StatementType type = currentStatement.getType();
             if (type == StatementType.COMPILE_TIME_ARRAY) {
                 formatterCompileTimeArrayOnly = true;
+            }
+
+            // Warn, if the branches of a conditional group end with different
+            // blocks, because then the indentation may be wrong
+            CollectedStatement unbalancedIfDirective = currentStatement.getUnbalancedIfDirective();
+            if (unbalancedIfDirective != null) {
+                warnings.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type,
+                    Messages.bind(Messages.Warning_Warning_on_line_A_Branches_of_IF_group_of_line_B_end_in_different_blocks,
+                        currentStatement.getStartLineNumber(), unbalancedIfDirective.getStartLineNumber()),
+                    null));
             }
 
             // Check for formatter directive
@@ -304,10 +316,54 @@ public class RpgleFormatter implements ILineNumberProvider {
      *         successfully)
      */
     public String[] getErrorMessages() {
+        return getMessages(errors);
+    }
 
-        String[] messages = new String[errors.size()];
-        for (int i = 0; i < errors.size(); i++) {
-            messages[i] = errors.get(i).getMessage();
+    public int getWarningCount() {
+        return warnings.size();
+    }
+
+    /**
+     * Returns the warnings of the last {@link #format(IRpgleInput, int)} call,
+     * such as a conditional group, whose branches end with different blocks.
+     * Unlike errors, warnings do not leave statements unchanged.
+     *
+     * @return an unmodifiable list of formatting warnings
+     */
+    public List<FormatError> getWarnings() {
+        return Collections.unmodifiableList(warnings);
+    }
+
+    /**
+     * Returns the messages of the warnings of the last
+     * {@link #format(IRpgleInput, int)} call for the warning dialog. Each
+     * message contains its line number.
+     *
+     * @return the messages (empty if there are no warnings)
+     */
+    public String[] getWarningMessages() {
+        return getMessages(warnings);
+    }
+
+    /**
+     * Returns the messages of the errors followed by the messages of the
+     * warnings of the last {@link #format(IRpgleInput, int)} call.
+     *
+     * @return the messages (empty if there are neither errors nor warnings)
+     */
+    public String[] getErrorAndWarningMessages() {
+
+        List<FormatError> errorsAndWarnings = new ArrayList<>(errors);
+        errorsAndWarnings.addAll(warnings);
+
+        return getMessages(errorsAndWarnings);
+    }
+
+    private static String[] getMessages(List<FormatError> formatErrors) {
+
+        String[] messages = new String[formatErrors.size()];
+        for (int i = 0; i < formatErrors.size(); i++) {
+            messages[i] = formatErrors.get(i).getMessage();
         }
 
         return messages;

@@ -113,6 +113,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("  io_pHandle pointer;", result[7]);
         assertEquals("end-pr;", result[8]);
         assertEquals("dcl-s after int(10);", result[9]);
+        assertEquals(0, formatter.getWarningCount());
     }
 
     @Test
@@ -232,6 +233,51 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("  x int(10);", result[9]);
         assertEquals("end-pr;", result[10]);
         assertEquals("dcl-s after int(10);", result[11]);
+        assertEquals(0, formatter.getWarningCount());
+    }
+
+    @Test
+    public void format_branchesEndWithDifferentBlocks_warns() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/if defined(X)",
+            "DCL-DS a;",
+            "/else",
+            "DCL-DS a LIKEDS( t );",
+            "/endif",
+            "  f INT( 10 );",
+            "END-DS;"
+        );
+        // @formatter:on
+
+        assertEquals(0, formatter.getErrorCount());
+        assertEquals(1, formatter.getWarningCount());
+        assertEquals("Warning on line #5: The branches of the /IF group of line #1 end in different blocks. "
+            + "The indentation of the following lines may be wrong.", formatter.getWarningMessages()[0]);
+
+        // continues with the blocks at the end of the first branch
+        assertEquals(7, result.length);
+        assertEquals("  f int(10);", result[5]);
+        assertEquals("end-ds;", result[6]);
+    }
+
+    @Test
+    public void format_groupWithoutElseOpensBlock_warns() throws RpgleFormatterException {
+
+        // Without /ELSE the compiler may skip the block header.
+        // @formatter:off
+        format(
+            "/if defined(X)",
+            "DCL-PR p IND;",
+            "/endif",
+            "  a INT( 10 );",
+            "END-PR;"
+        );
+        // @formatter:on
+
+        assertEquals(0, formatter.getErrorCount());
+        assertEquals(1, formatter.getWarningCount());
     }
 
     @Test
@@ -465,6 +511,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("  a int(10);", result[3]);
         assertEquals("end-pr;", result[4]);
         assertEquals("/endif", result[5]);
+        assertEquals(0, formatter.getWarningCount());
     }
 
     // ----------------------------------------------------------------------
@@ -518,6 +565,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("dcl-pr p1 ind;", result[4]);
         assertEquals("  a int(10);", result[5]);
         assertEquals("end-pr;", result[6]);
+        assertEquals(0, formatter.getWarningCount());
     }
 
     @Test

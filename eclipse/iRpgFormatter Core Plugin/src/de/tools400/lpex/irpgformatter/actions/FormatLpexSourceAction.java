@@ -126,7 +126,10 @@ public class FormatLpexSourceAction implements LpexAction {
             if (formatter.getErrorCount() > 0) {
                 formatter.logUnexpectedErrors(input.getName());
                 UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_formatted_with_N_errors, formatter.getErrorCount()),
-                    formatter.getErrorMessages());
+                    formatter.getErrorAndWarningMessages());
+            } else if (formatter.getWarningCount() > 0) {
+                UIUtils.displayWarningDetailsDialog(Messages.bind(Messages.Warning_Source_formatted_with_N_warnings, formatter.getWarningCount()),
+                    formatter.getWarningMessages());
             } else if (haveSelection && result.getLineCount() > 0) {
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
             } else {

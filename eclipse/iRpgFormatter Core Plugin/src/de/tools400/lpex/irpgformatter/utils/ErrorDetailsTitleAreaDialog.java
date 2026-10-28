@@ -23,27 +23,44 @@ import de.tools400.lpex.irpgformatter.Messages;
 
 public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
 
+    private String title;
     private String errorMessage;
+    private int messageType;
     private String[] errorDetails;
 
     public ErrorDetailsTitleAreaDialog(Shell shell, String errorMessage, String[] errorDetails) {
+        this(shell, Messages.E_R_R_O_R, errorMessage, IMessageProvider.ERROR, errorDetails);
+    }
+
+    /**
+     * Creates a dialog with a given title and message type, e.g. for warnings.
+     *
+     * @param shell - the parent shell
+     * @param title - the title of the dialog
+     * @param errorMessage - the message above the details
+     * @param messageType - the message type, see {@link IMessageProvider}
+     * @param errorDetails - the details
+     */
+    public ErrorDetailsTitleAreaDialog(Shell shell, String title, String errorMessage, int messageType, String[] errorDetails) {
         super(shell);
         setShellStyle(getShellStyle() | SWT.RESIZE);
+        this.title = title;
         this.errorMessage = errorMessage;
+        this.messageType = messageType;
         this.errorDetails = errorDetails;
     }
 
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText(Messages.E_R_R_O_R);
+        shell.setText(title);
     }
 
     @Override
     public void create() {
         super.create();
-        setTitle(Messages.E_R_R_O_R);
-        setMessage(errorMessage, IMessageProvider.ERROR);
+        setTitle(title);
+        setMessage(errorMessage, messageType);
     }
 
     @Override
