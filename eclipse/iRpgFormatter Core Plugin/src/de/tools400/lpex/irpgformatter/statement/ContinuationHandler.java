@@ -175,6 +175,7 @@ public final class ContinuationHandler {
 
             switch (statement.getType()) {
             case COMMENT:
+                statement.setFollowingStatement(nextStatement);
                 if (nextStatement != null) {
                     statement.setIndentLevel(nextStatement.getIndentLevel());
                     statement.setSelectDepth(nextStatement.getSelectDepth());

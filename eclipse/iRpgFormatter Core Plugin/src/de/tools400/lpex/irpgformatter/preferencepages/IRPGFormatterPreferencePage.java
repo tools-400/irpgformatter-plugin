@@ -40,6 +40,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEditor;
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -80,8 +81,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Button unindentCompilerDirectivesCheckbox;
     private Spinner maxNameLengthSpinner;
     private Spinner minNameLengthSpinner;
-    private Button executeIbmFormatterCheckbox;
-    private Button executeIrpgFormatterCheckbox;
+    private Button formatDeclarationsCheckbox;
+    private Combo formatCalculationsCombo;
     private Button formatOnSaveCheckbox;
     private Button removeEmptyCommentLinesCheckbox;
     private Button removeEmptyLinesBeforeDclPiCheckbox;
@@ -180,6 +181,19 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         config.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         config.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
+        config.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
+        // The IBM formatter cannot run in the preview, because it needs the
+        // RPG model of an LPEX editor. iRPGFormatter indents the calculations
+        // by the same IBM settings, so the preview shows its result instead.
+        // It differs from the IBM formatter for inactive /IF branches, which
+        // the IBM formatter leaves unchanged, and for sources with structural
+        // errors, such as a missing ENDIF, which the IBM formatter does not
+        // format at all.
+        CalculationFormatter calculationFormatter = CalculationFormatter.fromLabel(formatCalculationsCombo.getText());
+        if (calculationFormatter == CalculationFormatter.IBM_FORMATTER) {
+            calculationFormatter = CalculationFormatter.IRPG_FORMATTER;
+        }
+        config.setCalculationFormatter(calculationFormatter);
         config.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()));
         config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
         config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
@@ -286,11 +300,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Keyword casing style
         casingStyleText = WidgetFactory.createReadOnlyText(parent, Messages.Label_Keyword_casing_style, Messages.Tooltip_Keyword_casing_style);
         casingStyleText.setLayoutData(createTextGridData(120));
-
-        // Execute IBM formatter before iRPGFormatter
-        executeIbmFormatterCheckbox = WidgetFactory.createCheckbox(parent, Messages.Label_Execute_IBM_formatter,
-            Messages.Tooltip_Execute_IBM_formatter);
-        executeIbmFormatterCheckbox.setLayoutData(createCheckboxGridData());
     }
 
     private void createGeneralSettingsGroup(Composite parent) {
@@ -344,10 +353,20 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         minNameLengthSpinner.setLayoutData(createSpinnerGridData());
         previewPanel.addPreviewTrigger(minNameLengthSpinner, PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
-        // Execute iRPG formatter
-        executeIrpgFormatterCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Execute_iRPG_formatter,
-            Messages.Tooltip_Execute_iRPG_formatter);
-        executeIrpgFormatterCheckbox.setLayoutData(createCheckboxGridData());
+        // Format declarations
+        formatDeclarationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_declarations, Messages.Tooltip_Format_declarations,
+            null);
+
+        // Format calculations
+        Label formatCalculationsLabel = new Label(group, SWT.NONE);
+        formatCalculationsLabel.setText(Messages.Label_Format_calculations);
+        formatCalculationsLabel.setToolTipText(Messages.Tooltip_Format_calculations);
+
+        formatCalculationsCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
+        formatCalculationsCombo.setItems(preferences.getCalculationFormatters());
+        formatCalculationsCombo.setLayoutData(createStyleData());
+        formatCalculationsCombo.setToolTipText(Messages.Tooltip_Format_calculations);
+        previewPanel.addPreviewTrigger(formatCalculationsCombo, PreviewComments.FORMAT_CALCULATIONS);
     }
 
     private void createSaveActionsGroup(Composite parent) {
@@ -520,8 +539,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         data.setMaxNameLength(maxNameLengthSpinner.getSelection());
         data.setMinNameLength(minNameLengthSpinner.getSelection());
-        data.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
-        data.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
+        data.setFormatCalculations(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()).name());
+        data.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
         data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
         data.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         data.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
@@ -557,8 +576,13 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         unindentCompilerDirectivesCheckbox.setSelection(data.isUnindentCompilerDirectives());
         maxNameLengthSpinner.setSelection(data.getMaxNameLength());
         minNameLengthSpinner.setSelection(data.getMinNameLength());
-        executeIbmFormatterCheckbox.setSelection(data.isExecuteIbmFormatter());
-        executeIrpgFormatterCheckbox.setSelection(data.isExecuteIrpgFormatter());
+        try {
+            CalculationFormatter formatter = CalculationFormatter.valueOf(data.getFormatCalculations());
+            formatCalculationsCombo.select(formatter.ordinal());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // Keep current selection if the value is invalid
+        }
+        formatDeclarationsCheckbox.setSelection(data.isFormatDeclarations());
         formatOnSaveCheckbox.setSelection(data.isFormatOnSave());
         removeEmptyCommentLinesCheckbox.setSelection(data.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(data.isRemoveEmptyLinesBeforeDclPi());
@@ -674,8 +698,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         maxNameLengthSpinner.setSelection(preferences.getMaxNameLength());
         minNameLengthSpinner.setSelection(preferences.getMinNameLength());
 
-        executeIbmFormatterCheckbox.setSelection(preferences.isExecuteIbmFormatter());
-        executeIrpgFormatterCheckbox.setSelection(preferences.isExecuteIrpgFormatter());
+        formatCalculationsCombo.select(preferences.getFormatCalculations().ordinal());
+        formatDeclarationsCheckbox.setSelection(preferences.isFormatDeclarations());
 
         dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDataTypes()));
         declarationTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDeclarationTypes()));
@@ -719,8 +743,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setMaxNameLength(maxNameLengthSpinner.getSelection());
         preferences.setMinLiteralLength(minNameLengthSpinner.getSelection());
 
-        preferences.setExecuteIbmFormatter(executeIbmFormatterCheckbox.getSelection());
-        preferences.setExecuteIrpgFormatter(executeIrpgFormatterCheckbox.getSelection());
+        preferences.setFormatCalculations(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()));
+        preferences.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
 
         preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
         preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
@@ -753,9 +777,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         maxNameLengthSpinner.setSelection(preferences.getDefaultMaxNameLength());
         minNameLengthSpinner.setSelection(preferences.getDefaultMinLiteralLength());
 
-        // Reset execute IBM formatter
-        executeIbmFormatterCheckbox.setSelection(preferences.getDefaultExecuteIbmFormatter());
-        executeIrpgFormatterCheckbox.setSelection(preferences.getDefaultExecuteIrpgFormatter());
+        // Reset formatters
+        formatCalculationsCombo.select(preferences.getDefaultFormatCalculations().ordinal());
+        formatDeclarationsCheckbox.setSelection(preferences.getDefaultFormatDeclarations());
 
         // Reset keyword editors
         dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDefaultDataTypes()));

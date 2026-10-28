@@ -21,6 +21,7 @@ import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
@@ -84,8 +85,9 @@ public class FormatLpexSourceAction implements LpexAction {
 
     private void executeFormatter(LpexView view, RpgleLpexInput input, boolean haveSelection, int startLine) throws RpgleFormatterException {
 
-        boolean executeIbmFormatter = Preferences.getInstance().isExecuteIbmFormatter();
-        boolean executeIrpgFormatter = Preferences.getInstance().isExecuteIrpgFormatter();
+        CalculationFormatter calculationFormatter = Preferences.getInstance().getFormatCalculations();
+        boolean executeIbmFormatter = calculationFormatter == CalculationFormatter.IBM_FORMATTER;
+        boolean executeIrpgFormatter = Preferences.getInstance().isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER;
 
         RpgleFormatter formatter = new RpgleFormatter();
         formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));

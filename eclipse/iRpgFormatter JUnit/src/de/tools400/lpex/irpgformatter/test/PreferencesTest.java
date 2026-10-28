@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -96,13 +97,13 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void getDefaultExecuteIbmFormatter_isTrue() {
-        assertTrue(Preferences.getInstance().getDefaultExecuteIbmFormatter());
+    public void getDefaultFormatCalculations_isIrpgFormatter() {
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getDefaultFormatCalculations());
     }
 
     @Test
-    public void getDefaultExecuteIrpgFormatter_isTrue() {
-        assertTrue(Preferences.getInstance().getDefaultExecuteIrpgFormatter());
+    public void getDefaultFormatDeclarations_isTrue() {
+        assertTrue(Preferences.getInstance().getDefaultFormatDeclarations());
     }
 
     @Test
@@ -181,17 +182,46 @@ public class PreferencesTest extends AbstractTestCase {
     }
 
     @Test
-    public void setAndGetExecuteIbmFormatter() {
+    public void setAndGetFormatCalculations() {
         Preferences prefs = Preferences.getInstance();
-        prefs.setExecuteIbmFormatter(false);
-        assertFalse(prefs.isExecuteIbmFormatter());
+        prefs.setFormatCalculations(CalculationFormatter.IBM_FORMATTER);
+        assertEquals(CalculationFormatter.IBM_FORMATTER, prefs.getFormatCalculations());
+    }
+
+    /**
+     * "Execute IBM formatter" switched off becomes "Off", because the
+     * calculations stayed unchanged.
+     */
+    @Test
+    public void getFormatCalculations_executeIbmFormatterSwitchedOff_isOff() {
+        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", false);
+        assertEquals(CalculationFormatter.OFF, Preferences.getInstance().getFormatCalculations());
     }
 
     @Test
-    public void setAndGetExecuteIrpgFormatter() {
+    public void getFormatCalculations_executeIbmFormatterSwitchedOn_isDefault() {
+        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", true);
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, Preferences.getInstance().getFormatCalculations());
+    }
+
+    /**
+     * Once set, the new preference wins, even if it is set to its default
+     * value.
+     */
+    @Test
+    public void setFormatCalculations_replacesExecuteIbmFormatter() {
         Preferences prefs = Preferences.getInstance();
-        prefs.setExecuteIrpgFormatter(false);
-        assertFalse(prefs.isExecuteIrpgFormatter());
+        PreferenceStoreProvider.getPreferenceStore().setValue("executeIbmFormatter", false);
+        prefs.setFormatCalculations(CalculationFormatter.IRPG_FORMATTER);
+        PreferenceStoreProvider.getPreferenceStore().setToDefault("formatCalculations");
+        assertEquals(CalculationFormatter.IRPG_FORMATTER, prefs.getFormatCalculations());
+    }
+
+    @Test
+    public void setAndGetFormatDeclarations() {
+        Preferences prefs = Preferences.getInstance();
+        prefs.setFormatDeclarations(false);
+        assertFalse(prefs.isFormatDeclarations());
     }
 
     @Test

@@ -57,6 +57,14 @@ DCL-PROC myProc export;
   end-enum;
 /endif
 
+  // Format calculations.
+  if %parms() >= %parmnum(message);
+  dsply message;
+  exec sql select name, city
+    into :name, :city
+    from customer where id = :id;
+  endif;
+
   Return *Null;
 
 // Remove end-proc name.

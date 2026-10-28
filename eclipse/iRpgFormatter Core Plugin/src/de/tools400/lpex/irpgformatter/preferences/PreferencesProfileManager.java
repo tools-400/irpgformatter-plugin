@@ -76,7 +76,7 @@ public final class PreferencesProfileManager {
      */
     private static final List<Setting<String>> SCALAR_SETTINGS = Arrays.asList(
         // IBM Settings
-        booleanSetting("executeIbmFormatter", ProfileData::isExecuteIbmFormatter, ProfileData::setExecuteIbmFormatter),
+        stringSetting("formatCalculations", ProfileData::getFormatCalculations, ProfileData::setFormatCalculations),
 
         // General Settings
         booleanSetting("useConstKeyword", ProfileData::isUseConstKeyword, ProfileData::setUseConstKeyword),
@@ -91,7 +91,7 @@ public final class PreferencesProfileManager {
         booleanSetting("unindentCompilerDirectives", ProfileData::isUnindentCompilerDirectives, ProfileData::setUnindentCompilerDirectives),
         intSetting("maxNameLength", ProfileData::getMaxNameLength, ProfileData::setMaxNameLength),
         intSetting("minNameLength", ProfileData::getMinNameLength, ProfileData::setMinNameLength),
-        booleanSetting("executeIrpgFormatter", ProfileData::isExecuteIrpgFormatter, ProfileData::setExecuteIrpgFormatter),
+        booleanSetting("executeIrpgFormatter", ProfileData::isFormatDeclarations, ProfileData::setFormatDeclarations),
 
         // Save Actions
         booleanSetting("formatOnSave", ProfileData::isFormatOnSave, ProfileData::setFormatOnSave),
@@ -107,6 +107,13 @@ public final class PreferencesProfileManager {
         new Setting<>("specialWords", ProfileData::getSpecialWords, ProfileData::setSpecialWords));
 
     private static final String SETTING_CUSTOM_PREVIEW_SOURCE = "customPreviewSource";
+
+    /*
+     * Replaced by "formatCalculations". Like the preference, "false" becomes
+     * "Off" and "true", the default value, becomes the new default value.
+     */
+    private static final String LEGACY_SETTING_EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
+    private static final String SETTING_FORMAT_CALCULATIONS = "formatCalculations";
 
     private PreferencesProfileManager() {
         // Utility class
@@ -198,7 +205,11 @@ public final class PreferencesProfileManager {
             // levels; only the direct children of <profile> are settings.
             if (setting.getParentNode().equals(profileElement)) {
                 readSetting(setting, data);
-                ids.add(setting.getAttribute(ATTR_ID));
+                String id = setting.getAttribute(ATTR_ID);
+                if (LEGACY_SETTING_EXECUTE_IBM_FORMATTER.equals(id)) {
+                    id = SETTING_FORMAT_CALCULATIONS;
+                }
+                ids.add(id);
             }
         }
 
@@ -248,6 +259,12 @@ public final class PreferencesProfileManager {
     private static void readSetting(Element setting, ProfileData data) {
 
         String id = setting.getAttribute(ATTR_ID);
+
+        if (LEGACY_SETTING_EXECUTE_IBM_FORMATTER.equals(id)) {
+            boolean isExecuteIbmFormatter = Boolean.parseBoolean(setting.getAttribute(ATTR_VALUE));
+            data.setFormatCalculations(isExecuteIbmFormatter ? CalculationFormatter.IRPG_FORMATTER.name() : CalculationFormatter.OFF.name());
+            return;
+        }
 
         Setting<String> scalarSetting = findSetting(SCALAR_SETTINGS, id);
         if (scalarSetting != null) {
@@ -385,8 +402,8 @@ public final class PreferencesProfileManager {
         private boolean unindentCompilerDirectives;
         private int maxNameLength;
         private int minNameLength;
-        private boolean executeIbmFormatter;
-        private boolean executeIrpgFormatter;
+        private String formatCalculations;
+        private boolean formatDeclarations;
         private boolean formatOnSave;
         private boolean removeEmptyCommentLines;
         private boolean removeEmptyLinesBeforeDclPi;
@@ -492,20 +509,20 @@ public final class PreferencesProfileManager {
             this.minNameLength = minNameLength;
         }
 
-        public boolean isExecuteIbmFormatter() {
-            return executeIbmFormatter;
+        public String getFormatCalculations() {
+            return formatCalculations;
         }
 
-        public void setExecuteIbmFormatter(boolean executeIbmFormatter) {
-            this.executeIbmFormatter = executeIbmFormatter;
+        public void setFormatCalculations(String formatCalculations) {
+            this.formatCalculations = formatCalculations;
         }
 
-        public boolean isExecuteIrpgFormatter() {
-            return executeIrpgFormatter;
+        public boolean isFormatDeclarations() {
+            return formatDeclarations;
         }
 
-        public void setExecuteIrpgFormatter(boolean executeIrpgFormatter) {
-            this.executeIrpgFormatter = executeIrpgFormatter;
+        public void setFormatDeclarations(boolean formatDeclarations) {
+            this.formatDeclarations = formatDeclarations;
         }
 
         public boolean isFormatOnSave() {

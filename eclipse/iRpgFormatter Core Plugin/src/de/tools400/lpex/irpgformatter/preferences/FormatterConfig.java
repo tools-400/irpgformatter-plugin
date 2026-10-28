@@ -21,6 +21,8 @@ import java.util.Map;
  */
 public class FormatterConfig {
 
+    private boolean formatDeclarations;
+    private CalculationFormatter calculationFormatter;
     private int indent;
     private int selectIndent;
     private boolean preserveRelativeIndentOfContinuedLines;
@@ -52,6 +54,14 @@ public class FormatterConfig {
     private Map<String, String> specialWords;
 
     private FormatterConfig() {
+    }
+
+    public boolean isFormatDeclarations() {
+        return formatDeclarations;
+    }
+
+    public CalculationFormatter getCalculationFormatter() {
+        return calculationFormatter;
     }
 
     public int getIndent() {
@@ -164,6 +174,14 @@ public class FormatterConfig {
 
     public Map<String, String> getSpecialWords() {
         return specialWords;
+    }
+
+    public void setFormatDeclarations(boolean formatDeclarations) {
+        this.formatDeclarations = formatDeclarations;
+    }
+
+    public void setCalculationFormatter(CalculationFormatter calculationFormatter) {
+        this.calculationFormatter = calculationFormatter;
     }
 
     public void setIndent(int indent) {
@@ -299,6 +317,8 @@ public class FormatterConfig {
         Preferences prefs = Preferences.getInstance();
 
         FormatterConfig config = new FormatterConfig();
+        config.formatDeclarations = prefs.isFormatDeclarations();
+        config.calculationFormatter = prefs.getFormatCalculations();
         config.indent = prefs.getIndent();
         config.selectIndent = prefs.getSelectIndent();
         config.preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();

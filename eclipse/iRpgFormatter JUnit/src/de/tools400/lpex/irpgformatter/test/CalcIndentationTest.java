@@ -17,6 +17,7 @@ import org.junit.Test;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 
 /**
  * Unit tests for the indentation of calculation statements.
@@ -605,6 +606,90 @@ public class CalcIndentationTest extends AbstractTestCase {
 
         assertArrayEquals(new String[] { "x = 1;", "endif;" }, result);
         assertEquals(0, formatter.getErrorCount());
+    }
+
+    // ----------------------------------------------------------------------
+    // Formatters
+    // ----------------------------------------------------------------------
+
+    // @formatter:off
+    private static final String[] DECLARATION_AND_CALCULATIONS = {
+        "DCL-PROC p;",
+        "// the variable",
+        "dcl-s   x   int(10);",
+        "// the condition",
+        "if a = 1;",
+        "x = 1;",
+        "endif;",
+        "END-PROC;"
+    };
+    // @formatter:on
+
+    @Test
+    public void format_calculationsByIbmFormatter_leavesCalculationsUnchanged() throws RpgleFormatterException {
+
+        formatter.getConfig().setCalculationFormatter(CalculationFormatter.IBM_FORMATTER);
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "dcl-proc p;",
+            "  // the variable",
+            "  dcl-s x int(10);",
+            "// the condition",
+            "if a = 1;",
+            "x = 1;",
+            "endif;",
+            "end-proc;"
+        }, format(DECLARATION_AND_CALCULATIONS));
+        // @formatter:on
+    }
+
+    @Test
+    public void format_calculationsOff_leavesCalculationsUnchanged() throws RpgleFormatterException {
+
+        formatter.getConfig().setCalculationFormatter(CalculationFormatter.OFF);
+
+        String[] result = format(DECLARATION_AND_CALCULATIONS);
+
+        assertEquals("  dcl-s x int(10);", result[2]);
+        assertEquals("// the condition", result[3]);
+        assertEquals("x = 1;", result[5]);
+    }
+
+    @Test
+    public void format_declarationsOff_formatsCalculationsOnly() throws RpgleFormatterException {
+
+        formatter.getConfig().setFormatDeclarations(false);
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "DCL-PROC p;",
+            "// the variable",
+            "dcl-s   x   int(10);",
+            "  // the condition",
+            "  if a = 1;",
+            "    x = 1;",
+            "  endif;",
+            "END-PROC;"
+        }, format(DECLARATION_AND_CALCULATIONS));
+        // @formatter:on
+    }
+
+    @Test
+    public void format_declarationsAndCalculationsOff_leavesSourceUnchanged() throws RpgleFormatterException {
+
+        formatter.getConfig().setFormatDeclarations(false);
+        formatter.getConfig().setCalculationFormatter(CalculationFormatter.OFF);
+
+        assertArrayEquals(DECLARATION_AND_CALCULATIONS, format(DECLARATION_AND_CALCULATIONS));
+    }
+
+    @Test
+    public void format_commentWithoutFollowingStatement_isFormattedLikeCalculations() throws RpgleFormatterException {
+
+        formatter.getConfig().setCalculationFormatter(CalculationFormatter.OFF);
+
+        assertArrayEquals(new String[] { "if a = 1;", "x = 1;", "// last line" }, format("if a = 1;", "x = 1;", "// last line"));
     }
 
     // ----------------------------------------------------------------------

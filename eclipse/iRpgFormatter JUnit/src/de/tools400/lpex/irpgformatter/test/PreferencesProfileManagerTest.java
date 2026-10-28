@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXParseException;
 
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
@@ -52,7 +53,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
      * IDs of the settings, that a complete profile contains. The custom preview
      * source is only exported, if there is one.
      */
-    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("executeIbmFormatter", "useConstKeyword", "delimiterBeforeParameter",
+    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("formatCalculations", "useConstKeyword", "delimiterBeforeParameter",
         "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
         "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatOnSave",
         "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "dataTypes", "declarationTypes", "keywords", "specialWords");
@@ -202,6 +203,28 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         assertEquals(40, imported.getMaxNameLength());
     }
 
+    /**
+     * Profiles of former versions contain "executeIbmFormatter" instead of
+     * "formatCalculations".
+     */
+    @Test
+    public void importProfile_executeIbmFormatterBecomesFormatCalculations() throws Exception {
+
+        ProfileData data = new ProfileData();
+
+        importProfile(writeProfile("<setting id=\"executeIbmFormatter\" value=\"false\"/>"), data);
+        assertEquals(CalculationFormatter.OFF.name(), data.getFormatCalculations());
+
+        importProfile(writeProfile("<setting id=\"executeIbmFormatter\" value=\"true\"/>"), data);
+        assertEquals(CalculationFormatter.IRPG_FORMATTER.name(), data.getFormatCalculations());
+    }
+
+    @Test
+    public void importProfile_completeProfileWithExecuteIbmFormatterReturnsTrue() throws Exception {
+        assertTrue(importProfile(writeProfileWithout("formatCalculations", "<setting id=\"executeIbmFormatter\" value=\"true\"/>"),
+            new ProfileData()));
+    }
+
     @Test
     public void importProfile_readsBooleanOtherThanTrueAsFalse() throws Exception {
 
@@ -300,8 +323,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         data.setUnindentCompilerDirectives(false);
         data.setMaxNameLength(33);
         data.setMinNameLength(7);
-        data.setExecuteIbmFormatter(false);
-        data.setExecuteIrpgFormatter(false);
+        data.setFormatCalculations(CalculationFormatter.IBM_FORMATTER.name());
+        data.setFormatDeclarations(false);
         data.setFormatOnSave(true);
         data.setRemoveEmptyCommentLines(true);
         data.setRemoveEmptyLinesBeforeDclPi(true);
@@ -327,7 +350,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         return data.getParameterSpacingStyle() + "|" + data.isUseConstKeyword() + "|" + data.isDelimiterBeforeParameter() + "|"
             + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|" + data.isSortConstValueToEnd()
             + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
-            + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.isExecuteIbmFormatter() + "|" + data.isExecuteIrpgFormatter() + "|"
+            + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getFormatCalculations() + "|" + data.isFormatDeclarations() + "|"
             + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getDataTypes()
             + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getCustomPreviewSource();
     }

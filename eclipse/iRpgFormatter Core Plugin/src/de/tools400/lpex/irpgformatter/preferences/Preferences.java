@@ -56,8 +56,11 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
 
+    /** "Execute IBM formatter", replaced by {@link #FORMAT_CALCULATIONS} */
     private static final String EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
-    private static final String EXECUTE_IRPG_FORMATTER = "executeIrpgFormatter";
+    /** "Format declarations", formerly "Execute iRPG formatter" */
+    private static final String FORMAT_DECLARATIONS = "executeIrpgFormatter";
+    private static final String FORMAT_CALCULATIONS = "formatCalculations";
     private static final String FORMAT_ON_SAVE = "formatOnSave";
 
     private static final String DATA_TYPES = "dataTypes";
@@ -90,8 +93,8 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String DEFAULT_CUSTOM_FORMATTER_SOURCE = "";
     private static final boolean DEFAULT_CUSTOM_PREVIEW_CONTENT = false;
 
-    private static final boolean DEFAULT_EXECUTE_IBM_FORMATTER = true;
-    private static final boolean DEFAULT_EXECUTE_IRPG_FORMATTER = true;
+    private static final boolean DEFAULT_FORMAT_DECLARATIONS = true;
+    private static final CalculationFormatter DEFAULT_FORMAT_CALCULATIONS = CalculationFormatter.IRPG_FORMATTER;
     private static final boolean DEFAULT_FORMAT_ON_SAVE = false;
 
     private static Map<String, String> cachedDataTypes;
@@ -397,20 +400,53 @@ public final class Preferences implements RpgleSourceConstants {
         return DEFAULT_REMOVE_EMPTY_LINES_BEFORE_DCL_PI;
     }
 
-    public boolean isExecuteIbmFormatter() {
-        return preferenceStore.getBoolean(EXECUTE_IBM_FORMATTER);
+    /**
+     * Returns <code>true</code>, if iRPGFormatter formats everything except
+     * the calculations: the control options, the declarations and the
+     * compiler directives.
+     */
+    public boolean isFormatDeclarations() {
+        return preferenceStore.getBoolean(FORMAT_DECLARATIONS);
     }
 
-    public void setExecuteIbmFormatter(boolean enabled) {
-        preferenceStore.setValue(EXECUTE_IBM_FORMATTER, enabled);
+    public void setFormatDeclarations(boolean enabled) {
+        preferenceStore.setValue(FORMAT_DECLARATIONS, enabled);
     }
 
-    public boolean isExecuteIrpgFormatter() {
-        return preferenceStore.getBoolean(EXECUTE_IRPG_FORMATTER);
+    /**
+     * Returns the formatter of the calculations.
+     * <p>
+     * The preference replaces "Execute IBM formatter". If that one was
+     * switched off, the calculations stay unchanged.
+     * </p>
+     */
+    public CalculationFormatter getFormatCalculations() {
+
+        if (preferenceStore.isDefault(FORMAT_CALCULATIONS) && !preferenceStore.isDefault(EXECUTE_IBM_FORMATTER)
+            && !preferenceStore.getBoolean(EXECUTE_IBM_FORMATTER)) {
+            return CalculationFormatter.OFF;
+        }
+
+        try {
+            return CalculationFormatter.valueOf(preferenceStore.getString(FORMAT_CALCULATIONS));
+        } catch (Exception e) {
+            return getDefaultFormatCalculations();
+        }
     }
 
-    public void setExecuteIrpgFormatter(boolean enabled) {
-        preferenceStore.setValue(EXECUTE_IRPG_FORMATTER, enabled);
+    public void setFormatCalculations(CalculationFormatter formatter) {
+        preferenceStore.setValue(FORMAT_CALCULATIONS, formatter.name());
+        // The replaced preference must not override the new one, when it
+        // becomes the default value.
+        preferenceStore.setToDefault(EXECUTE_IBM_FORMATTER);
+    }
+
+    public String[] getCalculationFormatters() {
+        List<String> calculationFormatters = new LinkedList<>();
+        for (CalculationFormatter formatter : CalculationFormatter.values()) {
+            calculationFormatters.add(formatter.getDisplayName());
+        }
+        return calculationFormatters.toArray(new String[0]);
     }
 
     public boolean isFormatOnSave() {
@@ -543,8 +579,9 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(UNINDENT_COMPILER_DIRECTIVES, getDefaultUnindentCompilerDirectives());
         preferenceStore.setDefault(REMOVE_EMPTY_COMMENT_LINES, getDefaultRemoveEmptyCommentLines());
         preferenceStore.setDefault(REMOVE_EMPTY_LINES_BEFORE_DCL_PI, getDefaultRemoveEmptyLinesBeforeDclPi());
-        preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, getDefaultExecuteIbmFormatter());
-        preferenceStore.setDefault(EXECUTE_IRPG_FORMATTER, getDefaultExecuteIrpgFormatter());
+        preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, true);
+        preferenceStore.setDefault(FORMAT_DECLARATIONS, getDefaultFormatDeclarations());
+        preferenceStore.setDefault(FORMAT_CALCULATIONS, getDefaultFormatCalculations().name());
         preferenceStore.setDefault(FORMAT_ON_SAVE, getDefaultFormatOnSave());
         preferenceStore.setDefault(USER_KEY_ACTIONS, getDefaultUserKeyActions());
         preferenceStore.setDefault(DATA_TYPES, getDefaultDataTypesAsString());
@@ -627,12 +664,12 @@ public final class Preferences implements RpgleSourceConstants {
         return DEFAULT_REMOVE_EMPTY_COMMENT_LINES;
     }
 
-    public boolean getDefaultExecuteIbmFormatter() {
-        return DEFAULT_EXECUTE_IBM_FORMATTER;
+    public boolean getDefaultFormatDeclarations() {
+        return DEFAULT_FORMAT_DECLARATIONS;
     }
 
-    public boolean getDefaultExecuteIrpgFormatter() {
-        return DEFAULT_EXECUTE_IRPG_FORMATTER;
+    public CalculationFormatter getDefaultFormatCalculations() {
+        return DEFAULT_FORMAT_CALCULATIONS;
     }
 
     public boolean getDefaultFormatOnSave() {

@@ -22,6 +22,7 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.parser.DirectiveType;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
@@ -245,6 +246,13 @@ public class RpgleFormatter implements ILineNumberProvider {
             boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY)
                 || hasEmbeddedDirectivesAndComments(currentStatement) || currentStatement.isAfterEof();
             if (passthrough) {
+                results.add(asUnformatted(currentStatement));
+                continue;
+            }
+
+            // Calculations, that the IBM formatter formats or nobody, and
+            // declarations, that are not formatted
+            if (!isFormatted(currentStatement, type)) {
                 results.add(asUnformatted(currentStatement));
                 continue;
             }
@@ -515,6 +523,34 @@ public class RpgleFormatter implements ILineNumberProvider {
         default:
             return formatKeepOriginal(statement);
         }
+    }
+
+    /**
+     * Returns <code>true</code>, if iRPGFormatter formats the statement: a
+     * calculation, if it is the formatter of the calculations, and any other
+     * statement, if it formats the declarations. A comment line is formatted
+     * like the statement, that follows it, or like a calculation, if no
+     * statement follows.
+     */
+    private boolean isFormatted(CollectedStatement statement, StatementType type) throws RpgleFormatterException {
+
+        if (type == StatementType.COMMENT) {
+            CollectedStatement followingStatement = statement.getFollowingStatement();
+            if (followingStatement == null) {
+                return isFormatCalculations();
+            }
+            type = followingStatement.getType();
+        }
+
+        if (isCalculation(type)) {
+            return isFormatCalculations();
+        }
+
+        return config.isFormatDeclarations();
+    }
+
+    private boolean isFormatCalculations() {
+        return config.getCalculationFormatter() == CalculationFormatter.IRPG_FORMATTER;
     }
 
     /**

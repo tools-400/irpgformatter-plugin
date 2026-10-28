@@ -26,6 +26,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     private CollectedStatement parent;
     private CollectedStatement matchingDclProc;
+    private CollectedStatement followingStatement;
 
     private List<String> collectedLines;
     private List<Boolean> leadingBlanksSignificant;
@@ -108,6 +109,20 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public CollectedStatement getParent() {
         return parent;
+    }
+
+    /**
+     * For a comment line, returns the statement, that follows it. Blank lines
+     * and compiler directives in between are skipped. The comment line gets
+     * the indent of this statement. Returns <code>null</code> for any other
+     * statement or if no statement follows.
+     */
+    public CollectedStatement getFollowingStatement() {
+        return followingStatement;
+    }
+
+    public void setFollowingStatement(CollectedStatement followingStatement) {
+        this.followingStatement = followingStatement;
     }
 
     /**

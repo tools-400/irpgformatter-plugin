@@ -17,6 +17,7 @@ import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
@@ -69,13 +70,13 @@ public final class FormatOnSaveListener {
 
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
 
-        if (Preferences.getInstance().isExecuteIbmFormatter()) {
+        CalculationFormatter calculationFormatter = Preferences.getInstance().getFormatCalculations();
+
+        if (calculationFormatter == CalculationFormatter.IBM_FORMATTER) {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
-            // Update indent from first line, like the manual format does.
-            defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, 1);
         }
 
-        if (Preferences.getInstance().isExecuteIrpgFormatter()) {
+        if (Preferences.getInstance().isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER) {
             FormattedResult result = formatter.format(input, defaultIndent);
             IRpgleOutput output = input.getOutput();
             output.writeSourceLines(result);
