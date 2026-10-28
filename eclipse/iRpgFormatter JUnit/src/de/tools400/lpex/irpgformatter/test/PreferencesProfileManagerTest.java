@@ -54,9 +54,10 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
      * IDs of the settings, that a complete profile contains. The custom preview
      * source is only exported, if there is one.
      */
-    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("formatCalculations", "useConstKeyword", "delimiterBeforeParameter",
+    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("useConstKeyword", "delimiterBeforeParameter",
         "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
-        "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatOnSave",
+        "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatCalculations",
+        "formatOnSave",
         "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "dataTypes", "declarationTypes", "keywords", "specialWords");
 
     @Rule
@@ -224,6 +225,51 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     public void importProfile_completeProfileWithExecuteIbmFormatterReturnsTrue() throws Exception {
         assertTrue(importProfile(writeProfileWithout("formatCalculations", "<setting id=\"executeIbmFormatter\" value=\"true\"/>"),
             new ProfileData()));
+    }
+
+    /**
+     * A profile of the version before "formatCalculations" and
+     * "conditionParentheses", with the settings in the order of its export:
+     * all its settings are imported, the missing one keeps its value and the
+     * profile is reported as incomplete.
+     */
+    @Test
+    public void importProfile_profileOfFormerVersion() throws Exception {
+
+        ProfileData data = new ProfileData();
+        data.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES.name());
+
+        boolean isComplete = importProfile(writeProfile( //
+            "<setting id=\"executeIbmFormatter\" value=\"false\"/>", //
+            "<setting id=\"useConstKeyword\" value=\"true\"/>", //
+            "<setting id=\"delimiterBeforeParameter\" value=\"true\"/>", //
+            "<setting id=\"parameterSpacingStyle\" value=\"AFTER\"/>", //
+            "<setting id=\"alignSubFields\" value=\"false\"/>", //
+            "<setting id=\"breakBetweenCaseChange\" value=\"true\"/>", //
+            "<setting id=\"breakBeforeKeyword\" value=\"true\"/>", //
+            "<setting id=\"sortConstValueToEnd\" value=\"true\"/>", //
+            "<setting id=\"replacePiName\" value=\"false\"/>", //
+            "<setting id=\"removeEndProcName\" value=\"false\"/>", //
+            "<setting id=\"unindentCompilerDirectives\" value=\"false\"/>", //
+            "<setting id=\"maxNameLength\" value=\"33\"/>", //
+            "<setting id=\"minNameLength\" value=\"7\"/>", //
+            "<setting id=\"executeIrpgFormatter\" value=\"false\"/>", //
+            "<setting id=\"formatOnSave\" value=\"true\"/>", //
+            "<setting id=\"removeEmptyCommentLines\" value=\"true\"/>", //
+            "<setting id=\"removeEmptyLinesBeforeDclPi\" value=\"true\"/>", //
+            "<setting id=\"dataTypes\"><entry key=\"CHAR\" value=\"Char\"/><entry key=\"VARCHAR\" value=\"VarChar\"/></setting>", //
+            "<setting id=\"declarationTypes\"><entry key=\"DCL-S\" value=\"Dcl-S\"/></setting>", //
+            "<setting id=\"keywords\"><entry key=\"LIKEDS\" value=\"LikeDS\"/></setting>", //
+            "<setting id=\"specialWords\"><entry key=\"*OMIT\" value=\"*Omit\"/></setting>"), data);
+
+        assertFalse(isComplete);
+
+        ProfileData expected = createData();
+        expected.setFormatCalculations(CalculationFormatter.OFF.name());
+        expected.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES.name());
+        expected.setKeywords(createMap("LIKEDS", "LikeDS"));
+        expected.setCustomPreviewSource(null);
+        assertEquals(dump(expected), dump(data));
     }
 
     @Test

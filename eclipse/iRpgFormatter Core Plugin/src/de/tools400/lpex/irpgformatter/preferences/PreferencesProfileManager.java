@@ -75,9 +75,6 @@ public final class PreferencesProfileManager {
      * are part of the file format of exported profiles and must not change.
      */
     private static final List<Setting<String>> SCALAR_SETTINGS = Arrays.asList(
-        // IBM Settings
-        stringSetting("formatCalculations", ProfileData::getFormatCalculations, ProfileData::setFormatCalculations),
-
         // General Settings
         booleanSetting("useConstKeyword", ProfileData::isUseConstKeyword, ProfileData::setUseConstKeyword),
         booleanSetting("delimiterBeforeParameter", ProfileData::isDelimiterBeforeParameter, ProfileData::setDelimiterBeforeParameter),
@@ -92,6 +89,7 @@ public final class PreferencesProfileManager {
         intSetting("maxNameLength", ProfileData::getMaxNameLength, ProfileData::setMaxNameLength),
         intSetting("minNameLength", ProfileData::getMinNameLength, ProfileData::setMinNameLength),
         booleanSetting("executeIrpgFormatter", ProfileData::isFormatDeclarations, ProfileData::setFormatDeclarations),
+        stringSetting("formatCalculations", ProfileData::getFormatCalculations, ProfileData::setFormatCalculations),
 
         // Save Actions
         booleanSetting("formatOnSave", ProfileData::isFormatOnSave, ProfileData::setFormatOnSave),
