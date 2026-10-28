@@ -25,6 +25,7 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
+import de.tools400.lpex.irpgformatter.rules.casing.CalculationCasingRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
 import de.tools400.lpex.irpgformatter.rules.statements.ConditionParenthesesRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
@@ -74,6 +75,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
     private final EmbeddedSqlFormatter embeddedSqlFormatter;
     private final ConditionParenthesesRule conditionParenthesesRule;
+    private final CalculationCasingRule calculationCasingRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private final List<FormatError> warnings = new ArrayList<>();
@@ -90,6 +92,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
         this.embeddedSqlFormatter = new EmbeddedSqlFormatter(config);
         this.conditionParenthesesRule = new ConditionParenthesesRule(config);
+        this.calculationCasingRule = new CalculationCasingRule(config);
     }
 
     public RpgleFormatter() {
@@ -594,6 +597,11 @@ public class RpgleFormatter implements ILineNumberProvider {
             }
         } else if (ConditionParenthesesRule.isCondition(type)) {
             lines = conditionParenthesesRule.apply(statement);
+        }
+
+        // The casing of embedded SQL follows the IBM settings.
+        if (type != StatementType.EXEC_SQL) {
+            lines = calculationCasingRule.apply(statement, lines);
         }
 
         return indentCalculation(statement, lines, indent);

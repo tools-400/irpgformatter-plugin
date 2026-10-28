@@ -97,7 +97,9 @@ public final class PreferencesProfileManager {
         // Experimental Settings
         booleanSetting("removeEmptyCommentLines", ProfileData::isRemoveEmptyCommentLines, ProfileData::setRemoveEmptyCommentLines),
         booleanSetting("removeEmptyLinesBeforeDclPi", ProfileData::isRemoveEmptyLinesBeforeDclPi, ProfileData::setRemoveEmptyLinesBeforeDclPi),
-        stringSetting("conditionParentheses", ProfileData::getConditionParentheses, ProfileData::setConditionParentheses));
+        stringSetting("conditionParentheses", ProfileData::getConditionParentheses, ProfileData::setConditionParentheses),
+        booleanSetting("formatOperationCodesAndBuiltInFunctions", ProfileData::isFormatOperationCodesAndBuiltInFunctions,
+            ProfileData::setFormatOperationCodesAndBuiltInFunctions));
 
     private static final List<Setting<Map<String, String>>> MAP_SETTINGS = Arrays.asList(
         new Setting<>("dataTypes", ProfileData::getDataTypes, ProfileData::setDataTypes),
@@ -407,6 +409,7 @@ public final class PreferencesProfileManager {
         private boolean removeEmptyCommentLines;
         private boolean removeEmptyLinesBeforeDclPi;
         private String conditionParentheses;
+        private boolean formatOperationCodesAndBuiltInFunctions;
         private Map<String, String> dataTypes;
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
@@ -555,6 +558,14 @@ public final class PreferencesProfileManager {
 
         public void setConditionParentheses(String conditionParentheses) {
             this.conditionParentheses = conditionParentheses;
+        }
+
+        public boolean isFormatOperationCodesAndBuiltInFunctions() {
+            return formatOperationCodesAndBuiltInFunctions;
+        }
+
+        public void setFormatOperationCodesAndBuiltInFunctions(boolean formatOperationCodesAndBuiltInFunctions) {
+            this.formatOperationCodesAndBuiltInFunctions = formatOperationCodesAndBuiltInFunctions;
         }
 
         public Map<String, String> getDataTypes() {

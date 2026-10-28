@@ -58,7 +58,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
         "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatCalculations",
         "formatOnSave",
-        "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "dataTypes", "declarationTypes", "keywords", "specialWords");
+        "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "formatOperationCodesAndBuiltInFunctions", "dataTypes", "declarationTypes", "keywords", "specialWords");
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -228,10 +228,11 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     }
 
     /**
-     * A profile of the version before "formatCalculations" and
-     * "conditionParentheses", with the settings in the order of its export:
-     * all its settings are imported, the missing one keeps its value and the
-     * profile is reported as incomplete.
+     * A profile of the version before "formatCalculations",
+     * "conditionParentheses" and "formatOperationCodesAndBuiltInFunctions",
+     * with the settings in the order of its export: all its settings are
+     * imported, the missing ones keep their values and the profile is reported
+     * as incomplete.
      */
     @Test
     public void importProfile_profileOfFormerVersion() throws Exception {
@@ -267,6 +268,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         ProfileData expected = createData();
         expected.setFormatCalculations(CalculationFormatter.OFF.name());
         expected.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES.name());
+        expected.setFormatOperationCodesAndBuiltInFunctions(false);
         expected.setKeywords(createMap("LIKEDS", "LikeDS"));
         expected.setCustomPreviewSource(null);
         assertEquals(dump(expected), dump(data));
@@ -376,6 +378,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         data.setRemoveEmptyCommentLines(true);
         data.setRemoveEmptyLinesBeforeDclPi(true);
         data.setConditionParentheses(ConditionParentheses.WITHOUT_PARENTHESES.name());
+        data.setFormatOperationCodesAndBuiltInFunctions(true);
         data.setDataTypes(createMap("CHAR", "Char", "VARCHAR", "VarChar"));
         data.setDeclarationTypes(createMap("DCL-S", "Dcl-S"));
         data.setKeywords(createMap("LIKEDS", "LikeDS", "A&B<C\"", "Ä'ß"));
@@ -399,7 +402,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
             + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|" + data.isSortConstValueToEnd()
             + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
             + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getFormatCalculations() + "|" + data.isFormatDeclarations() + "|"
-            + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getConditionParentheses() + "|" + data.getDataTypes()
+            + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|" + data.getDataTypes()
             + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getCustomPreviewSource();
     }
 

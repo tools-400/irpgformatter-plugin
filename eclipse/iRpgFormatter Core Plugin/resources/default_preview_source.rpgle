@@ -59,8 +59,9 @@ DCL-PROC myProc export;
 
   // Format calculations.
   // Outer parentheses of conditions.
-  if %parms() >= 2;
-  dsply message;
+  // Casing of operation codes and built-in functions.
+  IF %PARMS() >= 2;
+  Dsply message;
   exec sql select name, city
     into :name, :city
     from customer where id = :id;

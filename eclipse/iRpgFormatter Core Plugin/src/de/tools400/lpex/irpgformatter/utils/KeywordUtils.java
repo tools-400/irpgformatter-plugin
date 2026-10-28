@@ -29,6 +29,8 @@ public final class KeywordUtils {
     private static final String DECLARATION_TYPES_RESOURCE = "/declaration_types.properties";
     private static final String KEYWORDS_RESOURCE = "/keywords.properties";
     private static final String SPECIAL_WORDS_RESOURCE = "/special_words.properties";
+    private static final String OPERATION_CODES_RESOURCE = "/operation_codes.properties";
+    private static final String BUILT_IN_FUNCTIONS_RESOURCE = "/built_in_functions.properties";
 
     private KeywordUtils() {
         // Utility class
@@ -68,6 +70,25 @@ public final class KeywordUtils {
      */
     public static Map<String, String> getDefaultSpecialWords() {
         return ResourceUtils.loadFromPropertiesResource(SPECIAL_WORDS_RESOURCE);
+    }
+
+    /**
+     * Gets the operation codes of the free-form calculations from the
+     * resource file.
+     *
+     * @return map of operation codes
+     */
+    public static Map<String, String> getDefaultOperationCodes() {
+        return ResourceUtils.loadFromPropertiesResource(OPERATION_CODES_RESOURCE);
+    }
+
+    /**
+     * Gets the built-in functions from the resource file.
+     *
+     * @return map of built-in functions
+     */
+    public static Map<String, String> getDefaultBuiltInFunctions() {
+        return ResourceUtils.loadFromPropertiesResource(BUILT_IN_FUNCTIONS_RESOURCE);
     }
 
     /**

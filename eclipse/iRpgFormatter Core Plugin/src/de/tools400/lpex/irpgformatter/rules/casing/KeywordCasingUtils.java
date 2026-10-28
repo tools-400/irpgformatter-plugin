@@ -62,14 +62,15 @@ public final class KeywordCasingUtils {
     /**
      * Converts a keyword to First Char Uppercase style.
      * <p>
-     * Example: "Dcl-Ds" -> "Dcl-ds", "*NoPass" -> "*Nopass"
+     * Example: "Dcl-Ds" -> "Dcl-ds", "*NoPass" -> "*Nopass", "%SubDt" ->
+     * "%Subdt"
      * </p>
      */
     private static String toFirstCharUppercase(String keyword) {
-        if (keyword.startsWith("*")) {
-            // Handle *params: *NoPass -> *Nopass
+        if (hasPrefix(keyword)) {
+            // Handle *params and %functions: *NoPass -> *Nopass
             if (keyword.length() > 1) {
-                return "*" + capitalizeFirst(keyword.substring(1).toLowerCase());
+                return keyword.charAt(0) + capitalizeFirst(keyword.substring(1).toLowerCase());
             }
             return keyword;
         }
@@ -98,15 +99,16 @@ public final class KeywordCasingUtils {
     /**
      * Converts a keyword to lowerCamelCase style.
      * <p>
-     * Example: "Dcl-Ds" -> "dcl-Ds", "*NoPass" -> "*noPass"
+     * Example: "Dcl-Ds" -> "dcl-Ds", "*NoPass" -> "*noPass", "%SubDt" ->
+     * "%subDt"
      * </p>
      */
     private static String toLowerCamelCase(String keyword) {
-        if (keyword.startsWith("*")) {
-            // Handle *params: *NoPass -> *noPass
+        if (hasPrefix(keyword)) {
+            // Handle *params and %functions: *NoPass -> *noPass
             if (keyword.length() > 1) {
                 String rest = keyword.substring(1);
-                return "*" + lowercaseFirst(rest);
+                return keyword.charAt(0) + lowercaseFirst(rest);
             }
             return keyword;
         }
@@ -131,6 +133,15 @@ public final class KeywordCasingUtils {
 
         // Simple keyword: Char -> char
         return keyword.toLowerCase();
+    }
+
+    /**
+     * Returns <code>true</code> for a special word, such as
+     * <code>*NoPass</code>, or a built-in function, such as
+     * <code>%SubDt</code>.
+     */
+    private static boolean hasPrefix(String keyword) {
+        return keyword.startsWith("*") || keyword.startsWith("%");
     }
 
     /**

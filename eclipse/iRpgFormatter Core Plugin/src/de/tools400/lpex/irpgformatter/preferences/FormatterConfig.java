@@ -47,12 +47,15 @@ public class FormatterConfig {
     private boolean removeEmptyCommentLines;
     private boolean removeEmptyLinesBeforeDclPi;
     private ConditionParentheses conditionParentheses;
+    private boolean formatOperationCodesAndBuiltInFunctions;
     private KeywordCasingStyle keywordCasingStyle;
     private ParameterSpacingStyle parameterSpacingStyle;
     private Map<String, String> keywords;
     private Map<String, String> dataTypes;
     private Map<String, String> declarationTypes;
     private Map<String, String> specialWords;
+    private Map<String, String> operationCodes;
+    private Map<String, String> builtInFunctions;
 
     private FormatterConfig() {
     }
@@ -159,6 +162,18 @@ public class FormatterConfig {
 
     public ConditionParentheses getConditionParentheses() {
         return conditionParentheses;
+    }
+
+    public boolean isFormatOperationCodesAndBuiltInFunctions() {
+        return formatOperationCodesAndBuiltInFunctions;
+    }
+
+    public Map<String, String> getOperationCodes() {
+        return operationCodes;
+    }
+
+    public Map<String, String> getBuiltInFunctions() {
+        return builtInFunctions;
     }
 
     public KeywordCasingStyle getKeywordCasingStyle() {
@@ -285,6 +300,10 @@ public class FormatterConfig {
         this.conditionParentheses = conditionParentheses;
     }
 
+    public void setFormatOperationCodesAndBuiltInFunctions(boolean formatOperationCodesAndBuiltInFunctions) {
+        this.formatOperationCodesAndBuiltInFunctions = formatOperationCodesAndBuiltInFunctions;
+    }
+
     public void setKeywordCasingStyle(KeywordCasingStyle keywordCasingStyle) {
         this.keywordCasingStyle = keywordCasingStyle;
     }
@@ -352,12 +371,15 @@ public class FormatterConfig {
         config.removeEmptyCommentLines = prefs.isRemoveEmptyCommentLines();
         config.removeEmptyLinesBeforeDclPi = prefs.isRemoveEmptyLinesBeforeDclPi();
         config.conditionParentheses = prefs.getConditionParentheses();
+        config.formatOperationCodesAndBuiltInFunctions = prefs.isFormatOperationCodesAndBuiltInFunctions();
         config.keywordCasingStyle = prefs.getKeywordCasingStyle();
         config.parameterSpacingStyle = prefs.getParameterSpacingStyle();
         config.keywords = Collections.unmodifiableMap(prefs.getKeywords());
         config.dataTypes = Collections.unmodifiableMap(prefs.getDataTypes());
         config.declarationTypes = Collections.unmodifiableMap(prefs.getDeclarationTypes());
         config.specialWords = Collections.unmodifiableMap(prefs.getSpecialWords());
+        config.operationCodes = Collections.unmodifiableMap(prefs.getOperationCodes());
+        config.builtInFunctions = Collections.unmodifiableMap(prefs.getBuiltInFunctions());
 
         return config;
     }

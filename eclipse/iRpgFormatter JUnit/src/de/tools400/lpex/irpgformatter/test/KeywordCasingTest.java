@@ -160,4 +160,13 @@ public class KeywordCasingTest extends AbstractTestCase {
         String result = KeywordCasingUtils.apply("-Ds", KeywordCasingStyle.UPPERCASE);
         assertEquals("-DS", result);
     }
+
+    @Test
+    public void casingTransformation_builtInFunction() {
+        assertEquals("%SUBDT", KeywordCasingUtils.apply("%SubDt", KeywordCasingStyle.UPPERCASE));
+        assertEquals("%SubDt", KeywordCasingUtils.apply("%SubDt", KeywordCasingStyle.UPPER_CAMEL));
+        assertEquals("%Subdt", KeywordCasingUtils.apply("%SubDt", KeywordCasingStyle.FIRST_UPPER));
+        assertEquals("%subDt", KeywordCasingUtils.apply("%SubDt", KeywordCasingStyle.LOWER_CAMEL));
+        assertEquals("%subdt", KeywordCasingUtils.apply("%SubDt", KeywordCasingStyle.LOWERCASE));
+    }
 }
