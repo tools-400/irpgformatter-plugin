@@ -28,9 +28,9 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     private List<String> collectedLines;
     private List<String> embeddedComments;
+    private List<EmbeddedDirective> embeddedDirectives;
     private boolean isComplete;
     private boolean leftTrimNextLine;
-    private boolean hasEmbeddedDirectives;
     private boolean isAfterEof;
     private CollectedStatement unbalancedIfDirective;
 
@@ -54,6 +54,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
         this.collectedLines = new LinkedList<>();
         this.embeddedComments = new LinkedList<>();
+        this.embeddedDirectives = new LinkedList<>();
         this.isComplete = false;
         this.leftTrimNextLine = true;
 
@@ -130,7 +131,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
             // /IF, /ELSEIF, /ELSE and /ENDIF may appear within a free-form
             // declaration. The directive must keep its line, therefore it is
             // not added to the statement.
-            hasEmbeddedDirectives = true;
+            embeddedDirectives.add(new EmbeddedDirective(line, statement.length()));
         } else {
             if (!StringUtils.isNullOrEmpty(line)) {
                 buildStatement(line);
@@ -144,7 +145,15 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      * within a <code>DCL-S</code> statement.
      */
     public boolean hasEmbeddedDirectives() {
-        return hasEmbeddedDirectives;
+        return !embeddedDirectives.isEmpty();
+    }
+
+    /**
+     * Returns the compiler directives between the lines of the statement in
+     * the order of the source.
+     */
+    public List<EmbeddedDirective> getEmbeddedDirectives() {
+        return embeddedDirectives;
     }
 
     /**

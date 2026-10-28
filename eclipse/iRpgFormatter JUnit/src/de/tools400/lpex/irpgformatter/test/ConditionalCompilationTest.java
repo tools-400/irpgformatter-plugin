@@ -372,10 +372,14 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     // Statement") allows /IF, /ELSEIF, /ELSE and /ENDIF within any free-form
     // statement other than a calculation statement (RNF0714), provided that
     // the whole conditional group lies within the statement.
+    //
+    // The directives split the statement into sections, which are formatted
+    // on lines of their own. The directives get the indent of continuation
+    // lines, the sections within a conditional group one level more.
     // ----------------------------------------------------------------------
 
     @Test
-    public void format_directivesInsidePrototypeHeader_keepsDirectives() throws RpgleFormatterException {
+    public void format_directivesInsidePrototypeHeader_formatsSections() throws RpgleFormatterException {
 
         // @formatter:off
         String[] source = new String[] {
@@ -394,10 +398,20 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         String[] result = format(source);
 
         assertDirectivesPreserved(source, result);
+        assertEquals(9, result.length);
+        assertEquals("dcl-pr p3 ind", result[0]);
+        assertEquals("  /if defined(X)", result[1]);
+        assertEquals("    extproc('P3X')", result[2]);
+        assertEquals("  /else", result[3]);
+        assertEquals("    extproc('P3')", result[4]);
+        assertEquals("  /endif", result[5]);
+        assertEquals("  ;", result[6]);
+        assertEquals("  p int(10);", result[7]);
+        assertEquals("end-pr;", result[8]);
     }
 
     @Test
-    public void format_directivesInsideStandaloneField_keepsDirectives() throws RpgleFormatterException {
+    public void format_directivesInsideStandaloneField_formatsSections() throws RpgleFormatterException {
 
         // Valid example of the ILE RPG Reference
         // @formatter:off
@@ -415,10 +429,18 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         String[] result = format(source);
 
         assertDirectivesPreserved(source, result);
+        assertEquals(7, result.length);
+        assertEquals("dcl-s name", result[0]);
+        assertEquals("  /if defined(TRUE)", result[1]);
+        assertEquals("    char(10)", result[2]);
+        assertEquals("  /else", result[3]);
+        assertEquals("    varchar(10)", result[4]);
+        assertEquals("  /endif", result[5]);
+        assertEquals("  ;", result[6]);
     }
 
     @Test
-    public void format_directivesInsideParameter_keepsDirectivesAndFormatsOtherParameters() throws RpgleFormatterException {
+    public void format_directivesInsideParameter_formatsSections() throws RpgleFormatterException {
 
         // @formatter:off
         String[] source = new String[] {
@@ -440,8 +462,125 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertDirectivesPreserved(source, result);
         assertEquals(10, result.length);
         assertEquals("dcl-pi *n;", result[0]);
+        assertEquals("  name", result[1]);
+        assertEquals("    /if defined(TRUE)", result[2]);
+        assertEquals("      char(10)", result[3]);
+        assertEquals("    /else", result[4]);
+        assertEquals("      varchar(10)", result[5]);
+        assertEquals("    /endif", result[6]);
+        assertEquals("    const;", result[7]);
         assertEquals("  other int(10) const;", result[8]);
         assertEquals("end-pi;", result[9]);
+    }
+
+    @Test
+    public void format_directivesInsideStatementOfProcedure_formatsSections() throws RpgleFormatterException {
+
+        // Directives between statements are unindented, directives within a
+        // statement get the indent of continuation lines.
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC getName EXPORT;",
+            "/IF DEFINED(TRACE)",
+            "  DCL-S trace IND INZ( *ON );",
+            "/ENDIF",
+            "  DCL-S name",
+            "  /IF DEFINED(UNICODE)",
+            "    UCS2( 50 )",
+            "  /ELSE",
+            "    VARCHAR( 50 )",
+            "  /ENDIF",
+            "  ;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals(12, result.length);
+        assertEquals("dcl-proc getName export;", result[0]);
+        assertEquals("/if defined(TRACE)", result[1]);
+        assertEquals("  dcl-s trace ind inz(*on);", result[2]);
+        assertEquals("/endif", result[3]);
+        assertEquals("  dcl-s name", result[4]);
+        assertEquals("    /if defined(UNICODE)", result[5]);
+        assertEquals("      ucs2(50)", result[6]);
+        assertEquals("    /else", result[7]);
+        assertEquals("      varchar(50)", result[8]);
+        assertEquals("    /endif", result[9]);
+        assertEquals("    ;", result[10]);
+        assertEquals("end-proc;", result[11]);
+    }
+
+    @Test
+    public void format_constInsideBranch_staysInBranch() throws RpgleFormatterException {
+
+        // "Sort const/value to end" must not move CONST out of the branch.
+        // @formatter:off
+        String[] result = format(
+            "DCL-PR p IND;",
+            "  a INT( 10 )",
+            "  /IF DEFINED(X)",
+            "    CONST",
+            "  /ENDIF",
+            "  ;",
+            "END-PR;"
+        );
+        // @formatter:on
+
+        assertEquals(7, result.length);
+        assertEquals("  a int(10)", result[1]);
+        assertEquals("    /if defined(X)", result[2]);
+        assertEquals("      const", result[3]);
+        assertEquals("    /endif", result[4]);
+        assertEquals("    ;", result[5]);
+    }
+
+    @Test
+    public void format_directivesInsideParametersOfKeyword_unchanged() throws RpgleFormatterException {
+
+        // The directives cannot be put on lines of their own, because the
+        // keyword encloses them.
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-PR p IND EXTPROC(",
+            "/IF DEFINED(X)",
+            "  'P3X'",
+            "/ELSE",
+            "  'P3'",
+            "/ENDIF",
+            ");",
+            "END-PR;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertEquals(8, result.length);
+        for (int i = 0; i < 7; i++) {
+            assertEquals(source[i], result[i]);
+        }
+        assertEquals("end-pr;", result[7]);
+    }
+
+    @Test
+    public void format_commentInsideBranch_unchanged() throws RpgleFormatterException {
+
+        // The formatter would move the comment in front of the statement.
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-S name",
+            "/IF DEFINED(X)",
+            "  // Unicode",
+            "  UCS2( 50 )",
+            "/ELSE",
+            "  VARCHAR( 50 )",
+            "/ENDIF",
+            ";"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertArrayEquals(source, result);
     }
 
     // ----------------------------------------------------------------------

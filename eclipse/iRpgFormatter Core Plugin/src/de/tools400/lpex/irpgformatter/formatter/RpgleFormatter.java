@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
+import de.tools400.lpex.irpgformatter.parser.DirectiveType;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
@@ -32,6 +33,7 @@ import de.tools400.lpex.irpgformatter.rules.statements.RemoveEmptyLinesBeforeDcl
 import de.tools400.lpex.irpgformatter.rules.statements.SortConstValueToEndRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
+import de.tools400.lpex.irpgformatter.statement.EmbeddedDirective;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
@@ -201,7 +203,7 @@ public class RpgleFormatter implements ILineNumberProvider {
             }
 
             boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY)
-                || currentStatement.hasEmbeddedDirectives() || currentStatement.isAfterEof();
+                || hasEmbeddedDirectivesAndComments(currentStatement) || currentStatement.isAfterEof();
             if (passthrough) {
                 results.add(asUnformatted(currentStatement));
                 continue;
@@ -412,6 +414,10 @@ public class RpgleFormatter implements ILineNumberProvider {
 
         int indent = statement.getIndentLevel() * config.getIndent() + defaultIndent;
 
+        if (statement.hasEmbeddedDirectives()) {
+            return formatWithEmbeddedDirectives(statement, type, indent);
+        }
+
         switch (type) {
         case BLANK:
             // Blank line without indent
@@ -525,7 +531,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private List<String> formatDclC(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_C);
-        tokens = formatConstKeywordRule.apply(tokens);
+        tokens = applyTokenRules(statement, StatementType.DCL_C, tokens, true);
         String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
@@ -537,14 +543,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private List<String> formatDclBlock(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
-        if (type == StatementType.DCL_PI) {
-            CollectedStatement parent = statement.getParent();
-            String procName = null;
-            if (parent != null && parent.getType() == StatementType.DCL_PROC) {
-                procName = getProcName(parent);
-            }
-            tokens = new FormatPiNameRule(procName, config.isReplacePiName()).apply(tokens);
-        }
+        tokens = applyTokenRules(statement, type, tokens, true);
         String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
@@ -580,7 +579,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         int subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, ensureEndColumn());
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), StatementType.DCL_SUBF);
-        tokens = sortConstValueToEndRule.apply(tokens);
+        tokens = applyTokenRules(statement, StatementType.DCL_SUBF, tokens, true);
         String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn(), subFieldAlignCol);
 
         return Arrays.asList(results);
@@ -594,14 +593,209 @@ public class RpgleFormatter implements ILineNumberProvider {
     private List<String> formatEndStatement(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(statement.getStatement(), type);
-        if (type == StatementType.END_PROC) {
-            CollectedStatement procStmt = statement.getMatchingDclProc();
-            String procName = (procStmt != null) ? getProcName(procStmt) : null;
-            tokens = new FormatEndProcNameRule(procName, config.isRemoveEndProcName()).apply(tokens);
-        }
+        tokens = applyTokenRules(statement, type, tokens, true);
         String[] results = formatterUtils.formatTokens("", tokens, indent, ensureEndColumn());
 
         return Arrays.asList(results);
+    }
+
+    /**
+     * Applies the rules of a statement type to the tokens of a statement or of
+     * a section of a statement.
+     * <p>
+     * Rules that address a token by its position in the statement, such as the
+     * name of a procedure interface, are applied to the first section only.
+     * </p>
+     *
+     * @param statement - the statement
+     * @param type - the type of the statement
+     * @param tokens - the tokens of the statement or of a section of it
+     * @param isStartOfStatement - <code>true</code>, if the tokens start with
+     *        the first token of the statement
+     * @return the tokens after applying the rules
+     */
+    private IToken[] applyTokenRules(CollectedStatement statement, StatementType type, IToken[] tokens, boolean isStartOfStatement)
+        throws RpgleFormatterException {
+
+        if (type == StatementType.DCL_SUBF) {
+            tokens = sortConstValueToEndRule.apply(tokens);
+        }
+
+        if (!isStartOfStatement) {
+            return tokens;
+        }
+
+        switch (type) {
+        case DCL_C:
+            return formatConstKeywordRule.apply(tokens);
+        case DCL_PI:
+            CollectedStatement parent = statement.getParent();
+            String procName = null;
+            if (parent != null && parent.getType() == StatementType.DCL_PROC) {
+                procName = getProcName(parent);
+            }
+            return new FormatPiNameRule(procName, config.isReplacePiName()).apply(tokens);
+        case END_PROC:
+            CollectedStatement procStmt = statement.getMatchingDclProc();
+            String endProcName = (procStmt != null) ? getProcName(procStmt) : null;
+            return new FormatEndProcNameRule(endProcName, config.isRemoveEndProcName()).apply(tokens);
+        default:
+            return tokens;
+        }
+    }
+
+    /**
+     * Formats a declaration with compiler directives between its lines, such as
+     * <code>/IF</code> ... <code>/ENDIF</code> within a <code>DCL-S</code>
+     * statement.
+     * <p>
+     * The directives split the statement into sections. Each section is
+     * formatted on lines of its own, so that no token moves across a
+     * directive. The directives are indented like continuation lines, the
+     * sections within a conditional group one level deeper.
+     * </p>
+     * <p>
+     * The statement is left unchanged, if a directive is enclosed by a token,
+     * such as the parameters of a keyword, or if the statement is not a
+     * declaration.
+     * </p>
+     */
+    private List<String> formatWithEmbeddedDirectives(CollectedStatement statement, StatementType type, int indent)
+        throws RpgleFormatterException {
+
+        switch (type) {
+        case CTL_OPT:
+        case DCL_C:
+        case DCL_DS:
+        case DCL_PR:
+        case DCL_PI:
+        case DCL_ENUM:
+        case DCL_PROC:
+        case DCL_F:
+        case DCL_S:
+        case DCL_SUBF:
+        case END_DS:
+        case END_PR:
+        case END_PI:
+        case END_ENUM:
+        case END_PROC:
+            break;
+        default:
+            return formatKeepOriginal(statement);
+        }
+
+        List<IToken[]> sections = splitAtEmbeddedDirectives(statement, type);
+        if (sections == null) {
+            return formatKeepOriginal(statement);
+        }
+
+        Integer subFieldAlignCol = null;
+        if (type == StatementType.DCL_SUBF) {
+            subFieldAlignCol = formatterUtils.getSubFieldAlignColumn(statement, ensureEndColumn());
+        }
+
+        List<String> results = new ArrayList<>();
+        List<EmbeddedDirective> directives = statement.getEmbeddedDirectives();
+        int indentStep = config.getIndent();
+        int groupDepth = 0;
+
+        for (int i = 0; i < sections.size(); i++) {
+
+            int sectionIndent = indent;
+            if (i > 0) {
+                String directive = directives.get(i - 1).getLine();
+                DirectiveType directiveType = DirectiveType.of(directive);
+                if (directiveType == DirectiveType.ELSEIF || directiveType == DirectiveType.ELSE || directiveType == DirectiveType.ENDIF) {
+                    groupDepth = Math.max(0, groupDepth - 1);
+                }
+                String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(directive.trim());
+                results.add(StringUtils.spaces(indent + (groupDepth + 1) * indentStep) + formatted);
+                if (directiveType == DirectiveType.IF || directiveType == DirectiveType.ELSEIF || directiveType == DirectiveType.ELSE) {
+                    groupDepth++;
+                }
+                sectionIndent = indent + (groupDepth + 1) * indentStep;
+            }
+
+            IToken[] tokens = sections.get(i);
+            if (tokens.length == 0) {
+                continue;
+            }
+
+            tokens = applyTokenRules(statement, type, tokens, i == 0);
+            String[] lines = formatterUtils.formatTokens("", tokens, sectionIndent, ensureEndColumn(), i == 0 ? subFieldAlignCol : null);
+            for (String line : lines) {
+                results.add(StringUtils.trimR(line));
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Splits the tokens of a statement at its embedded directives.
+     *
+     * @return the sections of the statement, one more than directives, or
+     *         <code>null</code>, if a token encloses a directive
+     */
+    private List<IToken[]> splitAtEmbeddedDirectives(CollectedStatement statement, StatementType type) throws RpgleFormatterException {
+
+        String text = statement.getStatement();
+        IToken[] tokens = tokenizer.tokenize(text, type);
+
+        List<IToken[]> sections = new ArrayList<>();
+        int start = 0;
+        for (EmbeddedDirective directive : statement.getEmbeddedDirectives()) {
+            int end = countLeadingTokens(tokens, text.substring(0, directive.getOffset()), type);
+            if (end < start) {
+                return null;
+            }
+            sections.add(Arrays.copyOfRange(tokens, start, end));
+            start = end;
+        }
+        sections.add(Arrays.copyOfRange(tokens, start, tokens.length));
+
+        return sections;
+    }
+
+    /**
+     * Returns the number of tokens of the text in front of a directive, if
+     * these tokens are the leading tokens of the statement. Otherwise a token
+     * of the statement encloses the directive.
+     *
+     * @return number of tokens or -1, if a token encloses the directive
+     */
+    private int countLeadingTokens(IToken[] tokens, String textInFrontOfDirective, StatementType type) {
+
+        IToken[] leadingTokens;
+        try {
+            leadingTokens = tokenizer.tokenize(textInFrontOfDirective, type);
+        } catch (RpgleFormatterException e) {
+            return -1;
+        }
+
+        if (leadingTokens.length > tokens.length) {
+            return -1;
+        }
+
+        // The raw value includes the blanks behind the token, which are missing
+        // at the end of the text in front of the directive.
+        for (int i = 0; i < leadingTokens.length; i++) {
+            if (!leadingTokens[i].getRawValue().trim().equals(tokens[i].getRawValue().trim())) {
+                return -1;
+            }
+        }
+
+        return leadingTokens.length;
+    }
+
+    /**
+     * Returns <code>true</code>, if a statement contains both compiler
+     * directives and comments between its lines. The formatter would move the
+     * comments in front of the statement and thus out of the branches of a
+     * conditional group, therefore such a statement is left unchanged.
+     */
+    private static boolean hasEmbeddedDirectivesAndComments(CollectedStatement statement) {
+        return statement.hasEmbeddedDirectives() && statement.getEmbeddedComments().length > 0;
     }
 
     private int ensureEndColumn() throws RpgleFormatterException {
