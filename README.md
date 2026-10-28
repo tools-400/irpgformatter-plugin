@@ -1,232 +1,200 @@
 # iRPGFormatter Plug-in
 
-## Description
+iRPGFormatter is a plug-in for IBM Rational Developer for i (RDi), that formats fully free-form ILE RPG sources: the control
+options, the declarations, the calculations, the comments and the embedded SQL statements.
 
-Plug-in for formatting RPGLE **\*\*free** source code in RDi (Rational Developer for i).
+Further information is available on the [iRPGFormatter web site](https://tools-400.github.io/irpgformatter/).
 
-Further information about the iRpgFormatter are available on the [iRpgFormatter Web Site](https://tools-400.github.io/irpgformatter/).
+## Installation
 
-## Limitations
+iRPGFormatter requires RDi 9.6.0.13 or later.
 
-The formatter does not have an Abstract Syntax Tree (AST), which usually is required for formatting source code. But it has basic
-knowledge about functions, keywords, special words, data types and the blocks of the calculations.
+1. Select **Help > Install New Software...** in RDi.
+2. Enter the update site `https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/` and select **iRpgFormatter**.
+3. Finish the wizard and restart RDi.
 
-Most of the time it produces the expected result. But there are edge cases where the result is unexpected. Unexpected result can
-occur if the structure of the source code is not completely visible in the source member, but hidden in includes or manipulated
-by conditional compiling.
+iRPGFormatter is available on the [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/), too.
 
-For example:
+## Supported Sources
 
-```text
-/if defined(DEFINE_PROCPTR)
-dcl-pr SrvPgmLayout_new ind extproc(g_pLayout_new);
-/else
-dcl-pr SrvPgmLayout_new ind extproc('SrvPgmLayout_new');
-/endif
-  i_pSuper   like(LOG4RPG_pLayout_t) const;
-  io_pHandle pointer;
-  i_propList like(LOG4RPG_pPropertyList_t) const;
-  i_prefix   like(LOG4RPG_prefix_t) const;
-end-pr;
-```
-
-The example above has two `dcl-pr` statements in a row. The formatter handles them like the compiler: each branch of an `/IF`
-group starts with the blocks that are open at `/IF`. If the branches end with different blocks, the formatter shows a warning,
-because the indentation of the following lines may be wrong. See [Conditional Compilation](#conditional-compilation).
+- Source types **RPGLE** and **SQLRPGLE**.
+- Fully free-form sources, that start with `**FREE`. Other sources are not formatted.
+- Source members, stream files in the IFS, local files and files of workspace projects.
 
 ## Usage
 
-### Formatting Source Code
+### Formatting in the Editor
 
-1. Open an RPGLE source member in the LPEX editor
-2. Right-click to open the context menu
-3. Select **Source > iFormat**
+Right-click in the LPEX editor and select **Source > iFormat**.
 
-### Formatting Selected Lines
+- Without a selection, the whole source is formatted.
+- With selected lines, only these lines are formatted. If the selection starts or ends inside a block (DCL-DS, DCL-PR,
+  DCL-PI, DCL-PROC, DCL-ENUM), it is expanded to the whole block. The selected lines are indented like in the whole source.
 
-You can format only a portion of the source:
+### Formatting Several Sources
 
-1. Select the lines you want to format
-2. Right-click and select **Source > iFormat**
-3. Only the selected lines will be formatted
+Select the sources in the **Remote Systems** view or in the **Project Explorer** and select **Source > iFormat** in the
+context menu:
 
-**Note:** If your selection starts or ends inside a block (DCL-DS, DCL-PR, DCL-PI, DCL-PROC, DCL-ENUM), the selection is automatically expanded to include the complete block.
-The lines in front of the selection tell the formatter the blocks that enclose it, so the selection is indented like the whole source.
+- **Remote Systems**: object filters, libraries, source files and source members of type RPGLE or SQLRPGLE, IFS filters,
+  folders and files with the extension RPGLE or SQLRPGLE, and the same for local files.
+- **Project Explorer**: folders and files with the extension RPGLE or SQLRPGLE.
+
+The sources are formatted in the background. Locked members are skipped. At the end a message tells how many sources were
+formatted and lists the sources with errors or warnings and their messages.
 
 ### Keyboard Shortcut
 
-iRPGFormatter does not assign a key by default. To format with a key, map a **User Key Action** to the action `iRPGFormatter.Format`:
+iRPGFormatter does not assign a key. To format with a key, map a **User Key Action** to the action `iRPGFormatter.Format`:
 
-1. Open **Window > Preferences > LPEX Editor > User Key Actions**
-2. Enter a key, e.g. `c-a-f` for Ctrl+Alt+F, and the action `iRPGFormatter.Format`
-3. Click **Set** and **Apply and Close**
+1. Open **Window > Preferences > LPEX Editor > User Key Actions**.
+2. Enter a key, e.g. `c-a-f` for Ctrl+Alt+F, and the action `iRPGFormatter.Format`.
+3. Click **Set** and **Apply and Close**.
 
-iRPGFormatter adds its action and the **iFormat** menu item to each LPEX editor. It does not store them in the LPEX preferences.
-Therefore `iRPGFormatter.Format` is not listed on the LPEX preference page **User Actions**.
+The action is not listed on the LPEX preference page **User Actions**, because iRPGFormatter adds it to each LPEX editor
+itself. Your key is kept when you restart RDi.
 
-Your key action is kept when you restart RDi. While RDi is closed, it is stored in the preferences of iRPGFormatter instead of
-the LPEX preferences. That way it is removed together with iRPGFormatter, when you uninstall the plug-in.
+### Format on Save
 
-## Supported Source Types
-
-- **RPGLE** (ILE RPG free-format)
-- **SQLRPGLE** (ILE RPG with embedded SQL, see [Embedded SQL](#embedded-sql))
-
-The formatter requires **\*\*free** format. Fixed-format sources are not supported.
-
----
+With the setting **Format on save**, a source is formatted, when you save it in the LPEX editor with **Save** or **Save All**.
+It is not formatted, when RDi asks to save it while the editor is closed. Statements, that cannot be formatted, stay
+unchanged. No message is shown.
 
 ## Preferences
 
-Access preferences via **Window > Preferences > iRpgFormatter**. This page at the root of the preferences leads to the actual page at
+Open **Window > Preferences > iRpgFormatter**. This page leads to the preference page of iRPGFormatter at
 **Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG > iRpgFormatter**, next to the IBM formatter settings.
 
-Consider mapping a **User Key Action** to the action `iRPGFormatter.Format`, see [Keyboard Shortcut](#keyboard-shortcut).
+The preview at the bottom of the page shows the effect of the settings immediately. Its colors follow the RDi theme.
 
 ### IBM Settings
 
-The IBM settings are shown read-only. The links of the group lead to the RDi preference pages, where they are configured.
+iRPGFormatter uses some settings of RDi. They are shown read-only. The links of the group open the RDi preference pages at
+**Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG**, where the settings are changed.
 
-| Setting                                              | Preferences                                  | Description                                                                                         |
-| ---------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Start column**                                     | IBM i Parsers > ILE RPG > Formatter          | The leftmost column for reformatted free-form source                                                |
-| **End column**                                       | IBM i Parsers > ILE RPG > Formatter          | The rightmost column for reformatted free-form source                                               |
-| **Indentation**                                      | IBM i Parsers > ILE RPG > Formatter          | The number of blanks to indent nested levels                                                        |
-| **Indent WHEN/OTHER within SELECT statement**        | IBM i Parsers > ILE RPG > Formatter          | The extra blanks of WHEN and OTHER within a SELECT group                                            |
-| **Preserve relative indentation of continued lines** | IBM i Parsers > ILE RPG > Formatter          | Keep the indentation of continued lines relative to the first line instead of lining them up        |
-| **Formatting**                                       | IBM i Parsers > ILE RPG > Free-form SQL Formatting | Format embedded SQL statements, see [Embedded SQL](#embedded-sql)                             |
-| **Automatic uppercasing**                            | IBM i Parsers > ILE RPG > Free-form SQL Formatting | Change the casing of embedded SQL statements                                                  |
-| **Keyword casing style**                             | IBM i Parsers > ILE RPG > Key Behavior       | Specifies the style of keywords, special words, data types, operation codes and built-in functions |
+| Setting                                              | RDi preference page      | Description                                                                                          |
+| ---------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Start column**                                     | Formatter                | The leftmost column of the formatted source                                                          |
+| **End column**                                       | Formatter                | The rightmost column of the formatted source                                                         |
+| **Indentation**                                      | Formatter                | The number of blanks to indent nested levels                                                         |
+| **Indent WHEN/OTHER within SELECT statement**        | Formatter                | The extra blanks of WHEN and OTHER within a SELECT group                                             |
+| **Preserve relative indentation of continued lines** | Formatter                | Keep the indentation of continued lines relative to the first line instead of lining them up         |
+| **Formatting**                                       | Free-form SQL Formatting | Format embedded SQL statements, see [Embedded SQL](#embedded-sql)                                    |
+| **Automatic uppercasing**                            | Free-form SQL Formatting | Change the casing of embedded SQL statements                                                         |
+| **Keyword casing style**                             | Key Behavior             | The style of **Automatic closure of control block**, used for keywords, special words and data types |
 
 ### General Settings
 
-| Setting                            | Default          | Description                                                                                  |
-| ---------------------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
-| **Use const() keyword**            | Off              | Wrap constant values in `const()` for DCL-C statements                                       |
-| **Put delimiter before parameter** | Off              | Place colon delimiter before parameter instead of after                                      |
-| **Parameter spacing**              | Before parameter | Spacing around colon between keyword parameters                                              |
-| **Align sub-fields/parameters**    | On               | Align keywords within blocks at a common column                                              |
-| **Break name on case change**      | Off              | Break long names at camelCase boundaries                                                     |
-| **Break before keyword**           | Off              | Break line before keyword when parameters don't fit                                          |
-| **Sort const/value to end**        | Off              | Move `const()`/`value()` keyword to the end of the statement                                 |
-| **Replace dcl-pi name with \*N**   | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name     |
-| **Remove end-proc name**           | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC   |
-| **Unindent compiler directives**   | On               | Force compiler directives to column 1; when off, keep their indentation                      |
-| **Maximum name length**            | 60               | Max characters for a name or literal before it is split with `...`                           |
-| **Minimum name length**            | 20               | Min characters that must remain on a line when splitting long names                          |
-| **Format declarations**            | On               | Format the control options, the declarations and the compiler directives                     |
-| **Format calculations**            | iRPGFormatter    | Select who formats the calculations, the comment lines in front of them and the embedded SQL |
+| Setting                                    | Default          | Description                                                                                  |
+| ------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------- |
+| **Use const() keyword in dcl-c statements** | Off              | Wrap constant values in `const()`                                                            |
+| **Put delimiter before parameter**         | Off              | Place the colon before a keyword parameter instead of after it                               |
+| **Parameter spacing style**                | Before parameter | Blanks around the colon between keyword parameters                                           |
+| **Align sub-fields/parameters**            | On               | Align the keywords within blocks at a common column                                          |
+| **Break name on case change**              | Off              | Break long names at camelCase boundaries                                                     |
+| **Break before keyword**                   | Off              | Break the line before a keyword, when its parameters don't fit                               |
+| **Sort const/value to end**                | Off              | Move the `const()`/`value()` keyword to the end of the statement                             |
+| **Replace dcl-pi name with \*N**           | On               | Inside a DCL-PROC, rewrite the DCL-PI name to `*N`; when off, restore the procedure name     |
+| **Remove end-proc name**                   | On               | Remove the optional procedure name from END-PROC; when off, ensure it matches the DCL-PROC   |
+| **Unindent compiler directives**           | On               | Force compiler directives to column 1; when off, indent them like the enclosing block        |
+| **Maximum name length**                    | 60               | Maximum characters of a name or literal before it is split with `...`                        |
+| **Minimum name length**                    | 10               | Minimum characters, that must remain on a line when a long name is split                     |
+| **Format declarations**                    | On               | Format the control options, the declarations and the compiler directives                     |
+| **Format calculations**                    | iRPGFormatter    | Select who formats the calculations, the comment lines in front of them and the embedded SQL |
 
-**Format calculations** replaces the former setting **Execute IBM formatter**:
+**Format calculations** has these values:
 
-| Value             | Calculations, comment lines and embedded SQL                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Off**           | Left unchanged                                                                                                   |
+| Value             | Calculations, comment lines and embedded SQL                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Off**           | Left unchanged                                                                                                    |
 | **IBM formatter** | Formatted by the IBM formatter, before iRPGFormatter formats the declarations. iRPGFormatter leaves them unchanged |
-| **iRPGFormatter** | Formatted by iRPGFormatter, see [Calculations](#calculations) (default)                                          |
+| **iRPGFormatter** | Formatted by iRPGFormatter, see [Calculations](#calculations) (default)                                           |
 
-- **Format declarations** is the former setting **Execute iRPG formatter**. If both settings are off, nothing is formatted.
-- If **Execute IBM formatter** was switched off, **Format calculations** is **Off**, otherwise it is **iRPGFormatter**.
-- A comment line is formatted like the statement that follows it.
-- The IBM formatter needs an editor. It does not run, when you format members from a Remote Systems filter.
-  With **IBM formatter**, the calculations stay unchanged there.
-- RDi cannot format a source when it is saved. With **Format on save**, **Format declarations** off and
-  **Format calculations** set to **IBM formatter**, iRPGFormatter runs only the IBM formatter when you save.
+- If both settings are off, nothing is formatted.
+- The IBM formatter needs an editor. When you format sources in the Remote Systems view or in the Project Explorer, it does not
+  run and the calculations stay unchanged.
+- With **IBM formatter**, the preview shows the calculations as iRPGFormatter would format them, because the IBM formatter
+  cannot run in the preview. The result is nearly always the same. It differs for inactive `/IF` branches, which the IBM
+  formatter leaves unchanged, and for sources with structural errors, such as a missing `ENDIF`, which the IBM formatter does
+  not format at all.
+- RDi itself cannot format a source, when it is saved. With **Format on save**, **Format declarations** off and
+  **Format calculations** set to **IBM formatter**, iRPGFormatter runs only the IBM formatter, when you save.
 
 ### Experimental Settings
 
-These settings implement new formatting rules that are still being evaluated. They are disabled by default and may change in future releases.
+These settings implement new formatting rules, that are still being evaluated. They are off by default and may change in
+future releases.
 
-| Setting                              | Default | Description                                                                                                          |
-| ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Remove empty comment lines**       | Off     | Remove standalone `//` lines that serve no structural purpose (see [Comment Block Handling])                         |
-| **Remove empty lines before dcl-pi** | Off     | Remove blank lines and empty `//` comments immediately before a `dcl-pi` statement (see [Empty Lines Before DCL-PI]) |
-| **Outer parentheses of conditions**  | Off     | Add or remove the parentheses around the condition of IF, ELSEIF, WHEN, DOW and DOU (see [Outer Parentheses of Conditions](#outer-parentheses-of-conditions)) |
-| **Apply keyword casing to operation codes and built-in functions** | Off | Format the operation codes and built-in functions of the calculations in the keyword casing style (see [Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions)) |
-| **Apply keyword casing to special words of the calculations** | Off | Format the special words of the calculations, such as `*ON` or `*ZEROS`, in the keyword casing style (see [Casing of Special Words in Calculations](#casing-of-special-words-in-calculations)) |
+| Setting                                                             | Default | Description                                                                                       |
+| ------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| **Remove empty comment lines**                                      | Off     | Replace empty `//` lines by empty lines, see [Empty Comment Lines](#empty-comment-lines)           |
+| **Remove empty lines before dcl-pi**                                | Off     | Remove empty lines in front of `dcl-pi`, see [Empty Lines Before DCL-PI](#empty-lines-before-dcl-pi) |
+| **Outer parentheses of conditions**                                 | Off     | Add or remove the parentheses around a condition, see [Outer Parentheses of Conditions](#outer-parentheses-of-conditions) |
+| **Apply keyword casing to operation codes and built-in functions**  | Off     | See [Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions) |
+| **Apply keyword casing to special words of the calculations**       | Off     | See [Casing of Special Words in Calculations](#casing-of-special-words-in-calculations)             |
 
 ### Save Actions
 
-| Setting                         | Default          | Description                                                              |
-| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| **Format on save**              | Off              | Automatically format when saving the source member                       |
+| Setting            | Default | Description                                         |
+| ------------------ | ------- | --------------------------------------------------- |
+| **Format on save** | Off     | Format a source, when it is saved in the LPEX editor |
 
-### Settings
+### Word Lists
 
-| Setting                         | Default          | Description                                                              |
-| ------------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| **Data Types**                  | (built-in list)  | Custom data type casing mappings                                         |
-| **Declaration Types**           | (built-in list)  | Custom declaration type casing mappings                                  |
-| **Keywords**                    | (built-in list)  | Custom keyword casing mappings                                           |
-| **Special Words**               | (built-in list)  | Custom special word casing mappings (e.g., \*NOPASS, \*OMIT, \*ZEROS)  |
-| **Operation Codes**             | (built-in list)  | Custom operation code casing mappings (e.g., SETLL, EVAL-CORR)           |
-| **Built-in Functions**          | (built-in list)  | Custom built-in function casing mappings (e.g., %SUBDT)                  |
+The tabs next to **Settings** contain the spelling of the words, that are formatted in the keyword casing style:
 
-The built-in lists correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
+| Tab                    | Contents                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| **Data Types**         | Data types, such as `CHAR` or `VARCHAR`                                                       |
+| **Declaration Types**  | Declaration types, such as `DCL-DS`                                                           |
+| **Keywords**           | Keywords of the declarations, such as `EXTPROC` or `QUALIFIED`                                |
+| **Special Words**      | Special words, such as `*NOPASS`, `*OMIT` or `*ZEROS`, of the declarations and the calculations |
+| **Operation Codes**    | Operation codes, such as `SETLL` or `EVAL-CORR`                                               |
+| **Built-in Functions** | Built-in functions, such as `%SUBDT`                                                          |
 
-IBM writes operation codes and built-in functions in upper case only. Their UpperCamelCase spelling, such as `SetLL` or `%SubDt`,
-is a choice of iRPGFormatter and can be changed in the lists.
-
-### Source Preview
-
-The preview pane shows a live preview of the formatted source based on the current settings. Changes in the settings are immediately reflected in the preview, allowing
-you to see the impact of your adjustments before applying them to actual source files.
-
-With **Format calculations** set to **IBM formatter**, the preview shows the calculations as iRPGFormatter would format them,
-because the IBM formatter needs an editor and cannot run in the preview. iRPGFormatter indents them by the same IBM settings,
-so the result is nearly always the same. It differs for inactive `/IF` branches, which the IBM formatter leaves unchanged,
-and for sources with structural errors, such as a missing `ENDIF`, which the IBM formatter does not format at all.
-
-The colors of the preview panel are derived from the current RDi theme, ensuring a consistent look and feel with the rest of the IDE:
-
-| Color                        | Eclipse settings                                                        |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| Error text color             | General -> Appearance -> Colors and Fonts -> Basics -> Error text color |
-| Current line highlight color | General -> Editors -> Text Editors -> Current line highlight            |
-| Vertical ruler color         | General -> Editors -> Text Editors -> Print margin                      |
-| Line number ruler            | General -> Editors -> Text Editors -> Line number foreground            |
+- The lists correspond to the ILE RPG Reference for IBM i 7.6. Words, that are not in a list, keep their spelling.
+- The list **Special Words** is used for the declarations and, if enabled, for the calculations. A special word, that is added
+  to it, is formatted in the declarations, too.
+- IBM writes operation codes and built-in functions in upper case only. Their UpperCamelCase spelling, such as `SetLL` or
+  `%SubDt`, is a choice of iRPGFormatter and can be changed in the lists.
+- Once you changed a list, new entries of a later version of iRPGFormatter are not added to it. **Restore Defaults** brings
+  them in, but resets all settings and lists of the page.
 
 ### Import / Export
 
-Formatter settings can be exported to and imported from XML files. This allows sharing a common formatting profile across a team or backing up settings between workspaces.
+The settings can be exported to and imported from XML files, e.g. to share a profile in a team.
 
-- **Export...** -- Saves all current settings (general settings, experimental settings, save actions, data types, declaration types, keywords, special words, operation codes, built-in functions and custom preview source) to an XML file.
-- **Import...** -- Loads settings from an XML file and applies them to the preference page. The imported values are shown in the UI but not persisted until you click **Apply** or **OK**.
-
-The IBM settings are not part of the profile, because they belong to RDi.
-
-Partial profiles are supported: if the XML file does not contain all settings, only the included settings are applied; the remaining settings keep their current values.
-This is also the case for profiles of former versions, which do not contain the settings added later. A message tells that the
-profile does not contain all settings. The former setting **Execute IBM formatter** of such a profile is converted to **Format calculations**.
-
----
+- **Export...** saves all settings of iRPGFormatter and the custom preview source to an XML file. The IBM settings are not
+  part of the profile, because they belong to RDi.
+- **Import...** loads a profile and shows its settings on the page. They are saved, when you click **Apply** or
+  **Apply and Close**. Settings, that are missing in the profile, e.g. in a profile of a former version, keep their current
+  values; a message tells so.
 
 ## Formatting Rules
 
 ### What Gets Formatted
 
-The formatter processes the following RPGLE statement types:
-
-| Statement Type      | Examples                                             | Formatted?                               |
-| ------------------- | ---------------------------------------------------- | ---------------------------------------- |
-| Control options     | `ctl-opt`                                            | Yes                                      |
-| Declarations        | `dcl-s`, `dcl-f`, `dcl-c`                            | Yes                                      |
-| Block openers       | `dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-proc`, `dcl-enum` | Yes                                      |
-| Subfields           | Fields/parameters within blocks                      | Yes                                      |
-| Block closers       | `end-ds`, `end-pr`, `end-pi`, `end-proc`, `end-enum` | Yes                                      |
-| Compiler directives | `/copy`, `/include`, `/if`, `/define`                | Yes (keyword casing and indentation)     |
-| Free directive      | `**free`                                             | Yes (casing only)                        |
-| Comments            | `// ...`                                             | Indented (see [Comments](#comments))     |
-| Calculations        | `if`, `for`, `return`, etc.                          | Indented (see [Calculations](#calculations)) |
-| Embedded SQL        | `exec sql`                                           | Yes (see [Embedded SQL](#embedded-sql))  |
-| Blank lines         | (empty lines)                                        | No (preserved)                           |
+| Statement type      | Examples                                             | Formatted                                    |
+| ------------------- | ---------------------------------------------------- | -------------------------------------------- |
+| Control options     | `ctl-opt`                                            | Yes                                          |
+| Declarations        | `dcl-s`, `dcl-f`, `dcl-c`                            | Yes                                          |
+| Block openers       | `dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-proc`, `dcl-enum` | Yes                                          |
+| Subfields           | Fields and parameters within blocks                  | Yes                                          |
+| Block closers       | `end-ds`, `end-pr`, `end-pi`, `end-proc`, `end-enum` | Yes                                          |
+| Compiler directives | `/copy`, `/include`, `/if`, `/define`                | Casing and indentation                       |
+| Free directive      | `**free`                                             | Casing                                       |
+| Comments            | `// ...`                                             | Indentation, see [Comments](#comments)       |
+| Calculations        | `if`, `for`, `return`, etc.                          | Indentation, see [Calculations](#calculations) |
+| Embedded SQL        | `exec sql`                                           | Yes, see [Embedded SQL](#embedded-sql)       |
+| Blank lines         | (empty lines)                                        | No                                           |
 
 **Format declarations** controls all statements except the calculations, **Format calculations** controls the calculations,
 the comment lines in front of them and the embedded SQL, see [General Settings](#general-settings).
 
 ### Keyword Casing
 
-All keywords, data types, declaration types and special words (e.g. `*NOPASS`) are formatted according to the configured casing style:
+Keywords, data types, declaration types and special words are formatted in the keyword casing style of RDi, see
+[IBM Settings](#ibm-settings):
 
 | Style            | Example `DCL-DS` | Example `*NOPASS` | Example `Char` |
 | ---------------- | ---------------- | ----------------- | -------------- |
@@ -236,22 +204,17 @@ All keywords, data types, declaration types and special words (e.g. `*NOPASS`) a
 | lowerCamelCase   | `dcl-Ds`         | `*noPass`         | `char`         |
 | All Lowercase    | `dcl-ds`         | `*nopass`         | `char`         |
 
-The default casing style is **All Lowercase**.
-
-Optionally the operation codes, built-in functions and special words of the calculations are formatted in the same style, see
+Taking the style from RDi keeps formatted code and code, that RDi completes, consistent. Optionally the operation codes,
+built-in functions and special words of the calculations are formatted in the same style, see
 [Casing of Operation Codes and Built-in Functions](#casing-of-operation-codes-and-built-in-functions) and
 [Casing of Special Words in Calculations](#casing-of-special-words-in-calculations).
 
-The keyword casing style is derived from the RDi setting at **Window > Preferences > IBM i > Parsers > ILE RPG > Content assist > Auto-close control structure** (the "endxx" setting). This ensures consistency between auto-completed code and formatted code.
-
 ### Indentation
 
-- Indentation uses **spaces** (never tabs).
-- The indent size is derived from the RDi setting at **Window > Preferences > IBM i > Parsers > ILE RPG > Content assist > Indentation**.
-- Subfields and parameters within blocks (`dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-enum`) are indented one level deeper than their enclosing block.
+- Indentation uses blanks, never tabs. The number of blanks is the IBM setting **Indentation**.
+- Subfields and parameters within blocks (`dcl-ds`, `dcl-pr`, `dcl-pi`, `dcl-enum`) are indented one level deeper than their
+  block.
 - Calculations are indented by the nesting of their blocks, see [Calculations](#calculations).
-
-**Example:**
 
 ```rpgle
 dcl-ds customer qualified;
@@ -262,17 +225,16 @@ end-ds;
 
 ### Calculations
 
-Calculations are indented by the nesting of their blocks: `IF`, `DOW`, `DOU`, `FOR`, `FOR-EACH`, `SELECT`, `MONITOR` and `BEGSR`.
-Apart from the experimental rules, their content is not changed.
+Calculations are indented by the nesting of their blocks: `IF`, `DOW`, `DOU`, `FOR`, `FOR-EACH`, `SELECT`, `MONITOR` and
+`BEGSR`. Apart from the experimental rules, their content is not changed.
 
 - Branches, such as `ELSE`, `ELSEIF`, `WHEN`, `OTHER`, `ON-ERROR`, `ON-EXCP` and `ON-EXIT`, are placed on the level of the
   statement that starts the block.
 - `WHEN` and `OTHER` get the extra blanks of the IBM setting **Indent WHEN/OTHER within SELECT statement**.
 - Continued lines keep their indentation relative to the first line or are lined up one level deeper, see the IBM setting
-  **Preserve relative indentation of continued lines**. Lines, whose leading blanks belong to a literal continued with `-`, are never moved.
+  **Preserve relative indentation of continued lines**. Lines, whose leading blanks belong to a literal continued with `-`,
+  are never moved.
 - If a line would exceed the end column, the statement is left unchanged and reported as an error.
-
-**Example:**
 
 ```rpgle
 dcl-proc p;
@@ -291,8 +253,8 @@ end-proc;
 
 ### Comments
 
-A comment line gets the indentation of the statement that follows it. Blank lines and compiler directives in between are skipped.
-A comment line at the end of the source or of the selection keeps the indentation of the block that encloses it.
+A comment line gets the indentation of the statement that follows it. Blank lines and compiler directives in between are
+skipped. A comment line at the end of the source or of the selection keeps the indentation of the block that encloses it.
 
 Comments between the lines of a declaration are moved in front of the declaration and get its indentation.
 
@@ -300,14 +262,14 @@ If an indented comment line would exceed the end column, it is left unchanged an
 
 ### Embedded SQL
 
-`EXEC SQL` statements are formatted with the SQL formatter of IBM i Access Client Solutions, which RDi uses, too. They follow the
-RDi settings at **Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG > Free-form SQL Formatting**:
+`EXEC SQL` statements are formatted with the SQL formatter of IBM i Access Client Solutions, which RDi uses, too. They follow
+the IBM settings of the page **Free-form SQL Formatting**:
 
-| RDi setting                                         | Result                                                                                                 |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Formatting** on                                   | `EXEC SQL` on a line of its own, the SQL statement formatted one SQL indent deeper with the line breaks of **New line: On comma** and **On AND/OR keywords** |
-| **Formatting** off, **Automatic uppercasing** on    | Only the casing is changed, the lines stay as they are                                                 |
-| Both off (default of RDi)                           | The statement is only indented                                                                         |
+| RDi setting                                      | Result                                                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| **Formatting** on                                | `EXEC SQL` on a line of its own, the SQL statement formatted one SQL indent deeper with the line breaks of **New line: On comma** and **On AND/OR keywords** |
+| **Formatting** off, **Automatic uppercasing** on | Only the casing is changed, the lines stay as they are                                                  |
+| Both off (default of RDi)                        | The statement is only indented                                                                          |
 
 **Example (Formatting on):**
 
@@ -321,33 +283,31 @@ exec sql
     where id = :id;
 ```
 
-The statement is only indented, if the SQL formatter reports a syntax error, if a literal is continued on the next line, if a comment
-follows the semicolon or if a line would exceed the end column. iRPGFormatter makes sure that the SQL formatter changed nothing but
-blanks and the casing outside of literals and delimited identifiers.
+Only the blanks, the line breaks and the casing outside of literals and delimited identifiers are changed. If the SQL formatter
+cannot format a statement safely, for example because of a syntax error, a literal continued on the next line or a comment
+after the semicolon, the statement is only indented.
 
 Differences to RDi:
 
-- The line length is the end column of iRPGFormatter. RDi uses the end column of the RPG formatter as well, but no limit for stream files with `*MAX`.
+- The line length is the end column of iRPGFormatter. RDi uses the end column of the RPG formatter as well, but no limit for
+  stream files with `*MAX`.
 - A comment in front of the first word of the SQL statement is indented like the SQL statement.
 - iRPGFormatter always uses the SQL formatter of IBM i Access Client Solutions, even if **Use the Enhanced SQL Formatter** is off.
-- RDi 9.6 does not provide this SQL formatter to plug-ins (checked with RDi 9.6.0.12). There embedded SQL is only indented.
+- RDi 9.6 does not provide this SQL formatter to plug-ins. There embedded SQL is only indented.
 
 ### Subfield Alignment
 
-When **Align sub-fields** is enabled (default: on), the keywords following field names within a block are aligned at a common column. The alignment column is computed from the longest field name in the block.
-
-**With alignment enabled:**
+When **Align sub-fields/parameters** is on (default), the keywords after the names within a block are aligned at a common
+column, computed from the longest name in the block.
 
 ```rpgle
+// Align sub-fields/parameters on:
 dcl-ds customer qualified;
   custId       char(10);
   customerName char(50);
 end-ds;
-```
 
-**With alignment disabled:**
-
-```rpgle
+// Align sub-fields/parameters off:
 dcl-ds customer qualified;
   custId char(10);
   customerName char(50);
@@ -356,34 +316,24 @@ end-ds;
 
 ### Line Width and Wrapping
 
-The formatter wraps statements that exceed the maximum line width. The maximum is determined by the RDi setting at **Window > Preferences > IBM i > Parsers > ILE RPG > Content assist > Right margin** (default: `*MAX`).
-
-When a statement is too long, the formatter:
-
-1. Breaks the line after the last token that fits
-2. Continues on the next line with a sub-indent (one indent level)
-3. Repeats until all tokens fit
-
-**Example:**
+A statement, that exceeds the IBM setting **End column**, is wrapped: the line is broken after the last token that fits and
+continues on the next line one indent level deeper.
 
 ```rpgle
-// Before (one long line):
+// Before:
 dcl-pr myPrototype extproc('MODULE_myPrototype') opdesc;
 
-// After (wrapped at max width):
+// After:
 dcl-pr myPrototype
   extproc('MODULE_myPrototype') opdesc;
 ```
 
 ### Name and Literal Breaking
 
-When a single name or literal is too long to fit on one line:
+When a single name or literal does not fit on a line:
 
-- **Names** are broken with an ellipsis (`...`) as continuation character.
-  If **Break between case change** is enabled, the break is placed at camelCase boundaries.
-- **Literals** are broken with `+` (skips leading whitespace on continuation) or `-` (preserves leading whitespace).
-
-**Example:**
+- **Names** are broken with the ellipsis `...`. With **Break name on case change**, the break is placed at a camelCase boundary.
+- **Literals** are broken with `+` (leading blanks of the next line are skipped) or `-` (leading blanks are kept).
 
 ```rpgle
 dcl-c LONG_MESSAGE 'This is a very long constant message that '+
@@ -392,34 +342,33 @@ dcl-c LONG_MESSAGE 'This is a very long constant message that '+
 
 ### Parameter Spacing
 
-The spacing around colons between keyword parameters is configurable:
+The blanks around the colons between keyword parameters follow **Parameter spacing style**:
 
-| Style                | Example                    |
-| -------------------- | -------------------------- |
-| No space             | `:*omit:`                  |
-| Before parameter     | `: *omit:` (default)       |
-| After parameter      | `:*omit :`                 |
-| Before and after     | `: *omit :`                |
+| Style            | Example              |
+| ---------------- | -------------------- |
+| No space         | `:*omit:`            |
+| Before parameter | `: *omit:` (default) |
+| After parameter  | `:*omit :`           |
+| Before and after | `: *omit :`          |
 
-### Constants (`dcl-c`)
+### Constants
 
-- When **Use const() keyword** is enabled, the value is wrapped in `const()`: `dcl-c MY_CONST const(42);`
-- When **Sort const value to end** is enabled, the `const()` keyword is moved after all other keywords.
+- With **Use const() keyword in dcl-c statements**, the value is wrapped in `const()`: `dcl-c MY_CONST const(42);`
+- With **Sort const/value to end**, the `const()` keyword is moved after all other keywords.
 
-### Procedure Interface (`dcl-pi`) Naming
+### Procedure Interface Name
 
-When a DCL-PI sits inside a DCL-PROC, RPGLE allows its name to be either repeated from the procedure or replaced by the placeholder `*N`. The formatter rewrites the DCL-PI name based on **Replace dcl-pi name with \*N**:
+Within a DCL-PROC, the name of the DCL-PI may be the procedure name or the placeholder `*N`. **Replace dcl-pi name with \*N**
+selects the form:
 
-| Setting | DCL-PI inside DCL-PROC contains... | Result                                |
-| ------- | ---------------------------------- | ------------------------------------- |
-| On      | a name (e.g. `myProc`)             | rewritten to `*N`                     |
-| On      | `*N`                               | left as `*N`                          |
-| Off     | `*N`                               | restored to the parent procedure name |
-| Off     | a name                             | left unchanged                        |
+| Setting | DCL-PI within DCL-PROC contains | Result                         |
+| ------- | ------------------------------- | ------------------------------ |
+| On      | a name, e.g. `myProc`           | `*N`                           |
+| On      | `*N`                            | `*N`                           |
+| Off     | `*N`                            | the name of the procedure      |
+| Off     | a name                          | unchanged                      |
 
-A standalone DCL-PI without a DCL-PROC parent is never touched.
-
-**Example (setting on, default):**
+A DCL-PI outside of a DCL-PROC is never changed.
 
 ```rpgle
 dcl-proc myProc;
@@ -431,133 +380,100 @@ end-proc;
 
 ### End-Procedure Name
 
-The optional name on `end-proc` is governed by **Remove end-proc name**:
+The optional name on `end-proc` follows **Remove end-proc name**:
 
-| Setting | END-PROC contains...         | Result                                                         |
-| ------- | ---------------------------- | -------------------------------------------------------------- |
-| On      | a name                       | name removed (`end-proc;`)                                     |
-| On      | no name                      | left as `end-proc;`                                            |
-| Off     | no name                      | the matching procedure name is inserted                        |
-| Off     | a divergent name (e.g. typo) | overwritten with the procedure name from the matching DCL-PROC |
-| Off     | the matching name            | left unchanged                                                 |
+| Setting | END-PROC contains            | Result                                  |
+| ------- | ---------------------------- | --------------------------------------- |
+| On      | a name                       | name removed: `end-proc;`               |
+| On      | no name                      | unchanged                               |
+| Off     | no name                      | the name of the procedure is inserted   |
+| Off     | another name, e.g. a typo    | replaced by the name of the procedure   |
+| Off     | the name of the procedure    | unchanged                               |
 
 ### Compiler Directives
 
-Compiler directives (`/copy`, `/include`, `/if`, `/define`, `/eof`, etc.) are formatted with keyword casing applied to the directive keyword. The directive parameters are preserved as-is.
-
-By default (**Unindent compiler directives** = on) directives are forced to column 1 regardless of the surrounding block indent. When the option is disabled, directives keep the indentation level of their enclosing block.
+Compiler directives (`/copy`, `/include`, `/if`, `/define`, `/eof` etc.) get the keyword casing. Their parameters are not
+changed. With **Unindent compiler directives** (default), the directives start in column 1, otherwise they are indented like
+the enclosing block.
 
 #### Conditional Compilation
 
-- Each branch of an `/IF` group starts with the blocks that are open at `/IF`. After `/ENDIF` the formatter continues with the
-  blocks that are open at the end of the first branch. If the branches end with different blocks, the formatter shows a warning,
-  because the indentation of the following lines may be wrong.
-- `/IF`, `/ELSEIF`, `/ELSE` and `/ENDIF` may appear between the lines of control options, file and data declarations and
-  procedures. They split the declaration into sections, which are formatted on lines of their own. The directives are indented
+Each branch of an `/IF` group starts with the blocks that are open at `/IF`, like in the compiler. After `/ENDIF` the
+formatter continues with the blocks that are open at the end of the first branch. Therefore alternative headers of a block
+are formatted correctly:
+
+```rpgle
+/if defined(DEFINE_PROCPTR)
+dcl-pr SrvPgmLayout_new ind extproc(g_pLayout_new);
+/else
+dcl-pr SrvPgmLayout_new ind extproc('SrvPgmLayout_new');
+/endif
+  i_pSuper   like(LOG4RPG_pLayout_t) const;
+  io_pHandle pointer;
+end-pr;
+```
+
+- If the branches end with different blocks, the formatter shows a warning, because the indentation of the following lines
+  may be wrong.
+- `/IF`, `/ELSEIF`, `/ELSE` and `/ENDIF` may appear between the lines of a control option, file or data declaration or
+  procedure. They split the declaration into sections, which are formatted on lines of their own. The directives are indented
   like continued lines, the sections within a branch one level deeper. If a directive is enclosed by the parameters of a
   keyword, or if the declaration contains comments as well, the declaration is left unchanged.
 - The lines after an `/EOF` directive outside of an `/IF` group are ignored by the compiler and left unchanged.
 
 ### Formatter Directives
 
-You can temporarily disable formatting for specific code sections using formatter directives:
+Comment lines with `@formatter:off` and `@formatter:on` exclude parts of a source from formatting:
 
 ```rpgle
 // @formatter:off
 dcl-s   myVar1   char(10);     // not formatted
 dcl-s   myVar2   char(20);     // not formatted
 // @formatter:on
-dcl-s myVar3 char(30);         // formatted normally
+dcl-s myVar3 char(30);         // formatted
 ```
 
-- `// @formatter:off` disables formatting for all subsequent statements
-- `// @formatter:on` re-enables formatting
-- The directives are case-insensitive (`// @FORMATTER:OFF` works too)
-- Extra whitespace is allowed: `//   @formatter:off`
-- If `@formatter:off` is used without a corresponding `@formatter:on`, the rest of the file remains unformatted
-- The directive lines themselves are always preserved as-is
+- The directives are not case-sensitive and may contain extra blanks, e.g. `//   @FORMATTER:OFF`.
+- Without `@formatter:on`, the rest of the source stays unformatted.
+- The directive lines themselves are never changed.
 
 ### Experimental Formatting Rules
 
-The rules in this section correspond to the [Experimental Settings] in the preferences.
+These rules belong to the [Experimental Settings](#experimental-settings).
 
-#### Comment Block Handling
+#### Empty Comment Lines
 
-> **Note:** The following rules are implemented in `RemoveEmptyCommentLinesRule`
-> (package `rules/statements`). When adding new comment-formatting behaviour,
-> implement a corresponding `*Rule` class and integrate it via `IStatementListRule`.
+With **Remove empty comment lines**, each empty comment line `//` is replaced by an empty line, with these exceptions:
 
-When **Remove empty comment lines** is enabled, standalone `//` lines (empty
-comments) are removed unless they serve a structural purpose.
-
-**Structural markers** protect the comment block they belong to:
-
-| Marker type       | Examples                                           |
-| ----------------- | -------------------------------------------------- |
-| Separator lines   | `//---`, `//===`, `// - - -`, `// = = =`           |
-| ILEDoc delimiters | `///` (exactly three slashes, optional whitespace) |
-
-A 3-step algorithm is applied to the full statement list before formatting:
-
-1. Mark every empty `//` line for suppression.
-2. When a structural marker is found, scan **backward**: restore each suppressed
-   empty comment as long as the immediately preceding line is also a comment.
-3. From the code line found in step 2, scan **forward**: re-suppress leading
-   empty `//` lines until the first non-empty comment.
-
-**Example — separator line protects the block:**
+- In a comment block, that contains a separator line, such as `//---` or `//===`, or the ILEDoc delimiter `///`, the empty
+  comment lines in front of it are kept, except those at the start of the block.
+- Lines within an ILEDoc block (between two `///` lines) and within `@formatter:off` regions are never changed.
 
 ```rpgle
-// before formatting:
+// Before:
 dcl-c MY_CONST '123';
 //
 // Comment block
+//
 //---
 dcl-pr cipher extproc('_CIPHER');
 
-// after formatting (Remove empty comment lines = On):
+// After:
 dcl-c MY_CONST '123';
 
 // Comment block
+//
 //---
 dcl-pr cipher extproc('_CIPHER');
 ```
-
-**Example — ILEDoc block:**
-
-```rpgle
-// before formatting:
-dcl-c MY_CONST '123';
-//
-///
-/// Procedure description.
-/// @param parm1 The first parameter.
-///
-dcl-proc myProc;
-
-// after formatting (Remove empty comment lines = On):
-dcl-c MY_CONST '123';
-
-///
-/// Procedure description.
-/// @param parm1 The first parameter.
-///
-dcl-proc myProc;
-```
-
-Lines inside a `///...///` ILEDoc block are never touched regardless of the
-setting.
 
 #### Empty Lines Before DCL-PI
 
-When **Remove empty lines before dcl-pi** is enabled, blank lines and empty `//` comment lines that appear immediately before a `dcl-pi` statement are removed. This eliminates the visual gap that sometimes accumulates between `dcl-proc` and `dcl-pi`.
-
-The rule runs after **Remove empty comment lines**, so `//` lines already converted to blanks by that rule are also removed here.
-
-**Example:**
+With **Remove empty lines before dcl-pi**, empty lines and empty comment lines `//` directly in front of a `dcl-pi` are
+removed, such as the gap between `dcl-proc` and `dcl-pi`:
 
 ```rpgle
-// before formatting:
+// Before:
 dcl-proc f_isIfsDir;
   //
   dcl-pi *n ind;
@@ -565,7 +481,7 @@ dcl-proc f_isIfsDir;
   end-pi;
 end-proc;
 
-// after formatting (Remove empty lines before dcl-pi = On):
+// After:
 dcl-proc f_isIfsDir;
   dcl-pi *n ind;
     i_path like(ifs_path_t) const;
@@ -573,29 +489,25 @@ dcl-proc f_isIfsDir;
 end-proc;
 ```
 
-Lines inside a `@formatter:off` region are never removed.
-
 #### Outer Parentheses of Conditions
 
-When **Outer parentheses of conditions** is set, the condition of `IF`, `ELSEIF`, `WHEN`, `DOW` and `DOU` is enclosed in
+With **Outer parentheses of conditions**, the condition of `IF`, `ELSEIF`, `WHEN`, `DOW` and `DOU` is enclosed in
 parentheses or freed of them:
 
-| Setting                 | Before            | After          |
-| ----------------------- | ----------------- | -------------- |
-| **With parentheses**    | `if a = 1;`       | `if (a = 1);`  |
-| **Without parentheses** | `if ((a = 1));`   | `if a = 1;`    |
+| Setting                 | Before          | After         |
+| ----------------------- | --------------- | ------------- |
+| **With parentheses**    | `if a = 1;`     | `if (a = 1);` |
+| **Without parentheses** | `if ((a = 1));` | `if a = 1;`   |
 
-- Parentheses that enclose only a part of the condition, as in `if (a = 1) and (b = 2);`, are no outer parentheses.
+- Parentheses around a part of the condition, as in `if (a = 1) and (b = 2);`, are not changed.
 - Continued lines, that are aligned with the condition, are shifted with it.
-- The statement is left unchanged, if a parenthesis follows the operation code without a blank, as in `if(a = 1);`, because it
-  could be an operation extender. It is left unchanged as well, if the condition starts on another line, if removing a closing
-  parenthesis would leave a line without code or if a literal is continued.
-- The rule applies only, if **Format calculations** is **iRPGFormatter**.
+- In rare cases the statement is left unchanged, e.g. `if(a = 1);` without a blank, because the parenthesis could be an
+  operation extender.
 
 #### Casing of Operation Codes and Built-in Functions
 
-When **Apply keyword casing to operation codes and built-in functions** is enabled, the operation code (the first word of a
-calculation) and the built-in functions are formatted in the keyword casing style, using the lists **Operation Codes** and
+With **Apply keyword casing to operation codes and built-in functions**, the operation code (the first word of a calculation)
+and the built-in functions are formatted in the keyword casing style, using the lists **Operation Codes** and
 **Built-in Functions**:
 
 | Style            | Example `SETLL` | Example `%SUBDT` |
@@ -606,16 +518,14 @@ calculation) and the built-in functions are formatted in the keyword casing styl
 | lowerCamelCase   | `setll`         | `%subDt`         |
 | All Lowercase    | `setll`         | `%subdt`         |
 
-- Literals, comments, operation extenders and embedded SQL are not changed. Words, that are not in the lists, stay as they are.
-- RPG ignores the casing outside of literals. A line is changed only, if it differs from the original line only in the casing outside of literals.
-- The rule applies only, if **Format calculations** is **iRPGFormatter**.
+Literals, comments, operation extenders and embedded SQL are not changed.
 
 #### Casing of Special Words in Calculations
 
-When **Apply keyword casing to special words of the calculations** is enabled, the special words of the calculations are
-formatted in the keyword casing style, using the list **Special Words**. Besides the figurative constants, such as `*ON` or
-`*ZEROS`, the list contains the special words of the built-in functions and operation codes, such as `*DAYS` in
-`%DIFF(d1 : d2 : *DAYS)`, `*START` in `SETLL *START file` or `*ESCAPE` in `SND-MSG *ESCAPE`.
+With **Apply keyword casing to special words of the calculations**, the special words of the calculations are formatted in the
+keyword casing style, using the list **Special Words**. Besides the figurative constants, such as `*ON` or `*ZEROS`, the list
+contains the special words of the built-in functions and operation codes, such as `*DAYS` in `%DIFF(d1 : d2 : *DAYS)`,
+`*START` in `SETLL *START file` or `*ESCAPE` in `SND-MSG *ESCAPE`.
 
 | Style            | Example `*INLR = *ON;` |
 | ---------------- | ---------------------- |
@@ -626,28 +536,47 @@ formatted in the keyword casing style, using the list **Special Words**. Besides
 | All Lowercase    | `*inlr = *on;`         |
 
 - An asterisk directly after an operand is a multiplication. In `price*DAYS` the name `DAYS` stays as it is.
-- An asterisk starts a special word at the start of the statement, after an operator or an opening parenthesis, after the
-  operation code and its extender, after `AND`, `OR`, `NOT`, `TO`, `DOWNTO` and `BY` and after another special word, as in
-  `CLEAR *NOKEY *ALL ds;`.
-- Numbered indicators, such as `*IN03`, and date formats with the separator `0`, such as `*ISO0`, are not in the list and stay as they are.
-- Literals, comments and embedded SQL are not changed. A line is changed only, if it differs from the original line only in the casing outside of literals.
-- The rule applies only, if **Format calculations** is **iRPGFormatter**.
+- Numbered indicators, such as `*IN03`, and date formats with the separator `0`, such as `*ISO0`, stay as they are.
+- Literals, comments and embedded SQL are not changed.
 
-### Error Handling
+The rules for the calculations, the outer parentheses and the casing of operation codes, built-in functions and special
+words, apply only, if **Format calculations** is **iRPGFormatter**. RPG ignores the casing outside of literals, therefore the
+casing rules change a line only, if it differs from the original line in nothing but the casing outside of literals.
 
-If the formatter encounters an error while formatting a statement, the original unformatted lines are preserved and the formatter continues with the next statement.
+## Limitations and Messages
 
----
+iRPGFormatter recognizes the statements and the blocks of a source, but it does not compile the source. Therefore:
+
+- `/COPY` and `/INCLUDE` members are not read. If a block starts or ends in such a member, the indentation may be wrong or the
+  source cannot be formatted.
+- If the branches of an `/IF` group end with different blocks, the indentation of the following lines may be wrong. The
+  formatter shows a warning.
+- A source with structural errors, such as a missing `ENDIF`, is indented by the blocks as they are written. A block, that
+  is not closed, ends with the block that encloses it, e.g. at `END-PROC`.
+
+The formatter reports problems in a dialog:
+
+- **Errors**: A statement, that cannot be formatted, e.g. because a line would exceed the end column, stays unchanged. The
+  dialog lists these statements with their line numbers. All other statements are formatted.
+- **Warnings**: The source is formatted, but the indentation after the reported line may be wrong.
+
+If a source cannot be formatted at all, the message line of the editor shows the reason.
+
+## Upgrading from Version 1.0.7 or Earlier
+
+- **Format declarations** is the former setting **Execute iRPG formatter**.
+- **Format calculations** replaces the former setting **Execute IBM formatter**. If that one was switched off, **Format
+  calculations** is **Off**, otherwise **iRPGFormatter**. Profiles of former versions are converted the same way.
+- The calculations are now formatted by iRPGFormatter by default. To let the IBM formatter format them as before, set
+  **Format calculations** to **IBM formatter**.
 
 ## Supported Languages
 
-The plug-in interface is available in:
-
-- Deutsch
-- English
-- Dutch
-- Italian
+The plug-in is available in English, German, Italian and Dutch.
 
 ## See Also
 
-- [iRpgFormatter Update Site](https://github.com/tools-400/irpgformatter)
+- [iRPGFormatter web site](https://tools-400.github.io/irpgformatter/)
+- [Project page on GitHub](https://github.com/tools-400/irpgformatter-plugin)
+- [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/)
+- [DEVELOPMENT.md](DEVELOPMENT.md) - notes for developers of iRPGFormatter
