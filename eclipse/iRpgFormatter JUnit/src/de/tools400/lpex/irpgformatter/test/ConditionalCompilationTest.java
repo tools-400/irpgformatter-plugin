@@ -371,6 +371,78 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     }
 
     // ----------------------------------------------------------------------
+    // /EOF
+    //
+    // The compiler ignores the lines after /EOF, unless /EOF is part of a
+    // conditional group, such as an include guard of a copy member.
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_linesAfterEof_unchanged() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-S x INT( 10 );",
+            "/eof",
+            "This member contains the prototypes of the",
+            "logging service program.",
+            "DCL-S y INT( 10 );",
+            "DCL-DS notClosed;"
+        );
+        // @formatter:on
+
+        assertEquals(6, result.length);
+        assertEquals("dcl-s x int(10);", result[0]);
+        assertEquals("/eof", result[1]);
+        assertEquals("This member contains the prototypes of the", result[2]);
+        assertEquals("logging service program.", result[3]);
+        assertEquals("DCL-S y INT( 10 );", result[4]);
+        assertEquals("DCL-DS notClosed;", result[5]);
+    }
+
+    @Test
+    public void format_eofInsideConditionalGroup_formatsRestOfMember() throws RpgleFormatterException {
+
+        // Include guard of a copy member, see /EOF in the ILE RPG Reference
+        // @formatter:off
+        String[] result = format(
+            "/IF DEFINED(XYZ_COPIED)",
+            "/EOF",
+            "/ELSE",
+            "/DEFINE XYZ_COPIED",
+            "DCL-PR p1 IND;",
+            "  a INT( 10 );",
+            "END-PR;",
+            "/ENDIF"
+        );
+        // @formatter:on
+
+        assertEquals(8, result.length);
+        assertEquals("dcl-pr p1 ind;", result[4]);
+        assertEquals("  a int(10);", result[5]);
+        assertEquals("end-pr;", result[6]);
+    }
+
+    @Test
+    public void format_eofAfterConditionalGroup_ignoresRestOfMember() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/if defined(X)",
+            "DCL-S a INT( 10 );",
+            "/endif",
+            "/eof",
+            "DCL-S b INT( 10 );"
+        );
+        // @formatter:on
+
+        assertEquals(5, result.length);
+        assertEquals("dcl-s a int(10);", result[1]);
+        assertEquals("/eof", result[3]);
+        assertEquals("DCL-S b INT( 10 );", result[4]);
+    }
+
+    // ----------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------
 

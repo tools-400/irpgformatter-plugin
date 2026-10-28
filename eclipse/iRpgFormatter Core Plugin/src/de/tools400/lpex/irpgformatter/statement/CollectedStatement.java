@@ -31,6 +31,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private boolean isComplete;
     private boolean leftTrimNextLine;
     private boolean hasEmbeddedDirectives;
+    private boolean isAfterEof;
 
     private boolean insideLiteral;
     private StringBuilder statement;
@@ -143,6 +144,19 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      */
     public boolean hasEmbeddedDirectives() {
         return hasEmbeddedDirectives;
+    }
+
+    /**
+     * Returns <code>true</code>, if the statement follows an
+     * <code>/EOF</code> directive outside of a conditional group. The compiler
+     * ignores such lines.
+     */
+    public boolean isAfterEof() {
+        return isAfterEof;
+    }
+
+    public void setAfterEof() {
+        this.isAfterEof = true;
     }
 
     public String getStatement() {

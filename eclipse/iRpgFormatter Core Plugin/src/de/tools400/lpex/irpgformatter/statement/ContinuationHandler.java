@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Stack;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.parser.DirectiveType;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
 
@@ -56,6 +57,12 @@ public final class ContinuationHandler {
      * complete when it ends with a semicolon or is a single-line statement
      * (like **FREE, comments, or compiler directives).
      *
+     * <p>
+     * Lines following an /EOF directive outside of a conditional group are
+     * ignored by the compiler. They are collected as single-line statements
+     * and marked with {@link CollectedStatement#isAfterEof()}.
+     * </p>
+     *
      * @param sourceLines the source lines to process
      * @param startLineNumber the line number of the first source line within
      *        the overall source member; the formatter counts from 1
@@ -71,6 +78,8 @@ public final class ContinuationHandler {
         currentStatement.setStartLineNumber(startLineNumber);
 
         boolean haveOnlySingleLineStatements = false;
+        boolean isAfterEof = false;
+        int conditionalGroupDepth = 0;
         for (int i = 0; i < sourceLines.length; i++) {
             String line = sourceLines[i];
 
@@ -84,12 +93,37 @@ public final class ContinuationHandler {
             if (currentStatement.isComplete()) {
 
                 statements.add(currentStatement);
-                nestStatement(parents, currentStatement);
+                if (isAfterEof) {
+                    currentStatement.setAfterEof();
+                } else {
+                    nestStatement(parents, currentStatement);
+                }
 
                 // all statements following the first compile time array are
                 // single line statements by definition
                 if (currentStatement.getType() == StatementType.COMPILE_TIME_ARRAY) {
                     haveOnlySingleLineStatements = true;
+                }
+
+                // the compiler ignores all lines following an /EOF directive
+                // outside of a conditional group
+                if (currentStatement.getType() == StatementType.COMPILER_DIRECTIVE) {
+                    switch (DirectiveType.of(currentStatement.getStatement())) {
+                    case IF:
+                        conditionalGroupDepth++;
+                        break;
+                    case ENDIF:
+                        conditionalGroupDepth = Math.max(0, conditionalGroupDepth - 1);
+                        break;
+                    case EOF:
+                        if (conditionalGroupDepth == 0) {
+                            isAfterEof = true;
+                            haveOnlySingleLineStatements = true;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
                 }
 
                 // start a new statement

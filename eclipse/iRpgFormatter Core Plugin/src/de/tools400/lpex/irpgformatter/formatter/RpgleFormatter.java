@@ -189,7 +189,7 @@ public class RpgleFormatter implements ILineNumberProvider {
             }
 
             boolean passthrough = formatterTemporarilyDisabled || (formatterCompileTimeArrayOnly && type != StatementType.COMPILE_TIME_ARRAY)
-                || currentStatement.hasEmbeddedDirectives();
+                || currentStatement.hasEmbeddedDirectives() || currentStatement.isAfterEof();
             if (passthrough) {
                 results.add(asUnformatted(currentStatement));
                 continue;
