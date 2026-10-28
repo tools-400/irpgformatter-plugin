@@ -146,6 +146,26 @@ public class RpgleFormatter implements ILineNumberProvider {
      * @throws RpgleFormatterException if formatting fails
      */
     public FormattedResult format(IRpgleInput input, int indent) throws RpgleFormatterException {
+        return format(input, indent, new String[0]);
+    }
+
+    /**
+     * Formats the RPGLE source from the given input, that follows the given
+     * lines.
+     * <p>
+     * The preceding lines are not formatted. They only tell the blocks, that
+     * enclose the input, so that selected lines are indented like in the whole
+     * source. A statement, that starts in front of the input, is not formatted
+     * either.
+     * </p>
+     *
+     * @param input - the input source
+     * @param indent - the indent of the statements outside of all blocks
+     * @param precedingLines - the source lines in front of the input
+     * @return formatted result containing statement-level mapping
+     * @throws RpgleFormatterException if formatting fails
+     */
+    public FormattedResult format(IRpgleInput input, int indent, String[] precedingLines) throws RpgleFormatterException {
 
         if (!input.isFreeFormat()) {
             IRpgleFormatterPlugin.logError(Messages.Error_Not_free_format, null);
@@ -157,12 +177,15 @@ public class RpgleFormatter implements ILineNumberProvider {
         errors.clear();
         warnings.clear();
 
-        String[] sourceLines = input.getSourceLines();
+        String[] inputLines = input.getSourceLines();
+        String[] sourceLines = new String[precedingLines.length + inputLines.length];
+        System.arraycopy(precedingLines, 0, sourceLines, 0, precedingLines.length);
+        System.arraycopy(inputLines, 0, sourceLines, precedingLines.length, inputLines.length);
         List<FormattedStatement> results = new ArrayList<>();
 
         // Step 1: Collect multi-line statements
         int startLineNumber = input.getStartLineNumber();
-        CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber);
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(sourceLines, startLineNumber - precedingLines.length);
 
         // Step 2: Pre-compute which comment lines should be suppressed (output
         // as blank)
@@ -186,10 +209,14 @@ public class RpgleFormatter implements ILineNumberProvider {
                 formatterCompileTimeArrayOnly = true;
             }
 
+            // Statements in front of the input only tell the nesting and
+            // whether the formatter is disabled
+            boolean isPreceding = currentStatement.getStartLineNumber() < startLineNumber;
+
             // Warn, if the branches of a conditional group end with different
             // blocks, because then the indentation may be wrong
             CollectedStatement unbalancedIfDirective = currentStatement.getUnbalancedIfDirective();
-            if (unbalancedIfDirective != null) {
+            if (unbalancedIfDirective != null && !isPreceding) {
                 warnings.add(new FormatError(currentStatement.getStartLineNumber(), currentStatement.getEndLineNumber(), type,
                     Messages.bind(Messages.Warning_Warning_on_line_A_Branches_of_IF_group_of_line_B_end_in_different_blocks,
                         currentStatement.getStartLineNumber(), unbalancedIfDirective.getStartLineNumber()),
@@ -199,8 +226,19 @@ public class RpgleFormatter implements ILineNumberProvider {
             // Check for formatter directive
             int directive = getFormatterDirective(currentStatement, type);
             if (directive != 0) {
-                results.add(asUnformatted(currentStatement));
+                if (!isPreceding) {
+                    results.add(asUnformatted(currentStatement));
+                }
                 formatterTemporarilyDisabled = (directive == -1);
+                continue;
+            }
+
+            if (isPreceding) {
+                // The lines of a statement, that starts in front of the input,
+                // stay unchanged.
+                if (currentStatement.getEndLineNumber() >= startLineNumber) {
+                    results.add(asUnformatted(currentStatement, startLineNumber));
+                }
                 continue;
             }
 
@@ -296,6 +334,17 @@ public class RpgleFormatter implements ILineNumberProvider {
 
     private FormattedStatement asUnformatted(CollectedStatement stmt) {
         return new FormattedStatement(stmt.getStartLineNumber(), stmt.numLines(), stmt.getOriginalStatements().toArray(new String[0]));
+    }
+
+    /**
+     * Returns the lines of a statement from the given line on unchanged.
+     */
+    private FormattedStatement asUnformatted(CollectedStatement stmt, int firstLineNumber) {
+
+        List<String> lines = stmt.getOriginalStatements();
+        List<String> tail = lines.subList(firstLineNumber - stmt.getStartLineNumber(), lines.size());
+
+        return new FormattedStatement(firstLineNumber, tail.size(), tail.toArray(new String[0]));
     }
 
     public int getErrorCount() {

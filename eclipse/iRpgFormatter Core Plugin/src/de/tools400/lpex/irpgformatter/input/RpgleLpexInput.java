@@ -104,6 +104,23 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
     }
 
     /**
+     * Returns the source lines in front of the range. The formatter needs them
+     * to know the blocks, that enclose the range.
+     *
+     * @return the source lines in front of the range, none for the entire view
+     */
+    public String[] getPrecedingSourceLines() {
+
+        List<String> lines = new ArrayList<>();
+        for (int i = 1; i < startLine; i++) {
+            if (LpexViewUtils.isSourceLine(view, i)) {
+                lines.add(LpexViewUtils.getElementText(view, i));
+            }
+        }
+        return lines.toArray(new String[0]);
+    }
+
+    /**
      * Returns the start line of the range.
      */
     public int getStartLine() {

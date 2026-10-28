@@ -18,7 +18,6 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
-import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
@@ -51,24 +50,19 @@ public class FormatLpexSourceAction implements LpexAction {
 
             // Use selection-aware input factory - formats only selected lines
             // if there is a selection, otherwise formats the entire source
-            IRpgleInput input;
+            RpgleLpexInput input;
             int startLine;
             int endLine;
-            int defaultIndent;
             if (haveSelection) {
-                input = RpgleInputFactory.createFromSelection(view);
-                startLine = ((RpgleLpexInput)input).getStartLine();
-                endLine = ((RpgleLpexInput)input).getEndLine();
+                input = (RpgleLpexInput)RpgleInputFactory.createFromSelection(view);
+                startLine = input.getStartLine();
+                endLine = input.getEndLine();
                 // Extend selected lines to logical block
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
-                // Use current indent of first line
-                defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, startLine);
             } else {
-                input = RpgleInputFactory.createFromAll(view);
+                input = (RpgleLpexInput)RpgleInputFactory.createFromAll(view);
                 startLine = 1;
                 endLine = -1;
-                // Use indent of preferences
-                defaultIndent = Preferences.getInstance().getStartColumn() - 1;
             }
 
             String validationError = RpgleFormatter.validateInput(input);
@@ -76,7 +70,7 @@ public class FormatLpexSourceAction implements LpexAction {
                 MessageDialog.openError(UIUtils.getShell(), Messages.E_R_R_O_R, validationError);
                 return;
             } else {
-                executeFormatter(view, input, haveSelection, startLine, defaultIndent);
+                executeFormatter(view, input, haveSelection, startLine);
             }
 
         } catch (RpgleFormatterException e) {
@@ -88,8 +82,7 @@ public class FormatLpexSourceAction implements LpexAction {
         }
     }
 
-    private void executeFormatter(LpexView view, IRpgleInput input, boolean haveSelection, int startLine, int defaultIndent)
-        throws RpgleFormatterException {
+    private void executeFormatter(LpexView view, RpgleLpexInput input, boolean haveSelection, int startLine) throws RpgleFormatterException {
 
         boolean executeIbmFormatter = Preferences.getInstance().isExecuteIbmFormatter();
         boolean executeIrpgFormatter = Preferences.getInstance().isExecuteIrpgFormatter();
@@ -102,13 +95,10 @@ public class FormatLpexSourceAction implements LpexAction {
 
         if (executeIbmFormatter) {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
-            // Update indent from first line.
-            // The IBM formatter may have changed it.
-            defaultIndent = LpexViewUtils.getIndentOfFirstStatement(view, startLine);
         }
 
         if (executeIrpgFormatter) {
-            FormattedResult result = formatter.format(input, defaultIndent);
+            FormattedResult result = format(formatter, view, input, startLine);
 
             // Write formatted source back to view. Statements that failed to
             // format are written as their original source lines, so the
@@ -142,6 +132,27 @@ public class FormatLpexSourceAction implements LpexAction {
         }
 
         restoreCursorPosition(view);
+    }
+
+    /**
+     * Formats the input. The lines in front of a selection tell the formatter
+     * the blocks, that enclose the selection, so that the selection is
+     * indented like the whole source. If these lines cannot be collected into
+     * statements, the selection is formatted alone, starting with the current
+     * indent of its first line.
+     */
+    private FormattedResult format(RpgleFormatter formatter, LpexView view, RpgleLpexInput input, int startLine) throws RpgleFormatterException {
+
+        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+
+        try {
+            return formatter.format(input, defaultIndent, input.getPrecedingSourceLines());
+        } catch (RpgleFormatterException e) {
+            if (startLine == 1) {
+                throw e;
+            }
+            return formatter.format(input, LpexViewUtils.getIndentOfFirstStatement(view, startLine));
+        }
     }
 
     private void saveCursorPosition(LpexView view) {

@@ -88,8 +88,9 @@ public final class LpexViewUtils {
     /**
      * Returns the indent of the first source line at or after the given
      * element, that is neither blank nor the <code>**FREE</code> directive. The
-     * manual format and the format on save start with this indent, after the
-     * IBM formatter has run.
+     * format on save starts with this indent, after the IBM formatter has run,
+     * and so does the manual format of a selection, if the lines in front of it
+     * cannot be collected into statements.
      *
      * @return indent or 0, if there is no such line up to the end of the source
      */

@@ -608,6 +608,60 @@ public class CalcIndentationTest extends AbstractTestCase {
     }
 
     // ----------------------------------------------------------------------
+    // Selected lines
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void formatSelection_startingWithBranch_isIndentedLikeWholeSource() throws RpgleFormatterException {
+
+        String[] preceding = { "dcl-s a int(10);", "if a = 1;", "x = 1;" };
+
+        String[] result = formatSelection(preceding, "else;", "x = 2;", "endif;");
+
+        assertArrayEquals(new String[] { "else;", "  x = 2;", "endif;" }, result);
+    }
+
+    @Test
+    public void formatSelection_insideNestedBlocks_isIndentedLikeWholeSource() throws RpgleFormatterException {
+
+        String[] preceding = { "DCL-PROC p;", "if a = 1;", "dow b;" };
+
+        String[] result = formatSelection(preceding, "x = 1;", "enddo;", "endif;", "END-PROC;");
+
+        assertArrayEquals(new String[] { "      x = 1;", "    enddo;", "  endif;", "end-proc;" }, result);
+    }
+
+    @Test
+    public void formatSelection_formatterDisabledInFront_leavesLinesUnchanged() throws RpgleFormatterException {
+
+        String[] preceding = { "// @formatter:off" };
+
+        String[] result = formatSelection(preceding, "if a = 1;", "x = 1;", "endif;");
+
+        assertArrayEquals(new String[] { "if a = 1;", "x = 1;", "endif;" }, result);
+    }
+
+    @Test
+    public void formatSelection_startingInsideStatement_keepsItsLines() throws RpgleFormatterException {
+
+        String[] preceding = { "DCL-PROC p;", "x = a +" };
+
+        String[] result = formatSelection(preceding, "        b;", "y = 1;", "END-PROC;");
+
+        assertArrayEquals(new String[] { "        b;", "  y = 1;", "end-proc;" }, result);
+    }
+
+    @Test
+    public void formatSelection_warningInFront_isNotReported() throws RpgleFormatterException {
+
+        String[] preceding = { "/if defined(X)", "if a = 1;", "/else", "/endif", "x = 1;", "endif;" };
+
+        formatSelection(preceding, "y = 1;");
+
+        assertEquals(0, formatter.getWarningCount());
+    }
+
+    // ----------------------------------------------------------------------
     // Conditional compilation
     // ----------------------------------------------------------------------
 
@@ -646,5 +700,20 @@ public class CalcIndentationTest extends AbstractTestCase {
 
     private String[] format(String... source) throws RpgleFormatterException {
         return formatter.format(new TextLinesInput(source), 0).toLines();
+    }
+
+    /**
+     * Formats the selected lines, that follow the preceding lines.
+     */
+    private String[] formatSelection(String[] precedingLines, String... selection) throws RpgleFormatterException {
+
+        TextLinesInput input = new TextLinesInput(selection) {
+            @Override
+            public int getStartLineNumber() {
+                return precedingLines.length + 1;
+            }
+        };
+
+        return formatter.format(input, 0, precedingLines).toLines();
     }
 }
