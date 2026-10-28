@@ -63,6 +63,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Text startColumnText;
     private Text endColumnText;
     private Text spacesToIndentText;
+    private Text selectIndentText;
+    private Button preserveRelativeIndentCheckbox;
     private Text casingStyleText;
 
     /* Local preferences */
@@ -254,6 +256,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Indent length
         spacesToIndentText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent, Messages.Tooltip_IBM_Settings_Indent);
         spacesToIndentText.setLayoutData(createTextGridData(60));
+
+        // Extra indent of WHEN/OTHER
+        selectIndentText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Select_indent,
+            Messages.Tooltip_IBM_Settings_Select_indent);
+        selectIndentText.setLayoutData(createTextGridData(60));
+
+        // Preserve relative indentation of continued lines
+        preserveRelativeIndentCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_Preserve_relative_indent,
+            Messages.Tooltip_IBM_Settings_Preserve_relative_indent);
     }
 
     private void createIBMKeyBehaviorSettingsSubGroup(Composite parent) {
@@ -684,6 +695,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         startColumnText.setText(preferences.getStartColumnAsText());
         endColumnText.setText(preferences.getEndColumnAsText());
         spacesToIndentText.setText(Integer.toString(preferences.getIndent()));
+        selectIndentText.setText(Integer.toString(preferences.getSelectIndent()));
+        preserveRelativeIndentCheckbox.setSelection(preferences.isPreserveRelativeIndentOfContinuedLines());
         casingStyleText.setText(preferences.getKeywordCasingStyle().getDisplayName());
     }
 
@@ -800,7 +813,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // IBM i Parsers -> ILE RPG -> Formatter
         // ----------------------------------------------------
 
-        if (property.equals("RPGLE.FORMATTING.start") || property.equals("RPGLE.FORMATTING.end")
+        if (property.startsWith("RPGLE.FORMATTING.")
             || property.equals("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
 
             loadIbmPreferences();

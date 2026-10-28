@@ -45,6 +45,23 @@ public final class WidgetFactory {
         return text;
     }
 
+    /**
+     * Creates a label and a disabled checkbox, both with the tooltip. Windows
+     * does not show the tooltip of a disabled control, but the label shows it.
+     */
+    public static Button createReadOnlyCheckbox(Composite parent, String label, String tooltipText) {
+
+        Label checkboxLabel = new Label(parent, SWT.NONE);
+        checkboxLabel.setText(label);
+        checkboxLabel.setToolTipText(tooltipText);
+
+        Button checkbox = new Button(parent, SWT.CHECK);
+        checkbox.setEnabled(false);
+        checkbox.setToolTipText(tooltipText);
+
+        return checkbox;
+    }
+
     public static Button createToggleButton(Composite parent, String label, String tooltipText) {
 
         Button button = new Button(parent, SWT.TOGGLE);

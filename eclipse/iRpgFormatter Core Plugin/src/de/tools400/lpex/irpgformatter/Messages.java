@@ -24,6 +24,8 @@ public class Messages extends NLS {
     public static String Label_IBM_Settings_Indent;
     public static String Label_IBM_Settings_Start_column;
     public static String Label_IBM_Settings_End_column;
+    public static String Label_IBM_Settings_Select_indent;
+    public static String Label_IBM_Settings_Preserve_relative_indent;
     public static String Label_General_Settings;
     public static String Label_Keyword_casing_style;
     public static String Label_Use_const_keyword;
@@ -98,6 +100,8 @@ public class Messages extends NLS {
     public static String Tooltip_IBM_Settings_Start_column;
     public static String Tooltip_IBM_Settings_End_column;
     public static String Tooltip_IBM_Settings_Indent;
+    public static String Tooltip_IBM_Settings_Select_indent;
+    public static String Tooltip_IBM_Settings_Preserve_relative_indent;
     public static String Tooltip_Keyword_casing_style;
 
     public static String Tooltip_Use_const_keyword;

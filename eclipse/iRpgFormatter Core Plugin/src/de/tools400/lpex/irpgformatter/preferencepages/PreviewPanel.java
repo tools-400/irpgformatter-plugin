@@ -744,7 +744,7 @@ public class PreviewPanel implements IPropertyChangeListener {
         // IBM i Parsers -> ILE RPG -> Formatter
         // ----------------------------------------------------
 
-        if (property.startsWith("RPGLE.FORMATTING.start") || property.startsWith("RPGLE.FORMATTING.end")) {
+        if (property.startsWith("RPGLE.FORMATTING.")) {
             formatPreview();
         }
 
