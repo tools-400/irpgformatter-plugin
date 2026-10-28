@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.statement;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private CollectedStatement matchingDclProc;
 
     private List<String> collectedLines;
+    private List<Boolean> leadingBlanksSignificant;
     private List<String> embeddedComments;
     private List<EmbeddedDirective> embeddedDirectives;
     private boolean isComplete;
@@ -39,6 +41,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     private StatementType statementType;
     private int indentLevel;
+    private int selectDepth;
 
     private List<CollectedStatement> children;
     private int keywordAlignColumn = -1; // -1 = not yet computed
@@ -53,6 +56,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     public CollectedStatement() {
 
         this.collectedLines = new LinkedList<>();
+        this.leadingBlanksSignificant = new ArrayList<>();
         this.embeddedComments = new LinkedList<>();
         this.embeddedDirectives = new LinkedList<>();
         this.isComplete = false;
@@ -84,6 +88,19 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public void setIndentLevel(int indentLevel) {
         this.indentLevel = indentLevel;
+    }
+
+    /**
+     * Returns the number of select groups that enclose the statement. The
+     * branches of a select group and their statements get the extra indent of
+     * the IBM preference "Indent WHEN/OTHER within SELECT statement".
+     */
+    public int getSelectDepth() {
+        return selectDepth;
+    }
+
+    public void setSelectDepth(int selectDepth) {
+        this.selectDepth = selectDepth;
     }
 
     public CollectedStatement getParent() {
@@ -119,6 +136,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     public void add(String line) throws RpgleFormatterException {
 
         collectedLines.add(line);
+        leadingBlanksSignificant.add(!leftTrimNextLine);
 
         if (isComplete) {
             throw new CannotAddLineSegmentException(getStartLineNumber());
@@ -426,6 +444,15 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     public String getLine(int index) {
         return collectedLines.get(index);
+    }
+
+    /**
+     * Returns <code>true</code>, if the leading blanks of a line are part of a
+     * literal that is continued with a hyphen on the previous line. Changing
+     * the indent of such a line would change the value of the literal.
+     */
+    public boolean isLeadingBlanksSignificant(int index) {
+        return leadingBlanksSignificant.get(index);
     }
 
     public int numLines() {

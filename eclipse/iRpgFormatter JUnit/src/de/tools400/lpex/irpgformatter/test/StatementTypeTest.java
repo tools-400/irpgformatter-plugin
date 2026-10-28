@@ -212,13 +212,50 @@ public class StatementTypeTest extends AbstractTestCase {
     public void other() throws RpgleFormatterException {
         //@formatter:off
         String[] lines = new String[] {
-            "if (bar = 'foo');",
             "  a = b + c",
-            "endif;"
+            "ifCounter = 1;",
+            "dsply 'Hello';",
+            "exec sql select 1 into :x from sysibm.sysdummy1;"
         };
         //@formatter:off
         for (String line : lines) {
             assertEquals(StatementType.OTHER, StatementIdentifier.identifyStatementType(line));
         }
+    }
+
+    @Test
+    public void calculation_blocks() throws RpgleFormatterException {
+        assertEquals(StatementType.IF, StatementIdentifier.identifyStatementType("if (bar = 'foo');"));
+        assertEquals(StatementType.IF, StatementIdentifier.identifyStatementType("  IF(M) a > b;"));
+        assertEquals(StatementType.ENDIF, StatementIdentifier.identifyStatementType("endif;"));
+        assertEquals(StatementType.DOW, StatementIdentifier.identifyStatementType("dow not %eof();"));
+        assertEquals(StatementType.DOU, StatementIdentifier.identifyStatementType("dou %eof();"));
+        assertEquals(StatementType.ENDDO, StatementIdentifier.identifyStatementType("enddo;"));
+        assertEquals(StatementType.FOR, StatementIdentifier.identifyStatementType("for i = 1 to 10;"));
+        assertEquals(StatementType.ENDFOR, StatementIdentifier.identifyStatementType("endfor;"));
+        assertEquals(StatementType.SELECT, StatementIdentifier.identifyStatementType("select;"));
+        assertEquals(StatementType.ENDSL, StatementIdentifier.identifyStatementType("endsl;"));
+        assertEquals(StatementType.MONITOR, StatementIdentifier.identifyStatementType("monitor;"));
+        assertEquals(StatementType.ENDMON, StatementIdentifier.identifyStatementType("endmon;"));
+        assertEquals(StatementType.BEGSR, StatementIdentifier.identifyStatementType("begsr init;"));
+        assertEquals(StatementType.ENDSR, StatementIdentifier.identifyStatementType("endsr;"));
+    }
+
+    @Test
+    public void calculation_forEach_isNotFor() throws RpgleFormatterException {
+        assertEquals(StatementType.FOR_EACH, StatementIdentifier.identifyStatementType("for-each item in items;"));
+    }
+
+    @Test
+    public void calculation_branches() throws RpgleFormatterException {
+        assertEquals(StatementType.ELSEIF, StatementIdentifier.identifyStatementType("elseif a = 1;"));
+        assertEquals(StatementType.ELSE, StatementIdentifier.identifyStatementType("else;"));
+        assertEquals(StatementType.WHEN, StatementIdentifier.identifyStatementType("when a = 1;"));
+        assertEquals(StatementType.WHEN_IS, StatementIdentifier.identifyStatementType("when-is 1;"));
+        assertEquals(StatementType.WHEN_IN, StatementIdentifier.identifyStatementType("when-in %list(1: 2);"));
+        assertEquals(StatementType.SELECT_OTHER, StatementIdentifier.identifyStatementType("other;"));
+        assertEquals(StatementType.ON_ERROR, StatementIdentifier.identifyStatementType("on-error 1211;"));
+        assertEquals(StatementType.ON_EXCP, StatementIdentifier.identifyStatementType("on-excp 'CPF0001';"));
+        assertEquals(StatementType.ON_EXIT, StatementIdentifier.identifyStatementType("on-exit;"));
     }
 }

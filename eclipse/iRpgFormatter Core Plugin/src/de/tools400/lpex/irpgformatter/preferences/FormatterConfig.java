@@ -22,6 +22,8 @@ import java.util.Map;
 public class FormatterConfig {
 
     private int indent;
+    private int selectIndent;
+    private boolean preserveRelativeIndentOfContinuedLines;
     private int maxLineWidth;
     private int maxNameLength;
     private int minLiteralLength;
@@ -48,6 +50,14 @@ public class FormatterConfig {
 
     public int getIndent() {
         return indent;
+    }
+
+    public int getSelectIndent() {
+        return selectIndent;
+    }
+
+    public boolean isPreserveRelativeIndentOfContinuedLines() {
+        return preserveRelativeIndentOfContinuedLines;
     }
 
     public int getMaxLineWidth() {
@@ -128,6 +138,14 @@ public class FormatterConfig {
 
     public void setIndent(int indent) {
         this.indent = indent;
+    }
+
+    public void setSelectIndent(int selectIndent) {
+        this.selectIndent = selectIndent;
+    }
+
+    public void setPreserveRelativeIndentOfContinuedLines(boolean preserveRelativeIndentOfContinuedLines) {
+        this.preserveRelativeIndentOfContinuedLines = preserveRelativeIndentOfContinuedLines;
     }
 
     public void setMaxLineWidth(int maxLineWidth) {
@@ -228,6 +246,8 @@ public class FormatterConfig {
 
         FormatterConfig config = new FormatterConfig();
         config.indent = prefs.getIndent();
+        config.selectIndent = prefs.getSelectIndent();
+        config.preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();
         config.maxLineWidth = prefs.getEndColumn();
         config.maxNameLength = prefs.getMaxNameLength();
         config.minLiteralLength = prefs.getMinNameLength();

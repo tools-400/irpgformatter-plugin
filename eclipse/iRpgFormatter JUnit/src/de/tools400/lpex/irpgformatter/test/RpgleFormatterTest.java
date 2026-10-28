@@ -79,7 +79,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  end-pr;", line[9]);
         assertEquals("  dcl-c MY_CONSTANT 1;", line[10]);
         assertEquals("  dcl-ds myStructure likeds(refStruct_t);", line[11]);
-        assertEquals(" Return *Null;", line[12]); // ignored by the formatter
+        assertEquals("  Return *Null;", line[12]); // calculations are indented only
         assertEquals("end-proc;", line[13]);
     }
 
@@ -996,12 +996,13 @@ public class RpgleFormatterTest extends AbstractTestCase {
             "  endif;"
         ),0).toLines();
         // @formatter:on
-        // Should not join the lines
-        assertEquals(result[0], "  if   (ID = cMSG_ID_NONE) and (data = '');");
-        assertEquals(result[1], "    p_assert(cFalse:");
-        assertEquals(result[2], "             'Message data must not be *BLANKS in case that -");
+        // Should not join the lines, but indent them. The leading blanks of the
+        // line after the hyphen belong to the literal and must not change.
+        assertEquals(result[0], "if   (ID = cMSG_ID_NONE) and (data = '');");
+        assertEquals(result[1], "  p_assert(cFalse:");
+        assertEquals(result[2], "           'Message data must not be *BLANKS in case that -");
         assertEquals(result[3], "               message ID is specified as cMsg_ID_NONE.'           );");
-        assertEquals(result[4], "  endif;");
+        assertEquals(result[4], "endif;");
     }
 
     // --- format - whitespace normalization ---

@@ -226,10 +226,6 @@ public class RpgleFormatter implements ILineNumberProvider {
     private List<String> formatStatement(CollectedStatement statement, StatementType type, boolean isRemovedBeforeDclPi, boolean isRemovedComment,
         int indent) {
 
-        if (type == StatementType.OTHER) {
-            return new ArrayList<>(statement.getOriginalStatements());
-        }
-
         if (isRemovedBeforeDclPi && (type == StatementType.COMMENT || type == StatementType.BLANK)) {
             // The line is completely removed.
             return new ArrayList<>();
@@ -250,7 +246,12 @@ public class RpgleFormatter implements ILineNumberProvider {
     private List<String> formatOrKeepOriginal(CollectedStatement statement, StatementType type, int indent) {
 
         try {
-            List<String> stmtOutput = new ArrayList<>(Arrays.asList(statement.getEmbeddedComments()));
+            List<String> stmtOutput = new ArrayList<>();
+            // Calculations keep their lines, including the comments between
+            // them, whereas declarations are rebuilt from their tokens.
+            if (!isCalculation(type)) {
+                stmtOutput.addAll(Arrays.asList(statement.getEmbeddedComments()));
+            }
             stmtOutput.addAll(formatLine(statement, type, indent));
             return stmtOutput;
         } catch (Exception e) {
@@ -412,10 +413,14 @@ public class RpgleFormatter implements ILineNumberProvider {
      */
     private List<String> formatLine(CollectedStatement statement, StatementType type, int defaultIndent) throws RpgleFormatterException {
 
-        int indent = statement.getIndentLevel() * config.getIndent() + defaultIndent;
+        int indent = statement.getIndentLevel() * config.getIndent() + statement.getSelectDepth() * config.getSelectIndent() + defaultIndent;
 
         if (statement.hasEmbeddedDirectives()) {
             return formatWithEmbeddedDirectives(statement, type, indent);
+        }
+
+        if (isCalculation(type)) {
+            return formatCalculation(statement, indent);
         }
 
         switch (type) {
@@ -456,6 +461,57 @@ public class RpgleFormatter implements ILineNumberProvider {
         default:
             return formatKeepOriginal(statement);
         }
+    }
+
+    /**
+     * Returns <code>true</code> for a calculation statement, such as
+     * <code>IF</code> or an assignment. Statements that the formatter does not
+     * know are calculations, too.
+     */
+    private static boolean isCalculation(StatementType type) {
+        return type == StatementType.OTHER || type.isCalculation();
+    }
+
+    /**
+     * Indents a calculation statement.
+     * <p>
+     * The first line gets the indent of the statement. Continued lines keep
+     * their indent relative to the first line or are lined up one level deeper,
+     * see IBM preference "Preserve relative indentation of continued lines".
+     * Lines, whose leading blanks belong to a literal continued with a hyphen,
+     * are left unchanged.
+     * </p>
+     *
+     * @throws LineOverflowException if a line exceeds the end column
+     */
+    private List<String> formatCalculation(CollectedStatement statement, int indent) throws RpgleFormatterException {
+
+        List<String> results = new ArrayList<>();
+
+        int shift = indent - StringUtils.getIndent(statement.getLine(0)).length();
+        for (int i = 0; i < statement.numLines(); i++) {
+
+            String line = statement.getLine(i);
+            String formatted;
+            if (i == 0) {
+                formatted = StringUtils.spaces(indent) + line.trim();
+            } else if (statement.isLeadingBlanksSignificant(i) || line.trim().isEmpty()) {
+                formatted = line;
+            } else if (config.isPreserveRelativeIndentOfContinuedLines()) {
+                int lineIndent = Math.max(0, StringUtils.getIndent(line).length() + shift);
+                formatted = StringUtils.spaces(lineIndent) + line.trim();
+            } else {
+                formatted = StringUtils.spaces(indent + config.getIndent()) + line.trim();
+            }
+
+            if (formatted.length() > ensureEndColumn() && formatted.length() > line.length()) {
+                throw new LineOverflowException(line.trim(), statement.getStartLineNumber() + i);
+            }
+
+            results.add(formatted);
+        }
+
+        return results;
     }
 
     /**

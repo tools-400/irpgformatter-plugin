@@ -130,6 +130,12 @@ public final class ContinuationHandler {
             statements.add(currentStatement);
         }
 
+        // Calculation blocks that are still open, e.g. because the selected
+        // lines end in front of the ENDIF, only affect the indentation.
+        while (parents.peek() != null && parents.peek().getType().isCalculation()) {
+            parents.pop();
+        }
+
         if (!isTestMode && parents.peek() != null) {
             throw new RpgleFormatterException("Parents stack contains unexpected parent: " + parents.peek().getStatement());
         }
@@ -160,13 +166,16 @@ public final class ContinuationHandler {
         StatementType currentType = currentStatement.getType();
         if (currentType.isStartOfBLock()) {
 
-            int indent = parents.size() - 1;
-            currentStatement.setIndentLevel(indent);
+            setIndent(currentStatement, parents, 0);
             parents.push(currentStatement);
             // single line DCL-DS or DCL-PI/DCL-PR statement
             if (StatementIdentifier.isSingleLineStatement(currentStatement.getStatement())) {
                 parents.pop();
             }
+        } else if (currentType.isBranchOfBlock()) {
+            // ELSE, WHEN, ON-ERROR etc. are placed on the level of the
+            // statement that starts the block
+            setIndent(currentStatement, parents, -1);
         } else {
             CollectedStatement parent = parents.peek();
             if (parent != null) {
@@ -179,9 +188,31 @@ public final class ContinuationHandler {
                     }
                 }
             }
-            int indent = parents.size() - 1;
-            currentStatement.setIndentLevel(indent);
+            setIndent(currentStatement, parents, 0);
         }
+    }
+
+    /**
+     * Sets the indent level of a statement from the blocks that enclose it and
+     * counts the select groups among them.
+     *
+     * @param statement the statement
+     * @param parents the blocks that enclose the statement
+     * @param levelOffset -1 for a branch of a block, such as <code>ELSE</code>,
+     *        otherwise 0
+     */
+    private static void setIndent(CollectedStatement statement, Stack<CollectedStatement> parents, int levelOffset)
+        throws RpgleFormatterException {
+
+        statement.setIndentLevel(Math.max(0, parents.size() - 1 + levelOffset));
+
+        int selectDepth = 0;
+        for (CollectedStatement parent : parents) {
+            if (parent != null && parent.getType() == StatementType.SELECT) {
+                selectDepth++;
+            }
+        }
+        statement.setSelectDepth(selectDepth);
     }
 
     /**
@@ -216,6 +247,7 @@ public final class ContinuationHandler {
                 ConditionalGroup group = conditionalGroups.peek();
                 group.startNextBranch(parents, directiveType == DirectiveType.ELSE);
                 directive.setIndentLevel(group.getIndentLevel());
+                directive.setSelectDepth(group.getIfDirective().getSelectDepth());
             }
             break;
         case ENDIF:
@@ -225,6 +257,7 @@ public final class ContinuationHandler {
                     directive.setUnbalancedIfDirective(group.getIfDirective());
                 }
                 directive.setIndentLevel(group.getIndentLevel());
+                directive.setSelectDepth(group.getIfDirective().getSelectDepth());
             }
             break;
         default:

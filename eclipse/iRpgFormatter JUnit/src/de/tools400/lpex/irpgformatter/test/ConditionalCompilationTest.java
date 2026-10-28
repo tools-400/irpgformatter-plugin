@@ -144,7 +144,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("  dcl-pi *n ind;", result[5]);
         assertEquals("  end-pi;", result[6]);
         assertEquals("  dcl-s v int(10);", result[7]);
-        assertEquals("  RETURN *ON;", result[8]); // ignored by the formatter
+        assertEquals("  RETURN *ON;", result[8]); // calculations are indented only
         assertEquals("end-proc;", result[9]);
         assertEquals("dcl-s after int(10);", result[10]);
     }
@@ -452,7 +452,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
             "      VARCHAR(10)",
             "    /ENDIF",
             "    CONST;",
-            "  other INT( 10 ) CONST;",
+            "  number INT( 10 ) CONST;",
             "END-PI;"
         };
         // @formatter:on
@@ -469,7 +469,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("      varchar(10)", result[5]);
         assertEquals("    /endif", result[6]);
         assertEquals("    const;", result[7]);
-        assertEquals("  other int(10) const;", result[8]);
+        assertEquals("  number int(10) const;", result[8]);
         assertEquals("end-pi;", result[9]);
     }
 
@@ -588,7 +588,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     // ----------------------------------------------------------------------
 
     @Test
-    public void format_prototypeHeaderInCopyMember_keepsParametersUnchanged() throws RpgleFormatterException {
+    public void format_prototypeHeaderInCopyMember_onlyIndentsParameters() throws RpgleFormatterException {
 
         // @formatter:off
         String[] result = format(
@@ -605,8 +605,9 @@ public class ConditionalCompilationTest extends AbstractTestCase {
 
         assertEquals(8, result.length);
         assertEquals("/copy qcpysrc,prhead", result[0]);
-        assertEquals("  a INT( 10 );", result[1]); // header unknown
-        assertEquals("  b INT( 10 );", result[2]); // header unknown
+        // Without the header the parameters look like calculations.
+        assertEquals("a INT( 10 );", result[1]);
+        assertEquals("b INT( 10 );", result[2]);
         assertEquals("end-pr;", result[3]);
         assertEquals("dcl-s x int(10);", result[4]);
         assertEquals("dcl-pr p4 ind;", result[5]);
@@ -615,18 +616,19 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     }
 
     @Test
-    public void format_copyMemberWithSubfieldsOnly_unchanged() throws RpgleFormatterException {
+    public void format_copyMemberWithSubfieldsOnly_onlyIndentsSubfields() throws RpgleFormatterException {
 
+        // Without the header the subfields look like calculations.
         // @formatter:off
-        String[] source = new String[] {
+        String[] result = format(
             "  f1 CHAR( 10 );",
             "  f2 INT( 10 );"
-        };
+        );
         // @formatter:on
 
-        String[] result = format(source);
-
-        assertArrayEquals(source, result);
+        assertEquals(2, result.length);
+        assertEquals("f1 CHAR( 10 );", result[0]);
+        assertEquals("f2 INT( 10 );", result[1]);
     }
 
     @Test

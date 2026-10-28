@@ -177,6 +177,23 @@ public final class Preferences implements RpgleSourceConstants {
         return ibmPreferenceStore.getInt("RPGLE.FORMATTING.length");
     }
 
+    /**
+     * Returns the extra blanks of WHEN and OTHER within a SELECT statement, see
+     * IBM preference "Indent WHEN/OTHER within SELECT statement".
+     */
+    public int getSelectIndent() {
+        return ibmPreferenceStore.getInt("RPGLE.FORMATTING.select");
+    }
+
+    /**
+     * Returns <code>true</code>, if continued lines keep their indent relative
+     * to the first line of the statement, see IBM preference "Preserve relative
+     * indentation of continued lines". Otherwise continued lines are lined up.
+     */
+    public boolean isPreserveRelativeIndentOfContinuedLines() {
+        return ibmPreferenceStore.getBoolean("RPGLE.FORMATTING.multiple");
+    }
+
     public KeywordCasingStyle getKeywordCasingStyle() {
 
         String ibmCasingStyle = ibmPreferenceStore
@@ -473,6 +490,8 @@ public final class Preferences implements RpgleSourceConstants {
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.length", 2);
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.start", 1);
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.end", "*MAX");
+            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.select", 0);
+            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.multiple", true);
 
             ibmPreferenceStore.setDefault("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue",
                 "endxx");
