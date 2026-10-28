@@ -199,7 +199,8 @@ public final class ContinuationHandler {
     /**
      * Places a complete statement into the block structure and sets its indent
      * level: a statement that starts a block is pushed onto the stack of
-     * parents, the statement that ends the block pops it. Sub-fields are added
+     * parents, the statement that ends the block pops it, together with the
+     * calculation blocks that are still open within it. Sub-fields are added
      * to their parent.
      *
      * @param parents the blocks that enclose the statement, <code>null</code>
@@ -222,6 +223,7 @@ public final class ContinuationHandler {
             // statement that starts the block
             setIndent(currentStatement, parents, -1);
         } else {
+            closeOpenCalculationBlocks(parents, currentType);
             CollectedStatement parent = parents.peek();
             if (parent != null) {
                 StatementType parentEndOfBlockType = parent.getType().getEndOfBlockType();
@@ -234,6 +236,31 @@ public final class ContinuationHandler {
                 }
             }
             setIndent(currentStatement, parents, 0);
+        }
+    }
+
+    /**
+     * Pops the calculation blocks, that are still open, when the statement ends
+     * the block that encloses them, such as an <code>IF</code> without
+     * <code>ENDIF</code> at <code>END-PROC</code>. Otherwise the enclosing block
+     * could not be closed. Like at the end of the source, the open calculation
+     * blocks only affect the indentation.
+     *
+     * @param parents the blocks that enclose the statement, <code>null</code>
+     *        at the bottom
+     * @param currentType the type of the statement
+     */
+    private static void closeOpenCalculationBlocks(Stack<CollectedStatement> parents, StatementType currentType)
+        throws RpgleFormatterException {
+
+        int index = parents.size() - 1;
+        while (parents.get(index) != null && parents.get(index).getType().isCalculation()) {
+            index--;
+        }
+
+        CollectedStatement block = parents.get(index);
+        if (block != null && currentType == block.getType().getEndOfBlockType()) {
+            parents.setSize(index + 1);
         }
     }
 

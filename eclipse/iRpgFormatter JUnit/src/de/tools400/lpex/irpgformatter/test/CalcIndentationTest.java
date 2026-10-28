@@ -608,6 +608,35 @@ public class CalcIndentationTest extends AbstractTestCase {
         assertEquals(0, formatter.getErrorCount());
     }
 
+    @Test
+    public void format_blockNotClosedInProcedure_isClosedByEndProc() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "if a = 1;",
+            "x = 1;",
+            "END-PROC;",
+            "DCL-PROC q;",
+            "x = 2;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "dcl-proc p;",
+            "  if a = 1;",
+            "    x = 1;",
+            "end-proc;",
+            "dcl-proc q;",
+            "  x = 2;",
+            "end-proc;"
+        }, result);
+        // @formatter:on
+        assertEquals(0, formatter.getErrorCount());
+    }
+
     // ----------------------------------------------------------------------
     // Formatters
     // ----------------------------------------------------------------------
