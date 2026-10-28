@@ -17,12 +17,16 @@ public interface RpgleSourceConstants {
     static final String COLON = ":";
 
     static final String SINGLE_QUOTE = "'";
+    static final String DOUBLE_QUOTE = "\"";
 
     static final String ELLIPSIS = "...";
     static final String PLUS = "+";
     static final String HYPHEN = "-";
 
     static final String COMMENT = "//";
+    static final String SQL_COMMENT = "--";
+    static final String SQL_BLOCK_COMMENT_START = "/*";
+    static final String SQL_BLOCK_COMMENT_END = "*/";
     static final String COMPILER_DIRECTIVE = "/";
     static final String COMPILE_TIME_ARRAY = "**";
 

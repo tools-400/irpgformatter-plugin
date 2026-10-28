@@ -149,6 +149,9 @@ public enum StatementType {
     /** Exit section of a procedure (on-exit) */
     ON_EXIT ("^\\s*on-exit\\b", null, true),
 
+    /** Embedded SQL statement (exec sql) */
+    EXEC_SQL ("^\\s*exec\\s+sql\\b", null, false),
+
     /** Subfield declaration (dcl-subf) */
     DCL_SUBF (null),
 

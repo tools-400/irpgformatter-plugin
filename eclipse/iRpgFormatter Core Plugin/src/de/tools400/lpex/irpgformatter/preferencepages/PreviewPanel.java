@@ -750,6 +750,15 @@ public class PreviewPanel implements IPropertyChangeListener {
 
         // ----------------------------------------------------
         // Remote Systems -> Remote Systems LPEX Editor ->
+        // IBM i Parsers -> ILE RPG -> Free-form SQL Formatting
+        // ----------------------------------------------------
+
+        if (property.startsWith("SQLRPGLE.")) {
+            formatPreview();
+        }
+
+        // ----------------------------------------------------
+        // Remote Systems -> Remote Systems LPEX Editor ->
         // IBM i Parsers -> ILE RPG -> Key Behavior
         // ----------------------------------------------------
 

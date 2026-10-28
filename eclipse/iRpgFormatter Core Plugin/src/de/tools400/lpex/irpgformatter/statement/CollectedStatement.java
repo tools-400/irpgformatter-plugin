@@ -37,6 +37,9 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private CollectedStatement unbalancedIfDirective;
 
     private boolean insideLiteral;
+    private boolean insideSqlBlockComment;
+    private boolean insideDelimitedIdentifier;
+    private boolean hasContinuedLiteral;
     private StringBuilder statement;
 
     private StatementType statementType;
@@ -145,7 +148,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         if (isSingleLineStatement(line)) {
             appendLineSegment(line);
             setStatementComplete();
-        } else if (!insideLiteral && isCompilerDirective(line)) {
+        } else if (!insideLiteral && !insideSqlBlockComment && isCompilerDirective(line)) {
             // /IF, /ELSEIF, /ELSE and /ENDIF may appear within a free-form
             // declaration. The directive must keep its line, therefore it is
             // not added to the statement.
@@ -254,16 +257,13 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         return line.trim().startsWith(COMMENT);
     }
 
+    /**
+     * Returns <code>true</code> for a compiler directive: a slash followed by
+     * a letter. A line, that starts with a slash otherwise, such as an SQL
+     * comment or a division, continues the statement.
+     */
     private boolean isCompilerDirective(String line) {
-
-        String trimmedLine = line.trim();
-        if (!isLineComment(trimmedLine)) {
-            if (trimmedLine.startsWith(COMPILER_DIRECTIVE)) {
-                return true;
-            }
-        }
-
-        return false;
+        return StatementType.COMPILER_DIRECTIVE.pattern().matcher(line).find();
     }
 
     private boolean isCompileTimeArray(String line) {
@@ -287,6 +287,10 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      * Adds a line to the statement. Outside a literal a semicolon ends the
      * statement and three dots continue a name on the next line; inside a
      * literal a plus or hyphen at the end of the line continues the literal.
+     * <p>
+     * In an embedded SQL statement a semicolon, a single quote or a comment
+     * does not count within an SQL comment or a delimited identifier.
+     * </p>
      */
     private void buildStatement(String line) throws RpgleFormatterException {
 
@@ -297,7 +301,29 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
             lineTrimmed = StringUtils.trimL(line);
         }
 
+        boolean isEmbeddedSql = isEmbeddedSql(lineTrimmed);
+
         for (int i = 0; i < lineTrimmed.length(); i++) {
+
+            if (insideSqlBlockComment) {
+                if (lineTrimmed.startsWith(SQL_BLOCK_COMMENT_END, i)) {
+                    insideSqlBlockComment = false;
+                    i++;
+                }
+                continue;
+            }
+
+            if (insideDelimitedIdentifier) {
+                if (lineTrimmed.startsWith(DOUBLE_QUOTE, i)) {
+                    if (lineTrimmed.startsWith(DOUBLE_QUOTE, i + 1)) {
+                        // Two double quotes: an escaped quote
+                        i++;
+                    } else {
+                        insideDelimitedIdentifier = false;
+                    }
+                }
+                continue;
+            }
 
             if (lineTrimmed.startsWith(SINGLE_QUOTE, i)) {
                 if (lineTrimmed.startsWith(SINGLE_QUOTE, i + 1)) {
@@ -309,6 +335,21 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
             }
 
             if (!insideLiteral) {
+                if (isEmbeddedSql) {
+                    if (lineTrimmed.startsWith(SQL_COMMENT, i)) {
+                        continueBeforeSqlComment(lineTrimmed, i);
+                        return;
+                    }
+                    if (lineTrimmed.startsWith(SQL_BLOCK_COMMENT_START, i)) {
+                        insideSqlBlockComment = true;
+                        i++;
+                        continue;
+                    }
+                    if (lineTrimmed.startsWith(DOUBLE_QUOTE, i)) {
+                        insideDelimitedIdentifier = true;
+                        continue;
+                    }
+                }
                 if (lineTrimmed.startsWith(SEMICOLON, i)) {
                     appendLineSegment(lineTrimmed);
                     setStatementComplete();
@@ -356,6 +397,27 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     /**
+     * Returns <code>true</code>, if the statement, that the line belongs to, is
+     * an embedded SQL statement.
+     */
+    private boolean isEmbeddedSql(String line) {
+        return StatementType.EXEC_SQL.pattern().matcher(statement + line).find();
+    }
+
+    /**
+     * Appends the code in front of an SQL comment, which ends the line. Unlike
+     * a comment of RPG, the SQL comment stays in the lines of the statement and
+     * a semicolon or a single quote within it does not count.
+     */
+    private void continueBeforeSqlComment(String line, int comment) {
+
+        String code = StringUtils.trimR(line.substring(0, comment));
+        if (!code.isEmpty()) {
+            appendLineOrComment(code);
+        }
+    }
+
+    /**
      * Returns <code>true</code>, if the character inside a literal is a plus or
      * hyphen, which continues the literal: the last character of the line
      * except blanks, which the compiler ignores there.
@@ -371,6 +433,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      */
     private void continueLiteral(String line, int continuation) {
 
+        hasContinuedLiteral = true;
         appendLineSegment(line, continuation);
         if (line.startsWith(HYPHEN, continuation)) {
             leftTrimNextLine = false;
@@ -453,6 +516,14 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      */
     public boolean isLeadingBlanksSignificant(int index) {
         return leadingBlanksSignificant.get(index);
+    }
+
+    /**
+     * Returns <code>true</code>, if the statement contains a literal, that is
+     * continued with a plus or a hyphen on the next line.
+     */
+    public boolean hasContinuedLiteral() {
+        return hasContinuedLiteral;
     }
 
     public int numLines() {

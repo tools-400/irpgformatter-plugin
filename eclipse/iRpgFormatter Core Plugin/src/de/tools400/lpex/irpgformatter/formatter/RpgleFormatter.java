@@ -70,6 +70,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private final SortConstValueToEndRule sortConstValueToEndRule;
     private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
     private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
+    private final EmbeddedSqlFormatter embeddedSqlFormatter;
 
     private final List<FormatError> errors = new ArrayList<>();
     private final List<FormatError> warnings = new ArrayList<>();
@@ -84,6 +85,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         this.sortConstValueToEndRule = new SortConstValueToEndRule(config);
         this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
         this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
+        this.embeddedSqlFormatter = new EmbeddedSqlFormatter(config);
     }
 
     public RpgleFormatter() {
@@ -423,7 +425,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         }
 
         if (isCalculation(type)) {
-            return formatCalculation(statement, indent);
+            return formatCalculation(statement, type, indent);
         }
 
         switch (type) {
@@ -483,7 +485,32 @@ public class RpgleFormatter implements ILineNumberProvider {
     }
 
     /**
-     * Indents a calculation statement.
+     * Formats a calculation statement. An embedded SQL statement is formatted
+     * with the SQL formatter of IBM, all other statements are only indented.
+     */
+    private List<String> formatCalculation(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
+
+        List<String> lines = statement.getOriginalStatements();
+
+        if (type == StatementType.EXEC_SQL && embeddedSqlFormatter.isEnabled()) {
+            if (config.isFormatEmbeddedSql()) {
+                List<String> formatted = embeddedSqlFormatter.format(statement, indent, ensureEndColumn());
+                if (formatted != null) {
+                    return formatted;
+                }
+            } else {
+                List<String> adjusted = embeddedSqlFormatter.adjustCase(statement);
+                if (adjusted != null) {
+                    lines = adjusted;
+                }
+            }
+        }
+
+        return indentCalculation(statement, lines, indent);
+    }
+
+    /**
+     * Indents the lines of a calculation statement.
      * <p>
      * The first line gets the indent of the statement. Continued lines keep
      * their indent relative to the first line or are lined up one level deeper,
@@ -492,16 +519,20 @@ public class RpgleFormatter implements ILineNumberProvider {
      * are left unchanged.
      * </p>
      *
+     * @param statement - the statement
+     * @param lines - the lines of the statement, with the casing changed or
+     *        unchanged
+     * @param indent - the indent of the statement
      * @throws LineOverflowException if a line exceeds the end column
      */
-    private List<String> formatCalculation(CollectedStatement statement, int indent) throws RpgleFormatterException {
+    private List<String> indentCalculation(CollectedStatement statement, List<String> lines, int indent) throws RpgleFormatterException {
 
         List<String> results = new ArrayList<>();
 
-        int shift = indent - StringUtils.getIndent(statement.getLine(0)).length();
-        for (int i = 0; i < statement.numLines(); i++) {
+        int shift = indent - StringUtils.getIndent(lines.get(0)).length();
+        for (int i = 0; i < lines.size(); i++) {
 
-            String line = statement.getLine(i);
+            String line = lines.get(i);
             String formatted;
             if (i == 0) {
                 formatted = StringUtils.spaces(indent) + line.trim();

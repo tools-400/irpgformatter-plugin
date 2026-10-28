@@ -24,6 +24,12 @@ public class FormatterConfig {
     private int indent;
     private int selectIndent;
     private boolean preserveRelativeIndentOfContinuedLines;
+    private boolean formatEmbeddedSql;
+    private int sqlIndent;
+    private SqlBreakStyle sqlBreakOnComma;
+    private SqlBreakStyle sqlBreakOnAndOr;
+    private SqlCasingStyle sqlKeywordCasingStyle;
+    private SqlCasingStyle sqlIdentifierCasingStyle;
     private int maxLineWidth;
     private int maxNameLength;
     private int minLiteralLength;
@@ -58,6 +64,30 @@ public class FormatterConfig {
 
     public boolean isPreserveRelativeIndentOfContinuedLines() {
         return preserveRelativeIndentOfContinuedLines;
+    }
+
+    public boolean isFormatEmbeddedSql() {
+        return formatEmbeddedSql;
+    }
+
+    public int getSqlIndent() {
+        return sqlIndent;
+    }
+
+    public SqlBreakStyle getSqlBreakOnComma() {
+        return sqlBreakOnComma;
+    }
+
+    public SqlBreakStyle getSqlBreakOnAndOr() {
+        return sqlBreakOnAndOr;
+    }
+
+    public SqlCasingStyle getSqlKeywordCasingStyle() {
+        return sqlKeywordCasingStyle;
+    }
+
+    public SqlCasingStyle getSqlIdentifierCasingStyle() {
+        return sqlIdentifierCasingStyle;
     }
 
     public int getMaxLineWidth() {
@@ -146,6 +176,30 @@ public class FormatterConfig {
 
     public void setPreserveRelativeIndentOfContinuedLines(boolean preserveRelativeIndentOfContinuedLines) {
         this.preserveRelativeIndentOfContinuedLines = preserveRelativeIndentOfContinuedLines;
+    }
+
+    public void setFormatEmbeddedSql(boolean formatEmbeddedSql) {
+        this.formatEmbeddedSql = formatEmbeddedSql;
+    }
+
+    public void setSqlIndent(int sqlIndent) {
+        this.sqlIndent = sqlIndent;
+    }
+
+    public void setSqlBreakOnComma(SqlBreakStyle sqlBreakOnComma) {
+        this.sqlBreakOnComma = sqlBreakOnComma;
+    }
+
+    public void setSqlBreakOnAndOr(SqlBreakStyle sqlBreakOnAndOr) {
+        this.sqlBreakOnAndOr = sqlBreakOnAndOr;
+    }
+
+    public void setSqlKeywordCasingStyle(SqlCasingStyle sqlKeywordCasingStyle) {
+        this.sqlKeywordCasingStyle = sqlKeywordCasingStyle;
+    }
+
+    public void setSqlIdentifierCasingStyle(SqlCasingStyle sqlIdentifierCasingStyle) {
+        this.sqlIdentifierCasingStyle = sqlIdentifierCasingStyle;
     }
 
     public void setMaxLineWidth(int maxLineWidth) {
@@ -248,6 +302,12 @@ public class FormatterConfig {
         config.indent = prefs.getIndent();
         config.selectIndent = prefs.getSelectIndent();
         config.preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();
+        config.formatEmbeddedSql = prefs.isFormatEmbeddedSql();
+        config.sqlIndent = prefs.getSqlIndent();
+        config.sqlBreakOnComma = prefs.getSqlBreakOnComma();
+        config.sqlBreakOnAndOr = prefs.getSqlBreakOnAndOr();
+        config.sqlKeywordCasingStyle = prefs.getSqlKeywordCasingStyle();
+        config.sqlIdentifierCasingStyle = prefs.getSqlIdentifierCasingStyle();
         config.maxLineWidth = prefs.getEndColumn();
         config.maxNameLength = prefs.getMaxNameLength();
         config.minLiteralLength = prefs.getMinNameLength();

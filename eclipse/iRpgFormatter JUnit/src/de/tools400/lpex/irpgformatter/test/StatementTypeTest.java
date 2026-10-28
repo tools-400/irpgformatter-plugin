@@ -215,7 +215,7 @@ public class StatementTypeTest extends AbstractTestCase {
             "  a = b + c",
             "ifCounter = 1;",
             "dsply 'Hello';",
-            "exec sql select 1 into :x from sysibm.sysdummy1;"
+            "execute = *on;"
         };
         //@formatter:off
         for (String line : lines) {
@@ -239,6 +239,12 @@ public class StatementTypeTest extends AbstractTestCase {
         assertEquals(StatementType.ENDMON, StatementIdentifier.identifyStatementType("endmon;"));
         assertEquals(StatementType.BEGSR, StatementIdentifier.identifyStatementType("begsr init;"));
         assertEquals(StatementType.ENDSR, StatementIdentifier.identifyStatementType("endsr;"));
+    }
+
+    @Test
+    public void calculation_execSql() throws RpgleFormatterException {
+        assertEquals(StatementType.EXEC_SQL, StatementIdentifier.identifyStatementType("exec sql select 1 into :x from sysibm.sysdummy1;"));
+        assertEquals(StatementType.EXEC_SQL, StatementIdentifier.identifyStatementType("  EXEC  SQL"));
     }
 
     @Test

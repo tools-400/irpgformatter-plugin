@@ -194,6 +194,78 @@ public final class Preferences implements RpgleSourceConstants {
         return ibmPreferenceStore.getBoolean("RPGLE.FORMATTING.multiple");
     }
 
+    /**
+     * Returns <code>true</code>, if embedded SQL statements are formatted, see
+     * IBM preference "Formatting" of the ILE RPG SQL formatting. Otherwise
+     * only their casing is changed.
+     */
+    public boolean isFormatEmbeddedSql() {
+        return ibmPreferenceStore.getBoolean("SQLRPGLE.FORMATTING.base");
+    }
+
+    /**
+     * Returns the number of blanks of each indent level of an embedded SQL
+     * statement, see IBM preference "Indent" of the ILE RPG SQL formatting.
+     */
+    public int getSqlIndent() {
+        return ibmPreferenceStore.getInt("SQLRPGLE.INDENT.S1_Blanks");
+    }
+
+    /**
+     * Returns the line break at the commas of an embedded SQL statement, see
+     * IBM preference "New line: On comma" of the ILE RPG SQL formatting.
+     */
+    public SqlBreakStyle getSqlBreakOnComma() {
+        return SqlBreakStyle.fromIbmValue(ibmPreferenceStore.getInt("SQLRPGLE.FORMATTING.onComma"));
+    }
+
+    /**
+     * Returns the line break at AND/OR of an embedded SQL statement, see IBM
+     * preference "On AND/OR keywords" of the ILE RPG SQL formatting.
+     */
+    public SqlBreakStyle getSqlBreakOnAndOr() {
+        return SqlBreakStyle.fromIbmValue(ibmPreferenceStore.getInt("SQLRPGLE.FORMATTING.onAndOr"));
+    }
+
+    /**
+     * Returns the casing of the keywords of an embedded SQL statement, see IBM
+     * preference "Automatic uppercasing" of the ILE RPG SQL formatting.
+     */
+    public SqlCasingStyle getSqlKeywordCasingStyle() {
+        return getSqlCasingStyle("SQLRPGLE.UPPERCASING.keywords");
+    }
+
+    /**
+     * Returns the casing of the identifiers of an embedded SQL statement, see
+     * IBM preference "Automatic uppercasing" of the ILE RPG SQL formatting.
+     */
+    public SqlCasingStyle getSqlIdentifierCasingStyle() {
+        return getSqlCasingStyle("SQLRPGLE.UPPERCASING.identifiers");
+    }
+
+    /**
+     * Returns the casing of an embedded SQL statement like RDi: the style "All
+     * uppercase" or "All lowercase" applies to the keywords and to the
+     * identifiers, the style "Custom" uses the value of the given preference.
+     */
+    private SqlCasingStyle getSqlCasingStyle(String customKey) {
+
+        if (!ibmPreferenceStore.getBoolean("SQLRPGLE.UPPERCASING.base")) {
+            return SqlCasingStyle.IGNORE;
+        }
+
+        switch (ibmPreferenceStore.getInt("SQLRPGLE.UPPERCASING.base.value")) {
+        case 0:
+            return SqlCasingStyle.UPPER;
+        case 1:
+            return SqlCasingStyle.LOWER;
+        case 2:
+            return SqlCasingStyle.fromIbmValue(ibmPreferenceStore.getInt(customKey));
+        default:
+            return SqlCasingStyle.IGNORE;
+        }
+    }
+
     public KeywordCasingStyle getKeywordCasingStyle() {
 
         String ibmCasingStyle = ibmPreferenceStore
@@ -492,6 +564,15 @@ public final class Preferences implements RpgleSourceConstants {
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.end", "*MAX");
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.select", 0);
             ibmPreferenceStore.setDefault("RPGLE.FORMATTING.multiple", true);
+
+            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.base", false);
+            ibmPreferenceStore.setDefault("SQLRPGLE.INDENT.S1_Blanks", 2);
+            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.onComma", 0);
+            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.onAndOr", 0);
+            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.base", false);
+            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.base.value", 0);
+            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.keywords", 0);
+            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.identifiers", 0);
 
             ibmPreferenceStore.setDefault("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue",
                 "endxx");

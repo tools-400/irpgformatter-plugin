@@ -387,6 +387,21 @@ public class CalcIndentationTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_continuedLineStartingWithSlash_isNotADirective() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "x = a",
+            "    / b;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertArrayEquals(new String[] { "dcl-proc p;", "  x = a", "      / b;", "end-proc;" }, result);
+    }
+
+    @Test
     public void format_execSql_shiftsContinuedLines() throws RpgleFormatterException {
 
         // @formatter:off
