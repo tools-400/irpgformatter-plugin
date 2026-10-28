@@ -148,7 +148,51 @@ public final class ContinuationHandler {
 
         setTestMode(false);
 
-        return statements.toArray(new CollectedStatement[statements.size()]);
+        CollectedStatement[] collectedStatements = statements.toArray(new CollectedStatement[statements.size()]);
+        indentComments(collectedStatements);
+
+        return collectedStatements;
+    }
+
+    /**
+     * Gives each comment line the indent level of the next statement, like the
+     * IBM formatter does. Blank lines and compiler directives in between are
+     * skipped. A comment without a following statement keeps the indent level
+     * of the blocks that enclose it.
+     *
+     * @param statements the collected statements
+     */
+    private static void indentComments(CollectedStatement[] statements) throws RpgleFormatterException {
+
+        CollectedStatement nextStatement = null;
+        for (int i = statements.length - 1; i >= 0; i--) {
+
+            CollectedStatement statement = statements[i];
+            if (!statement.isComplete() || statement.isAfterEof()) {
+                nextStatement = null;
+                continue;
+            }
+
+            switch (statement.getType()) {
+            case COMMENT:
+                if (nextStatement != null) {
+                    statement.setIndentLevel(nextStatement.getIndentLevel());
+                    statement.setSelectDepth(nextStatement.getSelectDepth());
+                }
+                break;
+            case BLANK:
+            case COMPILER_DIRECTIVE:
+            case FREE_DIRECTIVE:
+                break;
+            case COMPILE_TIME_ARRAY:
+                // the lines that follow are data
+                nextStatement = null;
+                break;
+            default:
+                nextStatement = statement;
+                break;
+            }
+        }
     }
 
     /**

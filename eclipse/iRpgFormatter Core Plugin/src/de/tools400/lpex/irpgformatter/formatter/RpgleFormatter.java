@@ -250,7 +250,10 @@ public class RpgleFormatter implements ILineNumberProvider {
             // Calculations keep their lines, including the comments between
             // them, whereas declarations are rebuilt from their tokens.
             if (!isCalculation(type)) {
-                stmtOutput.addAll(Arrays.asList(statement.getEmbeddedComments()));
+                int commentIndent = getStatementIndent(statement, indent);
+                for (String comment : statement.getEmbeddedComments()) {
+                    stmtOutput.add(indentComment(comment, commentIndent, statement.getStartLineNumber()));
+                }
             }
             stmtOutput.addAll(formatLine(statement, type, indent));
             return stmtOutput;
@@ -413,7 +416,7 @@ public class RpgleFormatter implements ILineNumberProvider {
      */
     private List<String> formatLine(CollectedStatement statement, StatementType type, int defaultIndent) throws RpgleFormatterException {
 
-        int indent = statement.getIndentLevel() * config.getIndent() + statement.getSelectDepth() * config.getSelectIndent() + defaultIndent;
+        int indent = getStatementIndent(statement, defaultIndent);
 
         if (statement.hasEmbeddedDirectives()) {
             return formatWithEmbeddedDirectives(statement, type, indent);
@@ -430,7 +433,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         case FREE_DIRECTIVE:
             return formatFreeDirective(statement);
         case COMMENT:
-            return formatKeepOriginal(statement);
+            return formatComment(statement, indent);
         case COMPILER_DIRECTIVE:
             return formatCompilerDirective(statement, indent);
         case COMPILE_TIME_ARRAY:
@@ -461,6 +464,13 @@ public class RpgleFormatter implements ILineNumberProvider {
         default:
             return formatKeepOriginal(statement);
         }
+    }
+
+    /**
+     * Returns the indent of a statement from the nesting of its blocks.
+     */
+    private int getStatementIndent(CollectedStatement statement, int defaultIndent) {
+        return statement.getIndentLevel() * config.getIndent() + statement.getSelectDepth() * config.getSelectIndent() + defaultIndent;
     }
 
     /**
@@ -524,6 +534,35 @@ public class RpgleFormatter implements ILineNumberProvider {
             new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
 
         return new ArrayList<>(Collections.singletonList(freeSpecialWord));
+    }
+
+    /**
+     * Formats a comment line with the indent of the next statement.
+     *
+     * @throws LineOverflowException if the line exceeds the end column
+     */
+    private List<String> formatComment(CollectedStatement statement, int indent) throws RpgleFormatterException {
+        return new ArrayList<>(Collections.singletonList(indentComment(statement.getLine(0), indent, statement.getStartLineNumber())));
+    }
+
+    /**
+     * Returns the comment with the indent.
+     *
+     * @param comment - the comment line or a comment, that is moved in front of
+     *        its statement
+     * @param indent - the indent
+     * @param lineNumber - the line number for the error message
+     * @throws LineOverflowException if the indented comment exceeds the end
+     *         column and is longer than before
+     */
+    private String indentComment(String comment, int indent, int lineNumber) throws RpgleFormatterException {
+
+        String formatted = StringUtils.spaces(indent) + comment.trim();
+        if (formatted.length() > ensureEndColumn() && formatted.length() > comment.length()) {
+            throw new LineOverflowException(comment.trim(), lineNumber);
+        }
+
+        return formatted;
     }
 
     /**

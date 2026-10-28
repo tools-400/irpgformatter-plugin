@@ -413,6 +413,135 @@ public class CalcIndentationTest extends AbstractTestCase {
     }
 
     // ----------------------------------------------------------------------
+    // Comments
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_comments_indentedLikeNextStatement() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "// before if",
+            "if a = 1;",
+            "// inside if",
+            "x = 1;",
+            "    // before else",
+            "else;",
+            "x = 2;",
+            "// before endif",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "dcl-proc p;",
+            "  // before if",
+            "  if a = 1;",
+            "    // inside if",
+            "    x = 1;",
+            "  // before else",
+            "  else;",
+            "    x = 2;",
+            "  // before endif",
+            "  endif;",
+            "end-proc;"
+        }, result);
+        // @formatter:on
+    }
+
+    @Test
+    public void format_comments_withExtraIndentOfWhenAndOther() throws RpgleFormatterException {
+
+        formatter.getConfig().setSelectIndent(2);
+
+        // @formatter:off
+        String[] result = format(
+            "select;",
+            "// first case",
+            "when a = 1;",
+            "// set x",
+            "x = 1;",
+            "endsl;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "select;",
+            "  // first case",
+            "  when a = 1;",
+            "    // set x",
+            "    x = 1;",
+            "endsl;"
+        }, result);
+        // @formatter:on
+    }
+
+    @Test
+    public void format_comment_skipsBlankLinesAndDirectives() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "if a = 1;",
+            "// only for X",
+            "",
+            "/if defined(X)",
+            "x = 1;",
+            "/endif",
+            "endif;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "if a = 1;",
+            "  // only for X",
+            "",
+            "/if defined(X)",
+            "  x = 1;",
+            "/endif",
+            "endif;"
+        }, result);
+        // @formatter:on
+    }
+
+    @Test
+    public void format_commentAtEnd_indentedLikeEnclosingBlock() throws RpgleFormatterException {
+
+        // Formatting the selected lines of a larger source
+        // @formatter:off
+        String[] result = format(
+            "if a = 1;",
+            "x = 1;",
+            "// last line"
+        );
+        // @formatter:on
+
+        assertArrayEquals(new String[] { "if a = 1;", "  x = 1;", "  // last line" }, result);
+    }
+
+    @Test
+    public void format_commentTooLongAfterIndent_leavesCommentUnchanged() throws RpgleFormatterException {
+
+        formatter.setSourceLength(20);
+
+        // @formatter:off
+        String[] result = format(
+            "if a = 1;",
+            "// 1234567890123456",
+            "x = 1;",
+            "endif;"
+        );
+        // @formatter:on
+
+        assertArrayEquals(new String[] { "if a = 1;", "// 1234567890123456", "  x = 1;", "endif;" }, result);
+        assertEquals(1, formatter.getErrorCount());
+    }
+
+    // ----------------------------------------------------------------------
     // Limits
     // ----------------------------------------------------------------------
 
