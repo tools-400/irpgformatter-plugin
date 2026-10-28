@@ -26,6 +26,7 @@ import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.rules.FormattingRules;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
+import de.tools400.lpex.irpgformatter.rules.statements.ConditionParenthesesRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatConstKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatEndProcNameRule;
 import de.tools400.lpex.irpgformatter.rules.statements.FormatPiNameRule;
@@ -72,6 +73,7 @@ public class RpgleFormatter implements ILineNumberProvider {
     private final RemoveEmptyCommentLinesRule removeEmptyCommentLinesRule;
     private final RemoveEmptyLinesBeforeDclPiRule removeEmptyLinesBeforeDclPiRule;
     private final EmbeddedSqlFormatter embeddedSqlFormatter;
+    private final ConditionParenthesesRule conditionParenthesesRule;
 
     private final List<FormatError> errors = new ArrayList<>();
     private final List<FormatError> warnings = new ArrayList<>();
@@ -87,6 +89,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         this.removeEmptyCommentLinesRule = new RemoveEmptyCommentLinesRule();
         this.removeEmptyLinesBeforeDclPiRule = new RemoveEmptyLinesBeforeDclPiRule();
         this.embeddedSqlFormatter = new EmbeddedSqlFormatter(config);
+        this.conditionParenthesesRule = new ConditionParenthesesRule(config);
     }
 
     public RpgleFormatter() {
@@ -589,6 +592,8 @@ public class RpgleFormatter implements ILineNumberProvider {
                     lines = adjusted;
                 }
             }
+        } else if (ConditionParenthesesRule.isCondition(type)) {
+            lines = conditionParenthesesRule.apply(statement);
         }
 
         return indentCalculation(statement, lines, indent);
@@ -605,8 +610,8 @@ public class RpgleFormatter implements ILineNumberProvider {
      * </p>
      *
      * @param statement - the statement
-     * @param lines - the lines of the statement, with the casing changed or
-     *        unchanged
+     * @param lines - the lines of the statement, unchanged or changed by a
+     *        rule, such as the casing of SQL or the parentheses of a condition
      * @param indent - the indent of the statement
      * @throws LineOverflowException if a line exceeds the end column
      */
@@ -630,7 +635,10 @@ public class RpgleFormatter implements ILineNumberProvider {
                 formatted = StringUtils.spaces(indent + config.getIndent()) + line.trim();
             }
 
-            if (formatted.length() > ensureEndColumn() && formatted.length() > line.length()) {
+            // A line, that is longer than the end column already, may keep its
+            // length. Compared with the original line, because a rule may have
+            // made the line longer.
+            if (formatted.length() > ensureEndColumn() && formatted.length() > statement.getLine(i).length()) {
                 throw new LineOverflowException(line.trim(), statement.getStartLineNumber() + i);
             }
 

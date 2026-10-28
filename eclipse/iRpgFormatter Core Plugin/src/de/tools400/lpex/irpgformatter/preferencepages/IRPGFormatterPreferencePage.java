@@ -41,6 +41,7 @@ import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.preferencepages.keywordeditor.KeywordEditor;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
+import de.tools400.lpex.irpgformatter.preferences.ConditionParentheses;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -88,6 +89,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private Button formatOnSaveCheckbox;
     private Button removeEmptyCommentLinesCheckbox;
     private Button removeEmptyLinesBeforeDclPiCheckbox;
+    private Combo conditionParenthesesCombo;
 
     private KeywordEditor dataTypesEditor;
     private KeywordEditor declarationTypesEditor;
@@ -183,6 +185,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         config.setUnindentCompilerDirectives(unindentCompilerDirectivesCheckbox.getSelection());
         config.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         config.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
+        config.setConditionParentheses(ConditionParentheses.fromLabel(conditionParenthesesCombo.getText()));
         config.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
         // The IBM formatter cannot run in the preview, because it needs the
         // RPG model of an LPEX editor. iRPGFormatter indents the calculations
@@ -418,6 +421,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         removeEmptyLinesBeforeDclPiCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
             Messages.Tooltip_Remove_empty_lines_before_dcl_pi, PreviewComments.REMOVE_EMPTY_LINES_BEFORE_DCL_PI);
+
+        // Outer parentheses of conditions
+        Label conditionParenthesesLabel = new Label(group, SWT.NONE);
+        conditionParenthesesLabel.setText(Messages.Label_Condition_parentheses);
+        conditionParenthesesLabel.setToolTipText(Messages.Tooltip_Condition_parentheses);
+
+        conditionParenthesesCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
+        conditionParenthesesCombo.setItems(preferences.getConditionParenthesesStyles());
+        conditionParenthesesCombo.setLayoutData(createStyleData());
+        conditionParenthesesCombo.setToolTipText(Messages.Tooltip_Condition_parentheses);
+        previewPanel.addPreviewTrigger(conditionParenthesesCombo, PreviewComments.CONDITION_PARENTHESES);
     }
 
     /**
@@ -575,6 +589,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setFormatOnSave(formatOnSaveCheckbox.getSelection());
         data.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         data.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
+        data.setConditionParentheses(ConditionParentheses.fromLabel(conditionParenthesesCombo.getText()).name());
         data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
         data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
         data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
@@ -617,6 +632,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOnSaveCheckbox.setSelection(data.isFormatOnSave());
         removeEmptyCommentLinesCheckbox.setSelection(data.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(data.isRemoveEmptyLinesBeforeDclPi());
+        try {
+            conditionParenthesesCombo.select(ConditionParentheses.valueOf(data.getConditionParentheses()).ordinal());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // Keep current selection if the value is invalid
+        }
 
         // Map settings
         dataTypesEditor.load(KeywordUtils.mapToEntries(data.getDataTypes()));
@@ -716,6 +736,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOnSaveCheckbox.setSelection(preferences.isFormatOnSave());
         removeEmptyCommentLinesCheckbox.setSelection(preferences.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(preferences.isRemoveEmptyLinesBeforeDclPi());
+        conditionParenthesesCombo.select(preferences.getConditionParentheses().ordinal());
         useConstKeywordCheckbox.setSelection(preferences.isUseConstKeyword());
         putDelimiterBeforeParameterCheckbox.setSelection(preferences.isDelimiterBeforeParameter());
         parameterSpacingStyleCombo.select(preferences.getParameterSpacingStyle().ordinal());
@@ -762,6 +783,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setFormatOnSave(formatOnSaveCheckbox.getSelection());
         preferences.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
         preferences.setRemoveEmptyLinesBeforeDclPi(removeEmptyLinesBeforeDclPiCheckbox.getSelection());
+        preferences.setConditionParentheses(ConditionParentheses.fromLabel(conditionParenthesesCombo.getText()));
         preferences.setUseConstKeyword(useConstKeywordCheckbox.getSelection());
         preferences.setDelimiterBeforeParameter(putDelimiterBeforeParameterCheckbox.getSelection());
         String style = parameterSpacingStyleCombo.getText();
@@ -795,6 +817,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOnSaveCheckbox.setSelection(preferences.getDefaultFormatOnSave());
         removeEmptyCommentLinesCheckbox.setSelection(preferences.getDefaultRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(preferences.getDefaultRemoveEmptyLinesBeforeDclPi());
+        conditionParenthesesCombo.select(preferences.getDefaultConditionParentheses().ordinal());
 
         // Reset use const keyword
         useConstKeywordCheckbox.setSelection(preferences.getDefaultUseConstKeyword());

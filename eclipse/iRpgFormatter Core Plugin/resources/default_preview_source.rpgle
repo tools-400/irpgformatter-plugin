@@ -58,11 +58,14 @@ DCL-PROC myProc export;
 /endif
 
   // Format calculations.
-  if %parms() >= %parmnum(message);
+  // Outer parentheses of conditions.
+  if %parms() >= 2;
   dsply message;
   exec sql select name, city
     into :name, :city
     from customer where id = :id;
+  elseif (id = 0);
+  clear name;
   endif;
 
   Return *Null;

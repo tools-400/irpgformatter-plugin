@@ -52,6 +52,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String UNINDENT_COMPILER_DIRECTIVES = "unindentCompilerDirectives";
     private static final String REMOVE_EMPTY_COMMENT_LINES = "removeEmptyCommentLines";
     private static final String REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "removeEmptyLinesBeforeDclPi";
+    private static final String CONDITION_PARENTHESES = "conditionParentheses";
     private static final String MAX_NAME_LENGTH = "maxNameLength";
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
@@ -86,6 +87,7 @@ public final class Preferences implements RpgleSourceConstants {
     private static final boolean DEFAULT_UNINDENT_COMPILER_DIRECTIVES = true;
     private static final boolean DEFAULT_REMOVE_EMPTY_COMMENT_LINES = false;
     private static final boolean DEFAULT_REMOVE_EMPTY_LINES_BEFORE_DCL_PI = false;
+    private static final ConditionParentheses DEFAULT_CONDITION_PARENTHESES = ConditionParentheses.OFF;
     private static final int DEFAULT_MAX_NAME_LENGTH = 60;
     private static final int DEFAULT_MIN_NAME_LENGTH = 10;
     private static final int DEFAULT_FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = 35;
@@ -410,6 +412,34 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     /**
+     * Returns whether the condition of an IF, ELSEIF, WHEN, DOW or DOU
+     * statement is enclosed in parentheses.
+     */
+    public ConditionParentheses getConditionParentheses() {
+        try {
+            return ConditionParentheses.valueOf(preferenceStore.getString(CONDITION_PARENTHESES));
+        } catch (Exception e) {
+            return getDefaultConditionParentheses();
+        }
+    }
+
+    public void setConditionParentheses(ConditionParentheses style) {
+        preferenceStore.setValue(CONDITION_PARENTHESES, style.name());
+    }
+
+    public String[] getConditionParenthesesStyles() {
+        List<String> styles = new LinkedList<>();
+        for (ConditionParentheses style : ConditionParentheses.values()) {
+            styles.add(style.getDisplayName());
+        }
+        return styles.toArray(new String[0]);
+    }
+
+    public ConditionParentheses getDefaultConditionParentheses() {
+        return DEFAULT_CONDITION_PARENTHESES;
+    }
+
+    /**
      * Returns <code>true</code>, if iRPGFormatter formats everything except
      * the calculations: the control options, the declarations and the
      * compiler directives.
@@ -588,6 +618,7 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(UNINDENT_COMPILER_DIRECTIVES, getDefaultUnindentCompilerDirectives());
         preferenceStore.setDefault(REMOVE_EMPTY_COMMENT_LINES, getDefaultRemoveEmptyCommentLines());
         preferenceStore.setDefault(REMOVE_EMPTY_LINES_BEFORE_DCL_PI, getDefaultRemoveEmptyLinesBeforeDclPi());
+        preferenceStore.setDefault(CONDITION_PARENTHESES, getDefaultConditionParentheses().name());
         preferenceStore.setDefault(EXECUTE_IBM_FORMATTER, true);
         preferenceStore.setDefault(FORMAT_DECLARATIONS, getDefaultFormatDeclarations());
         preferenceStore.setDefault(FORMAT_CALCULATIONS, getDefaultFormatCalculations().name());

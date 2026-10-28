@@ -98,7 +98,8 @@ public final class PreferencesProfileManager {
 
         // Experimental Settings
         booleanSetting("removeEmptyCommentLines", ProfileData::isRemoveEmptyCommentLines, ProfileData::setRemoveEmptyCommentLines),
-        booleanSetting("removeEmptyLinesBeforeDclPi", ProfileData::isRemoveEmptyLinesBeforeDclPi, ProfileData::setRemoveEmptyLinesBeforeDclPi));
+        booleanSetting("removeEmptyLinesBeforeDclPi", ProfileData::isRemoveEmptyLinesBeforeDclPi, ProfileData::setRemoveEmptyLinesBeforeDclPi),
+        stringSetting("conditionParentheses", ProfileData::getConditionParentheses, ProfileData::setConditionParentheses));
 
     private static final List<Setting<Map<String, String>>> MAP_SETTINGS = Arrays.asList(
         new Setting<>("dataTypes", ProfileData::getDataTypes, ProfileData::setDataTypes),
@@ -407,6 +408,7 @@ public final class PreferencesProfileManager {
         private boolean formatOnSave;
         private boolean removeEmptyCommentLines;
         private boolean removeEmptyLinesBeforeDclPi;
+        private String conditionParentheses;
         private Map<String, String> dataTypes;
         private Map<String, String> declarationTypes;
         private Map<String, String> keywords;
@@ -547,6 +549,14 @@ public final class PreferencesProfileManager {
 
         public void setRemoveEmptyLinesBeforeDclPi(boolean removeEmptyLinesBeforeDclPi) {
             this.removeEmptyLinesBeforeDclPi = removeEmptyLinesBeforeDclPi;
+        }
+
+        public String getConditionParentheses() {
+            return conditionParentheses;
+        }
+
+        public void setConditionParentheses(String conditionParentheses) {
+            this.conditionParentheses = conditionParentheses;
         }
 
         public Map<String, String> getDataTypes() {

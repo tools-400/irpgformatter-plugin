@@ -26,6 +26,7 @@ public final class PreviewComments {
     public static final String REMOVE_END_PROC_NAME = "// Remove end-proc name.";
     public static final String UNINDENT_COMPILER_DIRECTIVES = "// Unindent compiler directives.";
     public static final String FORMAT_CALCULATIONS = "// Format calculations.";
+    public static final String CONDITION_PARENTHESES = "// Outer parentheses of conditions.";
     public static final String REMOVE_EMPTY_COMMENT_LINES = "// Remove empty comment lines.";
     public static final String REMOVE_EMPTY_LINES_BEFORE_DCL_PI = "// Remove empty comment lines before dcl-pi.";
 
