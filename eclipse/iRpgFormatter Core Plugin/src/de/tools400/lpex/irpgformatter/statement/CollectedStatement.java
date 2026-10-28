@@ -30,6 +30,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     private List<String> embeddedComments;
     private boolean isComplete;
     private boolean leftTrimNextLine;
+    private boolean hasEmbeddedDirectives;
 
     private boolean insideLiteral;
     private StringBuilder statement;
@@ -123,11 +124,25 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         if (isSingleLineStatement(line)) {
             appendLineSegment(line);
             setStatementComplete();
+        } else if (!insideLiteral && isCompilerDirective(line)) {
+            // /IF, /ELSEIF, /ELSE and /ENDIF may appear within a free-form
+            // declaration. The directive must keep its line, therefore it is
+            // not added to the statement.
+            hasEmbeddedDirectives = true;
         } else {
             if (!StringUtils.isNullOrEmpty(line)) {
                 buildStatement(line);
             }
         }
+    }
+
+    /**
+     * Returns <code>true</code>, if the statement contains compiler directives
+     * between its lines, such as <code>/IF</code> ... <code>/ENDIF</code>
+     * within a <code>DCL-S</code> statement.
+     */
+    public boolean hasEmbeddedDirectives() {
+        return hasEmbeddedDirectives;
     }
 
     public String getStatement() {

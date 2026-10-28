@@ -1,0 +1,406 @@
+/*******************************************************************************
+ * Copyright (c) 2026 Thomas Raddatz
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Common Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/cpl-v10.html
+ *******************************************************************************/
+
+package de.tools400.lpex.irpgformatter.test;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.input.TextLinesInput;
+
+/**
+ * Unit tests for sources with conditional compilation (<code>/IF</code>,
+ * <code>/ELSE</code>, <code>/ENDIF</code>, <code>/DEFINE</code>) and
+ * <code>/COPY</code> directives.
+ * <p>
+ * The formatter neither evaluates conditions nor resolves copy members. The
+ * formatted source must compile to the same program as the original source,
+ * whatever branch the compiler selects. Therefore every compiler directive must
+ * keep a line of its own, and the lines of all branches must be formatted
+ * alike.
+ * </p>
+ */
+public class ConditionalCompilationTest extends AbstractTestCase {
+
+    private static int MAX_LINE_LENGTH = 90;
+
+    /** A compiler directive that follows other text on the same line. */
+    private static final Pattern MERGED_DIRECTIVE = Pattern
+        .compile("(?i).*\\S\\s+/(if|elseif|else|endif|define|undefine|copy|include|eof)\\b.*");
+
+    private RpgleFormatter formatter;
+
+    @Override
+    @Before
+    public void setUp() {
+        super.setUp();
+
+        formatter = new RpgleFormatter();
+        formatter.setSourceLength(MAX_LINE_LENGTH);
+    }
+
+    // ----------------------------------------------------------------------
+    // Alternative statements in the branches of /IF ... /ELSE ... /ENDIF
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_alternativeExtprocOfPrototype_alreadyFormatted_unchanged() throws RpgleFormatterException {
+
+        // Taken from LOG4RPG
+        // @formatter:off
+        String[] source = new String[] {
+            "//  Custom appender ...",
+            "//  ... prototye: new, returns TRUE on success else FALSE",
+            "/if defined(DEFINE_PROCPTR)",
+            "dcl-pr SrvPgmAppender_new ind extproc(g_pAppender_new);",
+            "/else",
+            "dcl-pr SrvPgmAppender_new ind extproc('SrvPgmAppender_new');",
+            "/endif",
+            "  i_pSuper   like(LOG4RPG_pAppender_t) const;",
+            "  io_pHandle pointer;",
+            "  i_propList like(LOG4RPG_pPropertyList_t) const;",
+            "  i_prefix   like(LOG4RPG_prefix_t) const;",
+            "end-pr;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertArrayEquals(source, result);
+    }
+
+    @Test
+    public void format_alternativePrototypeHeaders_formatsBothBranches() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "//  Custom appender ...",
+            "/if defined(DEFINE_PROCPTR)",
+            "DCL-PR SrvPgmAppender_new IND ExtProc( g_pAppender_new );",
+            "/else",
+            "DCL-PR SrvPgmAppender_new IND ExtProc( 'SrvPgmAppender_new' );",
+            "/endif",
+            "  i_pSuper   LIKE( LOG4RPG_pAppender_t ) CONST;",
+            "  io_pHandle POINTER;",
+            "END-PR;",
+            "DCL-S after INT( 10 );"
+        );
+        // @formatter:on
+
+        assertEquals(10, result.length);
+        assertEquals("//  Custom appender ...", result[0]);
+        assertEquals("/if defined(DEFINE_PROCPTR)", result[1]);
+        assertEquals("dcl-pr SrvPgmAppender_new ind extproc(g_pAppender_new);", result[2]);
+        assertEquals("/else", result[3]);
+        assertEquals("dcl-pr SrvPgmAppender_new ind extproc('SrvPgmAppender_new');", result[4]);
+        assertEquals("/endif", result[5]);
+        assertEquals("  i_pSuper   like(LOG4RPG_pAppender_t) const;", result[6]);
+        assertEquals("  io_pHandle pointer;", result[7]);
+        assertEquals("end-pr;", result[8]);
+        assertEquals("dcl-s after int(10);", result[9]);
+    }
+
+    @Test
+    public void format_alternativeProcedureHeaders_formatsBothBranches() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/if defined(X)",
+            "DCL-PROC p EXPORT;",
+            "/else",
+            "DCL-PROC p;",
+            "/endif",
+            "  DCL-PI *n IND;",
+            "  END-PI;",
+            "  DCL-S v INT( 10 );",
+            "  RETURN *ON;",
+            "END-PROC;",
+            "DCL-S after INT( 10 );"
+        );
+        // @formatter:on
+
+        assertEquals(11, result.length);
+        assertEquals("/if defined(X)", result[0]);
+        assertEquals("dcl-proc p export;", result[1]);
+        assertEquals("/else", result[2]);
+        assertEquals("dcl-proc p;", result[3]);
+        assertEquals("/endif", result[4]);
+        assertEquals("  dcl-pi *n ind;", result[5]);
+        assertEquals("  end-pi;", result[6]);
+        assertEquals("  dcl-s v int(10);", result[7]);
+        assertEquals("  RETURN *ON;", result[8]); // ignored by the formatter
+        assertEquals("end-proc;", result[9]);
+        assertEquals("dcl-s after int(10);", result[10]);
+    }
+
+    @Test
+    public void format_alternativeIfHeaders_keepsDirectives() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] source = new String[] {
+            "/if defined(X)",
+            "if a = 1;",
+            "/else",
+            "if a = 2;",
+            "/endif",
+            "  b = 1;",
+            "endif;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertDirectivesPreserved(source, result);
+    }
+
+    // ----------------------------------------------------------------------
+    // Conditional lines and /COPY inside a block
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_conditionalParameter_formatsAllParameters() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PR p2 IND;",
+            "  a INT( 10 );",
+            "/if defined(X)",
+            "  b INT( 10 );",
+            "/endif",
+            "  c INT( 10 );",
+            "END-PR;"
+        );
+        // @formatter:on
+
+        assertEquals(7, result.length);
+        assertEquals("dcl-pr p2 ind;", result[0]);
+        assertEquals("  a int(10);", result[1]);
+        assertEquals("/if defined(X)", result[2]);
+        assertEquals("  b int(10);", result[3]);
+        assertEquals("/endif", result[4]);
+        assertEquals("  c int(10);", result[5]);
+        assertEquals("end-pr;", result[6]);
+    }
+
+    @Test
+    public void format_copyAndConditionalSubfieldInDs_formatsAllSubfields() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-DS myDs QUALIFIED;",
+            "  f1 CHAR( 10 );",
+            "  /copy qcpysrc,dsfields",
+            "/if defined(X)",
+            "  f2 INT( 10 );",
+            "/endif",
+            "END-DS;"
+        );
+        // @formatter:on
+
+        assertEquals(7, result.length);
+        assertEquals("dcl-ds myDs qualified;", result[0]);
+        assertEquals("  f1 char(10);", result[1]);
+        assertEquals("/copy qcpysrc,dsfields", result[2]); // unindent compiler directives
+        assertEquals("/if defined(X)", result[3]);
+        assertEquals("  f2 int(10);", result[4]);
+        assertEquals("/endif", result[5]);
+        assertEquals("end-ds;", result[6]);
+    }
+
+    // ----------------------------------------------------------------------
+    // Compiler directives inside a statement
+    //
+    // The ILE RPG Reference ("Conditional Directives Within a Free-Form
+    // Statement") allows /IF, /ELSEIF, /ELSE and /ENDIF within any free-form
+    // statement other than a calculation statement (RNF0714), provided that
+    // the whole conditional group lies within the statement.
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_directivesInsidePrototypeHeader_keepsDirectives() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-PR p3 IND",
+            "/if defined(X)",
+            "  ExtProc( 'P3X' )",
+            "/else",
+            "  ExtProc( 'P3' )",
+            "/endif",
+            "  ;",
+            "  p INT( 10 );",
+            "END-PR;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertDirectivesPreserved(source, result);
+    }
+
+    @Test
+    public void format_directivesInsideStandaloneField_keepsDirectives() throws RpgleFormatterException {
+
+        // Valid example of the ILE RPG Reference
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-S name",
+            "  /IF DEFINED(TRUE)",
+            "    CHAR(10)",
+            "  /ELSE",
+            "    VARCHAR(10)",
+            "  /ENDIF",
+            " ;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertDirectivesPreserved(source, result);
+    }
+
+    @Test
+    public void format_directivesInsideParameter_keepsDirectivesAndFormatsOtherParameters() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-PI *n;",
+            "  name",
+            "    /IF DEFINED(TRUE)",
+            "      CHAR(10)",
+            "    /ELSE",
+            "      VARCHAR(10)",
+            "    /ENDIF",
+            "    CONST;",
+            "  other INT( 10 ) CONST;",
+            "END-PI;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertDirectivesPreserved(source, result);
+        assertEquals(10, result.length);
+        assertEquals("dcl-pi *n;", result[0]);
+        assertEquals("  other int(10) const;", result[8]);
+        assertEquals("end-pi;", result[9]);
+    }
+
+    // ----------------------------------------------------------------------
+    // Statements split between a copy member and the source
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_prototypeHeaderInCopyMember_keepsParametersUnchanged() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/copy qcpysrc,prhead",
+            "  a INT( 10 );",
+            "  b INT( 10 );",
+            "END-PR;",
+            "DCL-S x INT( 10 );",
+            "DCL-PR p4 IND;",
+            "  y INT( 10 );",
+            "END-PR;"
+        );
+        // @formatter:on
+
+        assertEquals(8, result.length);
+        assertEquals("/copy qcpysrc,prhead", result[0]);
+        assertEquals("  a INT( 10 );", result[1]); // header unknown
+        assertEquals("  b INT( 10 );", result[2]); // header unknown
+        assertEquals("end-pr;", result[3]);
+        assertEquals("dcl-s x int(10);", result[4]);
+        assertEquals("dcl-pr p4 ind;", result[5]);
+        assertEquals("  y int(10);", result[6]);
+        assertEquals("end-pr;", result[7]);
+    }
+
+    @Test
+    public void format_copyMemberWithSubfieldsOnly_unchanged() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] source = new String[] {
+            "  f1 CHAR( 10 );",
+            "  f2 INT( 10 );"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertArrayEquals(source, result);
+    }
+
+    @Test
+    public void format_copyMemberWithIncludeGuard_formatsPrototype() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/if not defined(LOG4RPG_PROTOS)",
+            "/define LOG4RPG_PROTOS",
+            "DCL-PR p1 IND;",
+            "  a INT( 10 );",
+            "END-PR;",
+            "/endif"
+        );
+        // @formatter:on
+
+        assertEquals(6, result.length);
+        assertEquals("/if not defined(LOG4RPG_PROTOS)", result[0]);
+        assertEquals("/define LOG4RPG_PROTOS", result[1]);
+        assertEquals("dcl-pr p1 ind;", result[2]);
+        assertEquals("  a int(10);", result[3]);
+        assertEquals("end-pr;", result[4]);
+        assertEquals("/endif", result[5]);
+    }
+
+    // ----------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------
+
+    private String[] format(String... source) throws RpgleFormatterException {
+        return formatter.format(new TextLinesInput(source), 0).toLines();
+    }
+
+    /**
+     * Asserts that the formatted source contains the compiler directives of the
+     * original source in the same order, each on a line of its own.
+     */
+    private void assertDirectivesPreserved(String[] source, String[] result) {
+
+        assertEquals("Compiler directives", getDirectives(source), getDirectives(result));
+
+        for (String line : result) {
+            assertFalse("Compiler directive merged into a statement: " + line, MERGED_DIRECTIVE.matcher(line).matches());
+        }
+    }
+
+    private List<String> getDirectives(String[] lines) {
+
+        List<String> directives = new ArrayList<>();
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.matches("/[a-zA-Z].*")) {
+                directives.add(trimmed.toLowerCase());
+            }
+        }
+
+        return directives;
+    }
+}
