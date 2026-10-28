@@ -217,6 +217,7 @@ built-in functions and special words of the calculations are formatted in the sa
 - Calculations are indented by the nesting of their blocks, see [Calculations](#calculations).
 
 ```rpgle
+**FREE
 dcl-ds customer qualified;
   custId char(10);
   name   char(50);
@@ -237,6 +238,7 @@ Calculations are indented by the nesting of their blocks: `IF`, `DOW`, `DOU`, `F
 - If a line would exceed the end column, the statement is left unchanged and reported as an error.
 
 ```rpgle
+**FREE
 dcl-proc p;
   if a = 1;
     x = 1;
@@ -274,6 +276,7 @@ the IBM settings of the page **Free-form SQL Formatting**:
 **Example (Formatting on):**
 
 ```rpgle
+**FREE
 exec sql
   select name,
          city
@@ -301,6 +304,7 @@ When **Align sub-fields/parameters** is on (default), the keywords after the nam
 column, computed from the longest name in the block.
 
 ```rpgle
+**FREE
 // Align sub-fields/parameters on:
 dcl-ds customer qualified;
   custId       char(10);
@@ -320,6 +324,7 @@ A statement, that exceeds the IBM setting **End column**, is wrapped: the line i
 continues on the next line one indent level deeper.
 
 ```rpgle
+**FREE
 // Before:
 dcl-pr myPrototype extproc('MODULE_myPrototype') opdesc;
 
@@ -336,6 +341,7 @@ When a single name or literal does not fit on a line:
 - **Literals** are broken with `+` (leading blanks of the next line are skipped) or `-` (leading blanks are kept).
 
 ```rpgle
+**FREE
 dcl-c LONG_MESSAGE 'This is a very long constant message that '+
   'continues to the next line';
 ```
@@ -371,6 +377,7 @@ selects the form:
 A DCL-PI outside of a DCL-PROC is never changed.
 
 ```rpgle
+**FREE
 dcl-proc myProc;
   dcl-pi *n;
     parm1 char(10);
@@ -403,6 +410,7 @@ formatter continues with the blocks that are open at the end of the first branch
 are formatted correctly:
 
 ```rpgle
+**FREE
 /if defined(DEFINE_PROCPTR)
 dcl-pr SrvPgmLayout_new ind extproc(g_pLayout_new);
 /else
@@ -426,6 +434,7 @@ end-pr;
 Comment lines with `@formatter:off` and `@formatter:on` exclude parts of a source from formatting:
 
 ```rpgle
+**FREE
 // @formatter:off
 dcl-s   myVar1   char(10);     // not formatted
 dcl-s   myVar2   char(20);     // not formatted
@@ -450,6 +459,7 @@ With **Remove empty comment lines**, each empty comment line `//` is replaced by
 - Lines within an ILEDoc block (between two `///` lines) and within `@formatter:off` regions are never changed.
 
 ```rpgle
+**FREE
 // Before:
 dcl-c MY_CONST '123';
 //
@@ -473,6 +483,7 @@ With **Remove empty lines before dcl-pi**, empty lines and empty comment lines `
 removed, such as the gap between `dcl-proc` and `dcl-pi`:
 
 ```rpgle
+**FREE
 // Before:
 dcl-proc f_isIfsDir;
   //
