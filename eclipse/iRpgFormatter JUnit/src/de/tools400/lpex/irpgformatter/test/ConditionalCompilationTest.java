@@ -169,6 +169,103 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     }
 
     // ----------------------------------------------------------------------
+    // Block structure of the branches
+    //
+    // Each branch starts with the blocks that are open at /IF. After /ENDIF
+    // the formatter continues with the blocks that are open at the end of the
+    // first branch.
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_alternativeInterfaceHeadersInsideProcedure_indentsLikeOneHeader() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "/if defined(X)",
+            "  DCL-PI *n IND;",
+            "/else",
+            "  DCL-PI *n IND OPDESC;",
+            "/endif",
+            "    a INT( 10 );",
+            "  END-PI;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals(9, result.length);
+        assertEquals("dcl-proc p;", result[0]);
+        assertEquals("/if defined(X)", result[1]);
+        assertEquals("  dcl-pi *n ind;", result[2]);
+        assertEquals("/else", result[3]);
+        assertEquals("  dcl-pi *n ind opdesc;", result[4]);
+        assertEquals("/endif", result[5]);
+        assertEquals("    a int(10);", result[6]);
+        assertEquals("  end-pi;", result[7]);
+        assertEquals("end-proc;", result[8]);
+    }
+
+    @Test
+    public void format_nestedConditionalGroups_indentsLikeOneHeader() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = format(
+            "/if defined(A)",
+            "/if defined(B)",
+            "DCL-PR p IND EXTPROC( 'AB' );",
+            "/else",
+            "DCL-PR p IND EXTPROC( 'A' );",
+            "/endif",
+            "/else",
+            "DCL-PR p IND;",
+            "/endif",
+            "  x INT( 10 );",
+            "END-PR;",
+            "DCL-S after INT( 10 );"
+        );
+        // @formatter:on
+
+        assertEquals(12, result.length);
+        assertEquals("dcl-pr p ind extproc('AB');", result[2]);
+        assertEquals("dcl-pr p ind extproc('A');", result[4]);
+        assertEquals("dcl-pr p ind;", result[7]);
+        assertEquals("  x int(10);", result[9]);
+        assertEquals("end-pr;", result[10]);
+        assertEquals("dcl-s after int(10);", result[11]);
+    }
+
+    @Test
+    public void format_directivesOfGroupInsideBlock_getIndentOfIf() throws RpgleFormatterException {
+
+        formatter.getConfig().setUnindentCompilerDirectives(false);
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "/if defined(X)",
+            "DCL-PR q IND EXTPROC( 'X' );",
+            "/else",
+            "DCL-PR q IND;",
+            "/endif",
+            "a INT( 10 );",
+            "END-PR;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals(9, result.length);
+        assertEquals("dcl-proc p;", result[0]);
+        assertEquals("  /if defined(X)", result[1]);
+        assertEquals("  dcl-pr q ind extproc('X');", result[2]);
+        assertEquals("  /else", result[3]);
+        assertEquals("  dcl-pr q ind;", result[4]);
+        assertEquals("  /endif", result[5]);
+        assertEquals("    a int(10);", result[6]);
+        assertEquals("  end-pr;", result[7]);
+        assertEquals("end-proc;", result[8]);
+    }
+
+    // ----------------------------------------------------------------------
     // Conditional lines and /COPY inside a block
     // ----------------------------------------------------------------------
 

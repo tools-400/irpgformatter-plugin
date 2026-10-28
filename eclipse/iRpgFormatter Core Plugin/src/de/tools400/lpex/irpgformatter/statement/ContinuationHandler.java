@@ -77,9 +77,10 @@ public final class ContinuationHandler {
         CollectedStatement currentStatement = new CollectedStatement();
         currentStatement.setStartLineNumber(startLineNumber);
 
+        Stack<ConditionalGroup> conditionalGroups = new Stack<>();
+
         boolean haveOnlySingleLineStatements = false;
         boolean isAfterEof = false;
-        int conditionalGroupDepth = 0;
         for (int i = 0; i < sourceLines.length; i++) {
             String line = sourceLines[i];
 
@@ -97,33 +98,24 @@ public final class ContinuationHandler {
                     currentStatement.setAfterEof();
                 } else {
                     nestStatement(parents, currentStatement);
+
+                    if (currentStatement.getType() == StatementType.COMPILER_DIRECTIVE) {
+                        DirectiveType directiveType = DirectiveType.of(currentStatement.getStatement());
+                        nestConditionalGroup(conditionalGroups, parents, currentStatement, directiveType);
+
+                        // the compiler ignores all lines following an /EOF
+                        // directive outside of a conditional group
+                        if (directiveType == DirectiveType.EOF && conditionalGroups.isEmpty()) {
+                            isAfterEof = true;
+                            haveOnlySingleLineStatements = true;
+                        }
+                    }
                 }
 
                 // all statements following the first compile time array are
                 // single line statements by definition
                 if (currentStatement.getType() == StatementType.COMPILE_TIME_ARRAY) {
                     haveOnlySingleLineStatements = true;
-                }
-
-                // the compiler ignores all lines following an /EOF directive
-                // outside of a conditional group
-                if (currentStatement.getType() == StatementType.COMPILER_DIRECTIVE) {
-                    switch (DirectiveType.of(currentStatement.getStatement())) {
-                    case IF:
-                        conditionalGroupDepth++;
-                        break;
-                    case ENDIF:
-                        conditionalGroupDepth = Math.max(0, conditionalGroupDepth - 1);
-                        break;
-                    case EOF:
-                        if (conditionalGroupDepth == 0) {
-                            isAfterEof = true;
-                            haveOnlySingleLineStatements = true;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
                 }
 
                 // start a new statement
@@ -168,29 +160,6 @@ public final class ContinuationHandler {
         StatementType currentType = currentStatement.getType();
         if (currentType.isStartOfBLock()) {
 
-            // Experimental:
-            // Pop parent if statement type matches previous type.
-            // Actually we needed an Abstract Syntax Tree (AST) for
-            // correct source formatting in order to have cleanly
-            // identified statements, if the developer uses includes and
-            // conditional compiling. This fix at least makes the
-            // following statement work:
-            // @formatter:off
-            //   /If DEFINED (DEFINE_PROCPTR)
-            //   Dcl-Pr SrvPgmFilter_delete Ind
-            //     ExtProc(g_pFilter_delete);
-            //   /Else
-            //     Dcl-Pr SrvPgmFilter_delete Ind
-            //     ExtProc('SrvPgmFilter_delete');
-            //   /Endif
-            //     io_pHandle Pointer;
-            //   End-Pr;
-            // @formatter:on
-
-            if (parents.peek() != null && parents.peek().getType() == currentType) {
-                parents.pop();
-            }
-
             int indent = parents.size() - 1;
             currentStatement.setIndentLevel(indent);
             parents.push(currentStatement);
@@ -212,6 +181,47 @@ public final class ContinuationHandler {
             }
             int indent = parents.size() - 1;
             currentStatement.setIndentLevel(indent);
+        }
+    }
+
+    /**
+     * Starts each branch of a conditional group with the blocks that are open
+     * at its <code>/IF</code> directive and continues after the
+     * <code>/ENDIF</code> directive with the blocks that are open at the end of
+     * the first branch. All directives of a group get the indent level of the
+     * <code>/IF</code> directive. Directives without a matching
+     * <code>/IF</code> directive are ignored.
+     *
+     * @param conditionalGroups the conditional groups that enclose the
+     *        directive
+     * @param parents the blocks that enclose the directive
+     * @param directive the compiler directive
+     * @param directiveType the type of the compiler directive
+     */
+    private static void nestConditionalGroup(Stack<ConditionalGroup> conditionalGroups, Stack<CollectedStatement> parents,
+        CollectedStatement directive, DirectiveType directiveType) {
+
+        switch (directiveType) {
+        case IF:
+            conditionalGroups.push(new ConditionalGroup(directive.getIndentLevel(), parents));
+            break;
+        case ELSEIF:
+        case ELSE:
+            if (!conditionalGroups.isEmpty()) {
+                ConditionalGroup group = conditionalGroups.peek();
+                group.startNextBranch(parents);
+                directive.setIndentLevel(group.getIndentLevel());
+            }
+            break;
+        case ENDIF:
+            if (!conditionalGroups.isEmpty()) {
+                ConditionalGroup group = conditionalGroups.pop();
+                group.end(parents);
+                directive.setIndentLevel(group.getIndentLevel());
+            }
+            break;
+        default:
+            break;
         }
     }
 }

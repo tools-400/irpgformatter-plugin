@@ -1627,6 +1627,31 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertTrue(result[3].trim().startsWith("/copy"));
     }
 
+    @Test
+    public void format_nestedDataStructure() throws RpgleFormatterException {
+
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "DCL-DS info QUALIFIED;",
+            "  num INT( 10 );",
+            "  DCL-DS name;",
+            "    first VARCHAR( 10 );",
+            "  END-DS name;",
+            "  zip CHAR( 5 );",
+            "END-DS;"
+        ),0).toLines();
+        // @formatter:on
+
+        assertEquals(7, result.length);
+        assertEquals("dcl-ds info qualified;", result[0]);
+        assertEquals("  num int(10);", result[1]);
+        assertEquals("  dcl-ds name;", result[2]);
+        assertEquals("    first varchar(10);", result[3]);
+        assertEquals("  end-ds name;", result[4]);
+        assertEquals("  zip char(5);", result[5]);
+        assertEquals("end-ds;", result[6]);
+    }
+
     private String buildStatement(String[] result) throws RpgleFormatterException {
 
         CollectedStatement statement = new CollectedStatement();
