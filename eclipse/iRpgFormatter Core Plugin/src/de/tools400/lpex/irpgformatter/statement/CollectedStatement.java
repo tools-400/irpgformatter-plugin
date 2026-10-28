@@ -17,6 +17,7 @@ import de.tools400.lpex.irpgformatter.formatter.CannotAddLineSegmentException;
 import de.tools400.lpex.irpgformatter.formatter.IncompleteStatementException;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.formatter.UnexpectedStatementTypeException;
+import de.tools400.lpex.irpgformatter.parser.DirectiveType;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
 import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
@@ -163,7 +164,7 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
         if (isSingleLineStatement(line)) {
             appendLineSegment(line);
             setStatementComplete();
-        } else if (!insideLiteral && !insideSqlBlockComment && isCompilerDirective(line)) {
+        } else if (!insideLiteral && !insideSqlBlockComment && isConditionalDirective(line)) {
             // /IF, /ELSEIF, /ELSE and /ENDIF may appear within a free-form
             // declaration. The directive must keep its line, therefore it is
             // not added to the statement.
@@ -273,12 +274,32 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     /**
-     * Returns <code>true</code> for a compiler directive: a slash followed by
-     * a letter. A line, that starts with a slash otherwise, such as an SQL
-     * comment or a division, continues the statement.
+     * Returns <code>true</code> for a compiler directive at the start of a
+     * statement: a slash followed by a letter.
      */
     private boolean isCompilerDirective(String line) {
         return StatementType.COMPILER_DIRECTIVE.pattern().matcher(line).find();
+    }
+
+    /**
+     * Returns <code>true</code> for a directive of a conditional group, that
+     * appears between the lines of a statement: <code>/IF</code>,
+     * <code>/ELSEIF</code>, <code>/ELSE</code> or <code>/ENDIF</code>. Any
+     * other line, that starts with a slash, continues the statement, such as
+     * an SQL comment or a division like <code>/count;</code>, which the
+     * compiler accepts as well.
+     */
+    private boolean isConditionalDirective(String line) {
+
+        switch (DirectiveType.of(line)) {
+        case IF:
+        case ELSEIF:
+        case ELSE:
+        case ENDIF:
+            return true;
+        default:
+            return false;
+        }
     }
 
     private boolean isCompileTimeArray(String line) {

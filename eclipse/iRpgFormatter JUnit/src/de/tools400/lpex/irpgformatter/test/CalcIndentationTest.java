@@ -403,6 +403,33 @@ public class CalcIndentationTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_continuedLineStartingWithDivision_isNotADirective() throws RpgleFormatterException {
+
+        // The compiler takes "/count" in front of a name for a division.
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "if total > 0;",
+            "result = total",
+            "         /count;",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "dcl-proc p;",
+            "  if total > 0;",
+            "    result = total",
+            "             /count;",
+            "  endif;",
+            "end-proc;"
+        }, result);
+        // @formatter:on
+    }
+
+    @Test
     public void format_execSql_shiftsContinuedLines() throws RpgleFormatterException {
 
         // @formatter:off
