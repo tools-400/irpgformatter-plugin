@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.lpex.irpgformatter.core.feature"
       label="iRpgFormatter"
-      version="1.0.7.r"
+      version="2.0.0.b001"
       provider-name="Tools/400">
 
    <description url="https://tools-400.github.io/irpgformatter/">
