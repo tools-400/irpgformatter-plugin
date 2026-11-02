@@ -12,7 +12,10 @@ How the plug-in works and how it is built. For its use, see [README.md](README.m
   * `iRpgFormatter Update Site` builds the update site.
   * `iRpgFormatter JUnit` and `Lpex Menu Extension JUnit` are plain Java projects with the unit tests, see [Tests](#tests).
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.0.13 and later.
-* Launch configurations for German, English, Italian and Dutch: `eclipse/iRpgFormatter Core Plugin/launches`.
+* Launch configurations for German, English, Italian and Dutch: one project per RDi version,
+  `eclipse/iRpgFormatter Launches (RDi 9.6)`, `(RDi 9.8)` and `(RDi 9.9)`, because the selected bundles depend on the
+  version. Import only the project of the running RDi version, then *Run Configurations* does not show the
+  configurations of the other versions.
 * Release: `build/iRpgFormatter Build/build/build.xml` (the same script as the other tools-400 plug-ins, settings in
   `build.properties`). The home page is `build/iRpgFormatter Homepage`.
 
