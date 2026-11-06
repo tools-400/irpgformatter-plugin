@@ -1634,6 +1634,19 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_copyDirective_textBehindMemberUnchanged() throws RpgleFormatterException {
+        String[] result = formatter
+            .format(new TextLinesInput("**free", "      /COPY QCOPYLE,QMHSNDPM                       Send Program Message (QMHSNDPM) API"), 0)
+            .toLines();
+        assertEquals(2, result.length);
+        assertTrue(result[1], result[1].endsWith("QCOPYLE,QMHSNDPM Send Program Message (QMHSNDPM) API"));
+
+        // a second run does not change it again
+        String[] again = formatter.format(new TextLinesInput(result), 0).toLines();
+        assertArrayEquals(result, again);
+    }
+
+    @Test
     public void format_compilerDirective_indented_whenPreferenceDisabled() throws RpgleFormatterException {
         formatter.getConfig().setUnindentCompilerDirectives(false);
         String[] result = formatter

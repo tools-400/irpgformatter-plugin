@@ -131,4 +131,44 @@ public class FormatCompilerDirectiveRuleTest extends AbstractTestCase {
         FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
         assertEquals("/ENDIF", rule.format("/endif"));
     }
+
+    // --- text behind the operand of /copy, /include, /define, /title ---
+
+    @Test
+    public void copy_textBehindMember_unchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWERCASE);
+        assertEquals("/copy QCOPYLE,QUSRJOBI Retrieve Job Information (QUSRJOBI) API",
+            rule.format("/COPY QCOPYLE,QUSRJOBI                       Retrieve Job Information (QUSRJOBI) API"));
+    }
+
+    @Test
+    public void copy_textWithColon_unchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWERCASE);
+        assertEquals("/copy QBASICS1,PBASICS1 SrvPgm: Basics 1", rule.format("/COPY QBASICS1,PBASICS1                      SrvPgm: Basics 1"));
+    }
+
+    @Test
+    public void copy_textWithKeywords_unchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/COPY QCPYSRC,TYPES Defined(X), not used: Like and Const",
+            rule.format("/copy QCPYSRC,TYPES  Defined(X), not used: Like and Const"));
+    }
+
+    @Test
+    public void include_ifsPathWithBlanksAndText_unchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/INCLUDE '/home/my dir/inc.rpgleinc' Types (V2)", rule.format("/include '/home/my dir/inc.rpgleinc'   Types (V2)"));
+    }
+
+    @Test
+    public void define_textBehindName_unchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/DEFINE internal_prototype Prototype (internal)", rule.format("/define internal_prototype   Prototype (internal)"));
+    }
+
+    @Test
+    public void title_textUnchanged() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/TITLE Peek/400: Display (Main)", rule.format("/title Peek/400: Display (Main)"));
+    }
 }
