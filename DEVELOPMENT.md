@@ -18,6 +18,9 @@ How the plug-in works and how it is built. For its use, see [README.md](README.m
   configurations of the other versions.
 * Release: `build/iRpgFormatter Build/build/build.xml` (the same script as the other tools-400 plug-ins, settings in
   `build.properties`). The home page is `build/iRpgFormatter Homepage`.
+* Tags: pushing a commit to `main`, that sets a release version (`x.y.z.r`) in `build.version`, tags this commit with
+  `vx.y.z.r` (`.github/workflows/tag-release.yml`). The repository `irpgformatter` tags its commit `Release vx.y.z.r.` and
+  creates the GitHub release the same way, when the update site ZIP is pushed.
 
 ## Architecture
 
