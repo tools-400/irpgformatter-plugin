@@ -9,6 +9,8 @@
 package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -95,6 +97,47 @@ public class FormattedResultTest extends AbstractTestCase {
 
         // Line 99 is beyond source -> returns last line of target
         assertEquals(2, source.mapLineTo(99, target));
+    }
+
+    @Test
+    public void isChanged_sameLines() {
+
+        FormattedResult result = new FormattedResult(new FormattedStatement[] { stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1") },
+            new String[] { "A1", "A2", "B1" });
+
+        assertFalse(result.isChanged());
+    }
+
+    @Test
+    public void isChanged_changedLine() {
+
+        FormattedResult result = new FormattedResult(new FormattedStatement[] { stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1") },
+            new String[] { "A1", "a2", "B1" });
+
+        assertTrue(result.isChanged());
+    }
+
+    @Test
+    public void isChanged_addedLine() {
+
+        FormattedResult result = new FormattedResult(new FormattedStatement[] { stmt(1, 1, "A1", "A2"), stmt(2, 1, "B1") },
+            new String[] { "A1", "B1" });
+
+        assertTrue(result.isChanged());
+    }
+
+    @Test
+    public void isChanged_removedLine() {
+
+        FormattedResult result = new FormattedResult(new FormattedStatement[] { stmt(1, 2, "A1"), stmt(3, 1, "B1") },
+            new String[] { "A1", "A2", "B1" });
+
+        assertTrue(result.isChanged());
+    }
+
+    @Test
+    public void isChanged_withoutSourceLines() {
+        assertTrue(result(stmt(1, 1, "A1")).isChanged());
     }
 
     // -- helpers --

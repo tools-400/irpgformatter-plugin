@@ -10,6 +10,7 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -81,6 +82,21 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  dcl-ds myStructure likeds(refStruct_t);", line[11]);
         assertEquals("  Return *Null;", line[12]); // calculations are indented only
         assertEquals("end-proc;", line[13]);
+    }
+
+    // --- format - changed or unchanged source ---
+
+    @Test
+    public void format_unformattedSource_isChanged() throws RpgleFormatterException {
+        assertTrue(formatter.format(new TextLinesInput("Dcl-S myPointer Pointer;", "Return;"), 0).isChanged());
+    }
+
+    @Test
+    public void format_formattedSource_isNotChanged() throws RpgleFormatterException {
+
+        String[] formatted = formatter.format(new TextLinesInput("Dcl-S myPointer Pointer;", "Return;"), 0).toLines();
+
+        assertFalse(formatter.format(new TextLinesInput(formatted), 0).isChanged());
     }
 
     // --- format - basic functionality ---

@@ -175,7 +175,7 @@ public class RpgleFormatter implements ILineNumberProvider {
             IRpgleFormatterPlugin.logError(Messages.Error_Not_free_format, null);
             String[] sourceLines = input.getSourceLines();
             return new FormattedResult(
-                new FormattedStatement[] { new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines) });
+                new FormattedStatement[] { new FormattedStatement(input.getStartLineNumber(), sourceLines.length, sourceLines) }, sourceLines);
         }
 
         errors.clear();
@@ -265,7 +265,7 @@ public class RpgleFormatter implements ILineNumberProvider {
                 .add(new FormattedStatement(currentStatement.getStartLineNumber(), currentStatement.numLines(), stmtOutput.toArray(new String[0])));
         }
 
-        return new FormattedResult(results.toArray(new FormattedStatement[0]));
+        return new FormattedResult(results.toArray(new FormattedStatement[0]), inputLines);
     }
 
     /**

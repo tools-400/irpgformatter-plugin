@@ -165,15 +165,20 @@ public abstract class AbstractFormatJob<T> extends Job {
         FormattedResult result = formatter.format(input, defaultIndent);
         formatter.logUnexpectedErrors(getPath(source));
 
-        monitor.subTask(Messages.SubTask_Writing);
-        IRpgleOutput output = input.getOutput();
-        if (output.writeSourceLines(result)) {
-            formattedCount++;
-            if (formatter.getErrorCount() > 0 || formatter.getWarningCount() > 0) {
-                statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorAndWarningMessages()));
+        // A source, whose lines stay the same, is not written, so that its
+        // change date and the dates of its lines stay the same, too.
+        if (result.isChanged()) {
+            monitor.subTask(Messages.SubTask_Writing);
+            IRpgleOutput output = input.getOutput();
+            if (!output.writeSourceLines(result)) {
+                errors.add(new SourceError(getPath(source), Messages.Error_Could_not_format_member));
+                return;
             }
-        } else {
-            errors.add(new SourceError(getPath(source), Messages.Error_Could_not_format_member));
+        }
+
+        formattedCount++;
+        if (formatter.getErrorCount() > 0 || formatter.getWarningCount() > 0) {
+            statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorAndWarningMessages()));
         }
     }
 

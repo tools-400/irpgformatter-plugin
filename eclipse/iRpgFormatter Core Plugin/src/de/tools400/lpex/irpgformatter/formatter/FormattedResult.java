@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.formatter;
 
+import java.util.Arrays;
+
 /**
  * Wraps the array of {@link FormattedStatement}s produced by the formatter and
  * provides convenience methods for flat-line access.
@@ -15,13 +17,44 @@ package de.tools400.lpex.irpgformatter.formatter;
 public class FormattedResult {
 
     private final FormattedStatement[] statements;
+    private final String[] sourceLines;
 
+    /**
+     * Creates a result without the source lines. It counts as changed.
+     */
     public FormattedResult(FormattedStatement[] statements) {
+        this(statements, null);
+    }
+
+    /**
+     * Creates a result of the given source lines.
+     *
+     * @param statements - the formatted statements
+     * @param sourceLines - the source lines, that were formatted
+     */
+    public FormattedResult(FormattedStatement[] statements, String[] sourceLines) {
         this.statements = statements;
+        this.sourceLines = sourceLines;
     }
 
     public FormattedStatement[] getStatements() {
         return statements;
+    }
+
+    /**
+     * Tells, whether the formatted lines differ from the source lines. A result
+     * without source lines counts as changed.
+     *
+     * @return <code>true</code>, if a line was changed, added or removed,
+     *         otherwise <code>false</code>
+     */
+    public boolean isChanged() {
+
+        if (sourceLines == null) {
+            return true;
+        }
+
+        return !Arrays.equals(sourceLines, toLines());
     }
 
     /**
