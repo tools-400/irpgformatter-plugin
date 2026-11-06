@@ -80,6 +80,11 @@ LPEX has no general pre-save hook in RDi 9.8: `LpexAbstractTextEditor.performSav
 `LpexViewListener.saving()`. `Preload` therefore registers an `IExecutionListener` for the commands
 `org.eclipse.ui.file.save` and `org.eclipse.ui.file.saveAll`. Saving an editor, when it is closed, is not covered.
 
+### Format jobs
+
+RDi's `QSYSEditableRemoteSourceFileMember.download()` ends the monitor, that it gets. `AbstractFormatJob` therefore gives
+each source a `SubMonitor` of its own.
+
 ## Rules
 
 * `rules/statements`: rules that change the tokens of a declaration (`IStatementRule`) and rules that work on the list of

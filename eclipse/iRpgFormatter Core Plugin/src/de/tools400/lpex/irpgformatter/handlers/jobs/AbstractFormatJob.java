@@ -14,6 +14,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.rse.services.clientserver.messages.SystemMessageException;
@@ -46,7 +47,6 @@ public abstract class AbstractFormatJob<T> extends Job {
     private RpgleFormatter formatter;
     private IFormatPostRun postRun;
 
-    private IProgressMonitor monitor;
     private List<IErrorObject> errors;
     private int formattedCount;
     private List<ErrorGroup> statementErrors;
@@ -90,24 +90,25 @@ public abstract class AbstractFormatJob<T> extends Job {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
 
-        this.monitor = monitor;
+        SubMonitor progress = SubMonitor.convert(monitor, Messages.Job_Formatting, sources.length);
 
         boolean canceled = false;
         try {
 
-            monitor.beginTask(Messages.Job_Formatting, sources.length);
-
             for (T source : sources) {
 
-                if (monitor.isCanceled()) {
+                if (progress.isCanceled()) {
                     canceled = true;
                     break;
                 }
 
-                monitor.setTaskName(getPath(source));
-                executeFormatter(source);
+                progress.setTaskName(getPath(source));
 
-                monitor.worked(1);
+                // Each source gets a monitor of its own, because RDi ends the
+                // monitor, with which it downloads a member. With the monitor
+                // of the job, the progress would vanish after the first
+                // member.
+                executeFormatter(source, progress.newChild(1, SubMonitor.SUPPRESS_BEGINTASK | SubMonitor.SUPPRESS_SETTASKNAME));
             }
 
         } catch (BatchAbortedException e) {
@@ -132,7 +133,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         return Status.OK_STATUS;
     }
 
-    private void executeFormatter(T source) throws BatchAbortedException {
+    private void executeFormatter(T source, IProgressMonitor monitor) throws BatchAbortedException {
 
         try {
 
@@ -146,7 +147,7 @@ public abstract class AbstractFormatJob<T> extends Job {
             if (validationError != null) {
                 errors.add(new SourceError(getPath(source), validationError));
             } else {
-                executeFormatter(source, input);
+                executeFormatter(source, input, monitor);
             }
 
         } catch (BatchAbortedException e) {
@@ -156,7 +157,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         }
     }
 
-    private void executeFormatter(T source, IRpgleInput input) throws Exception {
+    private void executeFormatter(T source, IRpgleInput input, IProgressMonitor monitor) throws Exception {
 
         formatter.setSourceLength(getSourceLength(source));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
