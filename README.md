@@ -585,6 +585,10 @@ If a source cannot be formatted at all, the message line of the editor shows the
 
 The plug-in is available in English, German, Italian and Dutch.
 
+## Liability
+
+This software is free and provided without warranty. You use it at your own risk: test it with non-critical data first, and back up your data before you use it. The [license](LICENSE) applies in addition.
+
 ## See Also
 
 - [iRPGFormatter web site](https://tools-400.github.io/irpgformatter/)
