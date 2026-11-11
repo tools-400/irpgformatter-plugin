@@ -6,25 +6,25 @@ How the plug-in works and how it is built. For its use, see [README.md](README.m
 
 * Clone the repository into the RDi workspace. The target platform is the running platform (RDi).
 * Projects in `eclipse`:
-  * `iRpgFormatter Core Plugin` with `iRpgFormatter Core Feature` is the product.
+  * `iRPGFormatter Core Plugin` with `iRPGFormatter Core Feature` is the product.
   * `Lpex Menu Extension Plugin` adds menu entries and actions to the LPEX editors. The core plug-in requires it
     (`de.tools400.lpex.menuextension.plugin`, `[1.1.0,2.0.0)`).
-  * `iRpgFormatter Update Site` builds the update site.
-  * `iRpgFormatter JUnit` and `Lpex Menu Extension JUnit` are plain Java projects with the unit tests, see [Tests](#tests).
+  * `iRPGFormatter Update Site` builds the update site.
+  * `iRPGFormatter JUnit` and `Lpex Menu Extension JUnit` are plain Java projects with the unit tests, see [Tests](#tests).
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.0.13 and later.
 * Launch configurations for German, English, Italian and Dutch: one project per RDi version,
-  `eclipse/iRpgFormatter Launches (RDi 9.6)`, `(RDi 9.8)` and `(RDi 9.9)`, because the selected bundles depend on the
+  `eclipse/iRPGFormatter Launches (RDi 9.6)`, `(RDi 9.8)` and `(RDi 9.9)`, because the selected bundles depend on the
   version. Import only the project of the running RDi version, then *Run Configurations* does not show the
   configurations of the other versions.
-* Release: `build/iRpgFormatter Build/build/build.xml` (the same script as the other tools-400 plug-ins, settings in
-  `build.properties`). The home page is `build/iRpgFormatter Homepage`.
+* Release: `build/iRPGFormatter Build/build/build.xml` (the same script as the other tools-400 plug-ins, settings in
+  `build.properties`). The home page is `build/iRPGFormatter Homepage`.
 * Tags: pushing a commit to `main`, that sets a release version (`x.y.z.r`) in `build.version`, tags this commit with
   `vx.y.z.r` (`.github/workflows/tag-release.yml`). The repository `irpgformatter` tags its commit `Release vx.y.z.r.` and
   creates the GitHub release the same way, when the update site ZIP is pushed.
 
 ## Architecture
 
-All classes are below `de.tools400.lpex.irpgformatter` in `iRpgFormatter Core Plugin`.
+All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Plugin`.
 
 | Package                    | Role                                                                                                   |
 | -------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -177,13 +177,13 @@ correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
 
 ## Tests
 
-* `iRpgFormatter JUnit`: JUnit 4, *Run As > JUnit Test* in RDi. The tests extend `AbstractTestCase`, which switches
+* `iRPGFormatter JUnit`: JUnit 4, *Run As > JUnit Test* in RDi. The tests extend `AbstractTestCase`, which switches
   `PreferenceStoreProvider` to its test mode; they do not need OSGi.
 * Outside of RDi (`org.junit.runner.JUnitCore`), the classpath needs the classes and `resources` of the core plug-in and the
   bundles of RDi. `com.ibm.ibmi.sql.parser` and `lpg.runtime` contain nested jars (`runtime/sql.tools.jar`,
   `runtime/sqlparser.jar`, `lpgruntime.jar`), which have to be extracted. Without them `EmbeddedSqlTest` fails, because
   `AcsSqlFormatter` falls back as in RDi 9.6.
-* Code coverage: see `eclipse/iRpgFormatter JUnit/CODE_COVERAGE.md`.
+* Code coverage: see `eclipse/iRPGFormatter JUnit/CODE_COVERAGE.md`.
 
 ## Verified facts
 

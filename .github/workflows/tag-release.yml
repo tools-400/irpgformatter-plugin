@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'build/iRpgFormatter Build/build/build.properties'
+      - 'build/iRPGFormatter Build/build/build.properties'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -35,7 +35,7 @@ jobs:
       - name: Tag the release
         shell: bash
         env:
-          PROPERTIES: 'build/iRpgFormatter Build/build/build.properties'
+          PROPERTIES: 'build/iRPGFormatter Build/build/build.properties'
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
           set -euo pipefail
