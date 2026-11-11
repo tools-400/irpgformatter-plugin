@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.tools400.lpex.irpgformatter.core.feature"
-      label="iRpgFormatter"
+      label="iRPGFormatter"
       version="2.0.1.r"
       provider-name="Tools/400">
 
@@ -20,7 +20,7 @@ this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html
    </license>
 
    <url>
-      <update label="iRpgFormatter - Remote Update Site" url="https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/"/>
+      <update label="iRPGFormatter - Remote Update Site" url="https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/"/>
    </url>
 
    <plugin

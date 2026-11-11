@@ -10,7 +10,7 @@ Further information is available on the [iRPGFormatter web site](https://tools-4
 iRPGFormatter requires RDi 9.6.0.13 or later.
 
 1. Select **Help > Install New Software...** in RDi.
-2. Enter the update site `https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/` and select **iRpgFormatter**.
+2. Enter the update site `https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/` and select **iRPGFormatter**.
 3. Finish the wizard and restart RDi.
 
 iRPGFormatter is available on the [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/), too.
@@ -62,8 +62,8 @@ unchanged. No message is shown.
 
 ## Preferences
 
-Open **Window > Preferences > iRpgFormatter**. This page leads to the preference page of iRPGFormatter at
-**Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG > iRpgFormatter**, next to the IBM formatter settings.
+Open **Window > Preferences > iRPGFormatter**. This page leads to the preference page of iRPGFormatter at
+**Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG > iRPGFormatter**, next to the IBM formatter settings.
 
 The preview at the bottom of the page shows the effect of the settings immediately. Its colors follow the RDi theme.
 
