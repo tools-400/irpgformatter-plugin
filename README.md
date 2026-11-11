@@ -1,4 +1,4 @@
-# iRPGFormatter Plug-in
+# iRPGFormatter
 
 iRPGFormatter is a plug-in for IBM Rational Developer for i (RDi), that formats fully free-form ILE RPG sources: the control
 options, the declarations, the calculations, the comments and the embedded SQL statements.
