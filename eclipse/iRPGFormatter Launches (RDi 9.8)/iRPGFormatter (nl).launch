@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.pde.ui.RuntimeWorkbench">
     <booleanAttribute key="append.args" value="true"/>
     <booleanAttribute key="askclear" value="true"/>
-    <booleanAttribute key="automaticAdd" value="true"/>
+    <booleanAttribute key="automaticAdd" value="false"/>
     <booleanAttribute key="automaticValidate" value="true"/>
     <stringAttribute key="bootstrap" value=""/>
     <stringAttribute key="checked" value="[NONE]"/>
@@ -11,48 +11,7 @@
     <booleanAttribute key="clearwslog" value="false"/>
     <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/iRPGFormatter (nl)"/>
     <booleanAttribute key="default" value="false"/>
-    <setAttribute key="deselected_workspace_bundles">
-        <setEntry value="OpenClosedProjects"/>
-        <setEntry value="OpenClosedProjectsExtension"/>
-        <setEntry value="biz.isphere.antcontrib"/>
-        <setEntry value="biz.isphere.base.help"/>
-        <setEntry value="biz.isphere.comparefilters"/>
-        <setEntry value="biz.isphere.core.help"/>
-        <setEntry value="biz.isphere.development"/>
-        <setEntry value="biz.isphere.joblogexplorer"/>
-        <setEntry value="biz.isphere.joblogexplorer.help"/>
-        <setEntry value="biz.isphere.joblogexplorer.rse"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.core"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.help"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.rse"/>
-        <setEntry value="biz.isphere.journalexplorer.base"/>
-        <setEntry value="biz.isphere.journalexplorer.core"/>
-        <setEntry value="biz.isphere.journalexplorer.help"/>
-        <setEntry value="biz.isphere.journalexplorer.rse"/>
-        <setEntry value="biz.isphere.lpex.comments"/>
-        <setEntry value="biz.isphere.lpex.comments.help"/>
-        <setEntry value="biz.isphere.lpex.tasks"/>
-        <setEntry value="biz.isphere.lpex.tasks.help"/>
-        <setEntry value="biz.isphere.messagesubsystem"/>
-        <setEntry value="biz.isphere.messagesubsystem.help"/>
-        <setEntry value="biz.isphere.messagesubsystem.rse"/>
-        <setEntry value="biz.isphere.rcp"/>
-        <setEntry value="biz.isphere.strpreprc"/>
-        <setEntry value="biz.isphere.strpreprc.help"/>
-        <setEntry value="biz.isphere.tn5250j.help"/>
-        <setEntry value="biz.rapidfire.core"/>
-        <setEntry value="biz.rapidfire.help"/>
-        <setEntry value="biz.rapidfire.rse"/>
-        <setEntry value="biz.rapidfire.rsebase"/>
-        <setEntry value="com.jcrcmds.base"/>
-        <setEntry value="com.jcrcmds.base.rse"/>
-        <setEntry value="com.jcrcmds.core"/>
-        <setEntry value="de.tools400.rpgunit.cmone"/>
-        <setEntry value="de.tools400.rpgunit.core"/>
-        <setEntry value="de.tools400.rpgunit.core.help"/>
-        <setEntry value="de.tools400.rpgunit.isphere"/>
-        <setEntry value="de.tools400.rpgunit.spooledfileviewer"/>
-    </setAttribute>
+    <setAttribute key="deselected_workspace_bundles"/>
     <booleanAttribute key="includeOptional" value="true"/>
     <stringAttribute key="location" value="${workspace_loc}/../runtime-iRPGFormatter-nl"/>
     <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
@@ -826,9 +785,16 @@
         <setEntry value="biz.isphere.tn5250j.base@default:default"/>
         <setEntry value="biz.isphere.tn5250j.core@default:default"/>
         <setEntry value="biz.isphere.tn5250j.rse@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.compile.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.compile.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.cplcas.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.cplcas.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
-        <setEntry value="de.tools400.java.scoped.variables.core@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.strpreprc.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.strpreprc.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.irpgformatter.core.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.menuextension.plugin@default:default"/>
         <setEntry value="org.eclipse.albireo.core@default:default"/>

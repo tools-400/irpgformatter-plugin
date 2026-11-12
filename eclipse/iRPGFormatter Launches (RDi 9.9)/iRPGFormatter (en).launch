@@ -2,7 +2,7 @@
 <launchConfiguration type="org.eclipse.pde.ui.RuntimeWorkbench">
     <booleanAttribute key="append.args" value="true"/>
     <booleanAttribute key="askclear" value="true"/>
-    <booleanAttribute key="automaticAdd" value="true"/>
+    <booleanAttribute key="automaticAdd" value="false"/>
     <booleanAttribute key="automaticValidate" value="true"/>
     <stringAttribute key="bootstrap" value=""/>
     <stringAttribute key="checked" value="[NONE]"/>
@@ -11,55 +11,16 @@
     <booleanAttribute key="clearwslog" value="false"/>
     <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/iRPGFormatter (en)"/>
     <booleanAttribute key="default" value="false"/>
-    <setAttribute key="deselected_workspace_bundles">
-        <setEntry value="OpenClosedProjects"/>
-        <setEntry value="OpenClosedProjectsExtension"/>
-        <setEntry value="biz.isphere.antcontrib"/>
-        <setEntry value="biz.isphere.base.help"/>
-        <setEntry value="biz.isphere.comparefilters"/>
-        <setEntry value="biz.isphere.core.help"/>
-        <setEntry value="biz.isphere.development"/>
-        <setEntry value="biz.isphere.joblogexplorer"/>
-        <setEntry value="biz.isphere.joblogexplorer.help"/>
-        <setEntry value="biz.isphere.joblogexplorer.rse"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.core"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.help"/>
-        <setEntry value="biz.isphere.jobtraceexplorer.rse"/>
-        <setEntry value="biz.isphere.journalexplorer.base"/>
-        <setEntry value="biz.isphere.journalexplorer.core"/>
-        <setEntry value="biz.isphere.journalexplorer.help"/>
-        <setEntry value="biz.isphere.journalexplorer.rse"/>
-        <setEntry value="biz.isphere.lpex.comments"/>
-        <setEntry value="biz.isphere.lpex.comments.help"/>
-        <setEntry value="biz.isphere.lpex.tasks"/>
-        <setEntry value="biz.isphere.lpex.tasks.help"/>
-        <setEntry value="biz.isphere.messagesubsystem"/>
-        <setEntry value="biz.isphere.messagesubsystem.help"/>
-        <setEntry value="biz.isphere.messagesubsystem.rse"/>
-        <setEntry value="biz.isphere.rcp"/>
-        <setEntry value="biz.isphere.strpreprc"/>
-        <setEntry value="biz.isphere.strpreprc.help"/>
-        <setEntry value="biz.isphere.tn5250j.help"/>
-        <setEntry value="biz.rapidfire.core"/>
-        <setEntry value="biz.rapidfire.help"/>
-        <setEntry value="biz.rapidfire.rse"/>
-        <setEntry value="biz.rapidfire.rsebase"/>
-        <setEntry value="com.jcrcmds.base"/>
-        <setEntry value="com.jcrcmds.base.rse"/>
-        <setEntry value="com.jcrcmds.core"/>
-        <setEntry value="de.tools400.rpgunit.cmone"/>
-        <setEntry value="de.tools400.rpgunit.core"/>
-        <setEntry value="de.tools400.rpgunit.core.help"/>
-        <setEntry value="de.tools400.rpgunit.isphere"/>
-        <setEntry value="de.tools400.rpgunit.spooledfileviewer"/>
-    </setAttribute>
+    <setAttribute key="deselected_workspace_bundles"/>
     <booleanAttribute key="includeOptional" value="true"/>
     <stringAttribute key="location" value="${workspace_loc}/../runtime-iRPGFormatter-en"/>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
     <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
         <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
         <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
     </listAttribute>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_ATTR_USE_ARGFILE" value="false"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
     <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java_17"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl en -consoleLog"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
@@ -314,6 +275,7 @@
         <setEntry value="jakarta.inject.jakarta.inject-api@default:default"/>
         <setEntry value="jakarta.interceptor-api@default:default"/>
         <setEntry value="jakarta.servlet-api@default:default"/>
+        <setEntry value="jakarta.servlet@default:default"/>
         <setEntry value="jakarta.transaction-api@default:default"/>
         <setEntry value="jakarta.xml.bind-api@default:default"/>
         <setEntry value="jakarta.xml.bind@default:default"/>
@@ -384,6 +346,9 @@
         <setEntry value="org.apache.felix.gogo.shell@default:default"/>
         <setEntry value="org.apache.felix.scr@1:true"/>
         <setEntry value="org.apache.httpcomponents.client5.httpclient5-win@default:default"/>
+        <setEntry value="org.apache.httpcomponents.client5.httpclient5@default:default"/>
+        <setEntry value="org.apache.httpcomponents.core5.httpcore5-h2@default:default"/>
+        <setEntry value="org.apache.httpcomponents.core5.httpcore5@default:default"/>
         <setEntry value="org.apache.httpcomponents.httpclient@default:default"/>
         <setEntry value="org.apache.httpcomponents.httpcore@default:default"/>
         <setEntry value="org.apache.lucene.analysis-common@default:default"/>
@@ -408,6 +373,9 @@
         <setEntry value="org.eclipse.ant.launching@default:default"/>
         <setEntry value="org.eclipse.ant.ui.nl1@default:false"/>
         <setEntry value="org.eclipse.ant.ui@default:default"/>
+        <setEntry value="org.eclipse.cdt.core.native@default:default"/>
+        <setEntry value="org.eclipse.cdt.core.win32.x86_64@default:default"/>
+        <setEntry value="org.eclipse.cdt.core.win32@default:default"/>
         <setEntry value="org.eclipse.cdt.core@default:default"/>
         <setEntry value="org.eclipse.cdt.sdk@default:default"/>
         <setEntry value="org.eclipse.compare.core.nl1@default:false"/>
@@ -474,6 +442,8 @@
         <setEntry value="org.eclipse.e4.emf.xpath.nl1@default:false"/>
         <setEntry value="org.eclipse.e4.emf.xpath@default:default"/>
         <setEntry value="org.eclipse.e4.tools.emf.ui@default:default"/>
+        <setEntry value="org.eclipse.e4.tools.services.nl1@default:default"/>
+        <setEntry value="org.eclipse.e4.tools.services@default:default"/>
         <setEntry value="org.eclipse.e4.ui.bindings.nl1@default:false"/>
         <setEntry value="org.eclipse.e4.ui.bindings@default:default"/>
         <setEntry value="org.eclipse.e4.ui.css.core.nl1@default:false"/>
@@ -728,6 +698,7 @@
         <setEntry value="org.eclipse.jdt.junit4.runtime.nl1@default:false"/>
         <setEntry value="org.eclipse.jdt.junit4.runtime@default:default"/>
         <setEntry value="org.eclipse.jdt.junit5.runtime.nl1@default:false"/>
+        <setEntry value="org.eclipse.jdt.junit5.runtime@default:default"/>
         <setEntry value="org.eclipse.jdt.junit@default:default"/>
         <setEntry value="org.eclipse.jdt.launching.nl1@default:false"/>
         <setEntry value="org.eclipse.jdt.launching@default:default"/>
@@ -766,6 +737,7 @@
         <setEntry value="org.eclipse.jface.databinding@default:default"/>
         <setEntry value="org.eclipse.jface.nl1@default:false"/>
         <setEntry value="org.eclipse.jface.notifications.nl1@default:false"/>
+        <setEntry value="org.eclipse.jface.notifications@default:default"/>
         <setEntry value="org.eclipse.jface.text.nl1@default:false"/>
         <setEntry value="org.eclipse.jface.text@default:default"/>
         <setEntry value="org.eclipse.jface@default:default"/>
@@ -903,6 +875,7 @@
         <setEntry value="org.eclipse.pde.launching@default:default"/>
         <setEntry value="org.eclipse.pde.runtime.nl1@default:false"/>
         <setEntry value="org.eclipse.pde.runtime@default:default"/>
+        <setEntry value="org.eclipse.pde.spy.core@default:default"/>
         <setEntry value="org.eclipse.pde.spy.model@default:default"/>
         <setEntry value="org.eclipse.pde.ua.core@default:default"/>
         <setEntry value="org.eclipse.pde.ua.ui@default:default"/>
@@ -997,9 +970,13 @@
         <setEntry value="org.eclipse.team.ui@default:default"/>
         <setEntry value="org.eclipse.text@default:default"/>
         <setEntry value="org.eclipse.tips.core.nl1@default:false"/>
+        <setEntry value="org.eclipse.tips.core@default:default"/>
         <setEntry value="org.eclipse.tips.ide.nl1@default:false"/>
+        <setEntry value="org.eclipse.tips.ide@default:default"/>
         <setEntry value="org.eclipse.tips.json.nl1@default:false"/>
+        <setEntry value="org.eclipse.tips.json@default:default"/>
         <setEntry value="org.eclipse.tips.ui.nl1@default:false"/>
+        <setEntry value="org.eclipse.tips.ui@default:default"/>
         <setEntry value="org.eclipse.tm.terminal.nl1@default:false"/>
         <setEntry value="org.eclipse.tm.terminal.ssh@default:default"/>
         <setEntry value="org.eclipse.tm.terminal.telnet@default:default"/>
@@ -1010,6 +987,7 @@
         <setEntry value="org.eclipse.tm4e.registry@default:default"/>
         <setEntry value="org.eclipse.tm4e.ui@default:default"/>
         <setEntry value="org.eclipse.tools.layout.spy.nl1@default:false"/>
+        <setEntry value="org.eclipse.tools.layout.spy@default:default"/>
         <setEntry value="org.eclipse.tools.templates.core@default:default"/>
         <setEntry value="org.eclipse.tools.templates.ui@default:default"/>
         <setEntry value="org.eclipse.ui.browser.nl1@default:false"/>
@@ -1194,13 +1172,19 @@
         <setEntry value="biz.isphere.core@default:default"/>
         <setEntry value="biz.isphere.ide@default:default"/>
         <setEntry value="biz.isphere.rse@default:default"/>
-        <setEntry value="biz.isphere.standalone@default:default"/>
         <setEntry value="biz.isphere.tn5250j.base@default:default"/>
         <setEntry value="biz.isphere.tn5250j.core@default:default"/>
         <setEntry value="biz.isphere.tn5250j.rse@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.buildcmd.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.compile.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.compile.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.cplcas.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.cplcas.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
-        <setEntry value="de.tools400.java.scoped.variables.core@default:default"/>
+        <setEntry value="de.tools400.ifsprojects.strpreprc.junit@default:false"/>
+        <setEntry value="de.tools400.ifsprojects.strpreprc.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.irpgformatter.core.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.menuextension.plugin@default:default"/>
         <setEntry value="org.eclipse.albireo.core@default:default"/>
