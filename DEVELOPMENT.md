@@ -1,6 +1,6 @@
 # iRPGFormatter – Developer notes
 
-How the plug-in works and how it is built. For its use, see [README.md](README.md).
+How the plug-in works and how it is built. For its use, see [USAGE.md](USAGE.md), for its installation [README.md](README.md).
 
 ## Setup
 
