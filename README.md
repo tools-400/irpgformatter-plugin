@@ -41,5 +41,5 @@ This software is free and provided without warranty. You use it at your own risk
 ## See Also
 
 - [iRPGFormatter web site](https://tools-400.github.io/irpgformatter/)
-- [Project page on GitHub](https://github.com/tools-400/irpgformatter-plugin)
+- [iRPGFormatter Update Site](https://github.com/tools-400/irpgformatter)
 - [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/)
