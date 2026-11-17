@@ -158,6 +158,58 @@ public class BreakNameOrLiteralTest extends AbstractTestCase {
         breakLiteral("", "const", 25, "", "");
     }
 
+    // --- hexadecimal and UCS-2 literals: behind a whole byte or character ---
+
+    /**
+     * 13 digits would fit into the first line, but only 12 are taken, so that
+     * the part does not end in the middle of a byte.
+     */
+    @Test
+    public void breakLiteral_hexBehindWholeByte() throws RpgleFormatterException {
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "x = x'C1C2C3C4C5C6+",
+            "  C7C8';" },
+            breakLiteral("x = ", "x'C1C2C3C4C5C6C7C8'", 20, "", ";"));
+        // @formatter:on
+    }
+
+    @Test
+    public void breakLiteral_ucs2BehindWholeCharacter() throws RpgleFormatterException {
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "x = U'004100420043+",
+            "  0044';" },
+            breakLiteral("x = ", "U'0041004200430044'", 20, "", ";"));
+        // @formatter:on
+    }
+
+    /**
+     * The continuation lines hold whole bytes, too: each one has room for 37
+     * digits, but only 36 are taken.
+     */
+    @Test
+    public void breakLiteral_hexContinuationLinesBehindWholeByte() throws RpgleFormatterException {
+
+        String digits = hexDigits(64);
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "x'" + digits.substring(0, 36) + "+",
+            "  " + digits.substring(36, 72) + "+",
+            "  " + digits.substring(72, 108) + "+",
+            "  " + digits.substring(108) + "'" },
+            breakLiteral("", "x'" + digits + "'", 40, "", ""));
+        // @formatter:on
+    }
+
+    @Test(expected = LineOverflowException.class)
+    public void breakLiteral_hexNoByteFits() throws RpgleFormatterException {
+        breakLiteral("", "x'C1C2C3'", 4, "", "");
+    }
+
     // --- no continuation character, that nothing continues ---
 
     /**
@@ -258,6 +310,19 @@ public class BreakNameOrLiteralTest extends AbstractTestCase {
         StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < length; i++) {
             buffer.append((char)('a' + i % 26));
+        }
+
+        return buffer.toString();
+    }
+
+    /**
+     * Returns the hexadecimal digits of the given number of bytes: 000102...
+     */
+    private String hexDigits(int bytes) {
+
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < bytes; i++) {
+            buffer.append(String.format("%02X", i));
         }
 
         return buffer.toString();

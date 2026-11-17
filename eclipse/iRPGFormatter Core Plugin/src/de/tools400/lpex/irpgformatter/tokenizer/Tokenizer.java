@@ -23,7 +23,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * <ul>
  * <li>DCL - DCL-*</li>
  * <li>NAME - myProcName</li>
- * <li>LITERAL - 'my literal'</li>
+ * <li>LITERAL - 'my literal', x'C1C2', u'00410042'</li>
  * <li>FUNCTION - function(...)</li>
  * <li>SPECIAL_WORD - function(parameter1: parameter2: literal: ...)</li>
  * </ul>
@@ -502,7 +502,7 @@ public class Tokenizer implements RpgleSourceConstants {
             return false;
         }
 
-        if (line.startsWith(SINGLE_QUOTE)) {
+        if (line.startsWith(SINGLE_QUOTE) || LiteralToken.getDigitsPerCharacter(line) > 0) {
             return true;
         }
 

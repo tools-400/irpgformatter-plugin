@@ -386,6 +386,32 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals(line, buildStatement(result));
     }
 
+    /**
+     * A hexadecimal constant, that is continued over several lines, is joined
+     * and split again behind whole bytes, instead of being reported as too long
+     * for the line. The parts are limited by the maximum name length of 60.
+     */
+    @Test
+    public void format_dclC_continuedHexLiteral() throws RpgleFormatterException {
+
+        formatter.setSourceLength(100);
+
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "dcl-c cLOW_ x'000102030405060708090A0B0C0D0E0F+",
+            "              101112131415161718191A1B1C1D1E1F+",
+            "              202122232425262728292A2B2C2D2E2F+",
+            "              303132333435363738393A3B3C3D3E3F';"), 0).toLines();
+
+        assertEquals(0, formatter.getErrorCount());
+        assertArrayEquals(new String[] {
+            "dcl-c cLOW_ x'000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C+",
+            "  1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A+",
+            "  3B3C3D3E3F';" },
+            result);
+        // @formatter:on
+    }
+
     @Test
     public void format_dclC_longName_and_literal() throws RpgleFormatterException {
 

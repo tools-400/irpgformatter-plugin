@@ -26,6 +26,7 @@ import de.tools400.lpex.irpgformatter.rules.statements.MaximumNameLengthRule;
 import de.tools400.lpex.irpgformatter.rules.statements.MinimumNameLengthRule;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
+import de.tools400.lpex.irpgformatter.tokenizer.LiteralToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
@@ -76,6 +77,25 @@ public class FormatterUtils implements RpgleSourceConstants {
             return findBreakpointInLiteral(text, maxLength);
         }
     };
+
+    /**
+     * Splits a hexadecimal or UCS-2 literal behind a whole byte or character,
+     * so that no part ends in the middle of one.
+     */
+    private static final class HexLiteralSplitter extends Splitter {
+
+        private final int digitsPerCharacter;
+
+        HexLiteralSplitter(int digitsPerCharacter) {
+            super(PLUS);
+            this.digitsPerCharacter = digitsPerCharacter;
+        }
+
+        @Override
+        int findBreakpoint(String text, int maxLength) {
+            return findBreakpointInHexLiteral(text, maxLength, digitsPerCharacter);
+        }
+    }
 
     public FormatterUtils(FormatterConfig config) {
         this.config = config;
@@ -490,7 +510,21 @@ public class FormatterUtils implements RpgleSourceConstants {
     }
 
     public String[] breakLiteral(String line, IToken token, int maxLineLength, String prefix, String suffix) throws RpgleFormatterException {
-        return breakNameOrLiteral(line, token, maxLineLength, prefix, suffix, LITERAL_SPLITTER);
+        return breakNameOrLiteral(line, token, maxLineLength, prefix, suffix, getLiteralSplitter(token));
+    }
+
+    /**
+     * Returns the splitter of a literal: a character literal is split at a
+     * blank, a hexadecimal or UCS-2 literal behind a whole byte or character.
+     */
+    private Splitter getLiteralSplitter(IToken token) {
+
+        int digitsPerCharacter = LiteralToken.getDigitsPerCharacter(token.getValue());
+        if (digitsPerCharacter > 0) {
+            return new HexLiteralSplitter(digitsPerCharacter);
+        }
+
+        return LITERAL_SPLITTER;
     }
 
     public String[] breakName(String line, IToken token, int maxLineLength, String prefix, String suffix) throws RpgleFormatterException {
@@ -655,6 +689,34 @@ public class FormatterUtils implements RpgleSourceConstants {
         }
 
         return maxLength;
+    }
+
+    /**
+     * Returns the length of the next part of a hexadecimal or UCS-2 literal,
+     * that holds whole bytes or characters only. The first part starts with
+     * the type and the opening quote, e.g. <code>x'</code>, the later parts
+     * start with the digits.
+     *
+     * @return the length of the part or 0, if not even one byte or character
+     *         fits into the part
+     */
+    private static int findBreakpointInHexLiteral(String literal, int maxLength, int digitsPerCharacter) {
+
+        if (literal.length() < maxLength) {
+            return literal.length();
+        }
+
+        int firstDigit = 0;
+        if (LiteralToken.getDigitsPerCharacter(literal) > 0) {
+            firstDigit = 2;
+        }
+
+        int digits = maxLength - firstDigit;
+        if (digits < digitsPerCharacter) {
+            return 0;
+        }
+
+        return firstDigit + digits - digits % digitsPerCharacter;
     }
 
     private int findBreakpointInName(String name, int maxLength) {

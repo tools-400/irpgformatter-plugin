@@ -54,6 +54,18 @@ public class TokenizerTest extends AbstractTestCase {
     }
 
     @Test
+    public void test_hexAndUcs2Literal() throws RpgleFormatterException {
+
+        IToken[] tokens = tokenizer.tokenize(" x'C1C2'   U'00410042' inz(X'40') ");
+        assertEquals(TokenType.LITERAL, tokens[0].getType());
+        assertEquals("x'C1C2'", tokens[0].getValue());
+        assertEquals(TokenType.LITERAL, tokens[1].getType());
+        assertEquals("U'00410042'", tokens[1].getValue());
+        assertEquals(TokenType.LITERAL, tokens[2].getChild(0).getType());
+        assertEquals("X'40'", tokens[2].getChild(0).getValue());
+    }
+
+    @Test
     public void test_function_keyword() throws RpgleFormatterException {
 
         IToken[] tokens = tokenizer.tokenize(" options( *string ) ");
