@@ -81,7 +81,10 @@ The package `problems` and the view `views.FormatterProblemsView` replace the er
   last batch job, the view shows it as its content description.
 * `ProblemFactory` builds the problems: `BlockStructureException` (lines unchanged, the source was not written), the errors
   and warnings of `RpgleFormatter` (lines mapped with `FormattedResult.getFormattedLineNumber()`, because the formatted lines
-  were written) and a single message without line.
+  were written), a single error without line and the message of `RpgleFormatter.validateInput()` (not free format,
+  unsupported source type) as an information (`Severity.INFORMATION`), because such a source is skipped, not wrong.
+* `ProblemSeverityFilter` hides the severities, that are switched off in the view menu **Show Severity**; the view keeps
+  the choice in its dialog settings (`hide.<SEVERITY>`) and shows the number of hidden entries in its content description.
 * `IProblemSource` opens a source: `MemberSource` (`QSYSEditableRemoteSourceFileMember.open`, connects an offline
   connection), `RemoteStreamFileSource` (`SystemEditableRemoteFile.open`), `WorkspaceFileSource` (`IDE.openEditor`),
   `LocalFileSource` (`IDE.openEditorOnFileStore`) and `EditorSource` (the LPEX view of the format action and of

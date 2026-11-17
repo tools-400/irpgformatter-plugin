@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -50,16 +52,21 @@ import de.tools400.lpex.irpgformatter.problems.IProblemSource;
 import de.tools400.lpex.irpgformatter.problems.ProblemNavigator;
 
 /**
- * Lists the errors and warnings of the sources, that were formatted, in the
- * editor, on save or several at once. A double-click opens the source and
- * goes to the line of the problem. Formatting a source again replaces its
- * problems.
+ * Lists the errors, warnings and informations of the sources, that were
+ * formatted, in the editor, on save or several at once. A double-click opens
+ * the source and goes to the line of the problem. Formatting a source again
+ * replaces its problems. The menu "Show Severity" of the view hides the
+ * problems of a severity; the choice is kept in the dialog settings.
  */
 public class FormatterProblemsView extends ViewPart implements IFormatterProblemsListener {
 
     public static final String ID = "de.tools400.lpex.irpgformatter.views.FormatterProblemsView"; //$NON-NLS-1$
 
+    private static final String SETTINGS_SECTION = "FormatterProblemsView"; //$NON-NLS-1$
+    private static final String SETTING_HIDE = "hide."; //$NON-NLS-1$
+
     private TableViewer viewer;
+    private ProblemSeverityFilter severityFilter;
     private Action goToAction;
     private Action copyAction;
     private Action selectAllAction;
@@ -123,9 +130,11 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
         // The listener refreshes later, with asyncExec.
         refresh();
 
-        List<FormatterProblem> problems = FormatterProblems.getInstance().getProblems(key);
-        if (!problems.isEmpty()) {
-            viewer.setSelection(new StructuredSelection(problems.get(0)), true);
+        for (FormatterProblem problem : FormatterProblems.getInstance().getProblems(key)) {
+            if (severityFilter.isVisible(problem)) {
+                viewer.setSelection(new StructuredSelection(problem), true);
+                return;
+            }
         }
     }
 
@@ -144,6 +153,10 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
 
         viewer.setContentProvider(ArrayContentProvider.getInstance());
 
+        severityFilter = new ProblemSeverityFilter();
+        loadSeverityFilter();
+        viewer.addFilter(severityFilter);
+
         // double-click or Enter
         viewer.addOpenListener(event -> goToSelectedProblem());
         viewer.addSelectionChangedListener(event -> updateActions());
@@ -151,6 +164,7 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
         createActions();
         createContextMenu();
         createToolBar();
+        createViewMenu();
 
         FormatterProblems.getInstance().addListener(this);
         refresh();
@@ -184,12 +198,36 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
             return;
         }
 
-        viewer.setInput(FormatterProblems.getInstance().getProblems());
+        List<FormatterProblem> problems = FormatterProblems.getInstance().getProblems();
+        viewer.setInput(problems);
+
+        updateContentDescription(problems);
+        updateActions();
+    }
+
+    /**
+     * Shows the result of the last formatting of several sources and, if the
+     * filter hides problems, their number, so that no problem disappears
+     * unnoticed.
+     */
+    private void updateContentDescription(List<FormatterProblem> problems) {
+
+        StringBuilder description = new StringBuilder();
 
         String summary = FormatterProblems.getInstance().getSummary();
-        setContentDescription(summary != null ? summary : ""); //$NON-NLS-1$
+        if (summary != null) {
+            description.append(summary);
+        }
 
-        updateActions();
+        int hiddenCount = severityFilter.countHidden(problems);
+        if (hiddenCount > 0) {
+            if (description.length() > 0) {
+                description.append(' ');
+            }
+            description.append(Messages.bind(Messages.Label_N_entries_hidden, hiddenCount));
+        }
+
+        setContentDescription(description.toString());
     }
 
     private void createColumn(String title, int width, Function<FormatterProblem, String> text, boolean withImage) {
@@ -209,9 +247,7 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
                 if (!withImage) {
                     return null;
                 }
-                String imageId = ((FormatterProblem)element).getSeverity() == Severity.ERROR ? ISharedImages.IMG_OBJS_ERROR_TSK
-                    : ISharedImages.IMG_OBJS_WARN_TSK;
-                return PlatformUI.getWorkbench().getSharedImages().getImage(imageId);
+                return PlatformUI.getWorkbench().getSharedImages().getImage(getImageId(((FormatterProblem)element).getSeverity()));
             }
         });
     }
@@ -289,6 +325,77 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
         toolBar.add(removeAllAction);
     }
 
+    /**
+     * Creates the menu "Show Severity" of the view, like in the view
+     * "Error List" of RDi.
+     */
+    private void createViewMenu() {
+
+        MenuManager severityMenu = new MenuManager(Messages.MenuItem_Show_Severity);
+        severityMenu.add(createSeverityAction(Severity.ERROR, Messages.Severity_Error));
+        severityMenu.add(createSeverityAction(Severity.WARNING, Messages.Severity_Warning));
+        severityMenu.add(createSeverityAction(Severity.INFORMATION, Messages.Severity_Information));
+
+        getViewSite().getActionBars().getMenuManager().add(severityMenu);
+    }
+
+    private Action createSeverityAction(Severity severity, String label) {
+
+        Action action = new Action(label, IAction.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                severityFilter.setVisible(severity, isChecked());
+                saveSeverityFilter();
+                viewer.refresh();
+                updateContentDescription(FormatterProblems.getInstance().getProblems());
+                updateActions();
+            }
+        };
+        action.setChecked(severityFilter.isVisible(severity));
+        action.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(getImageId(severity)));
+
+        return action;
+    }
+
+    private static String getImageId(Severity severity) {
+
+        switch (severity) {
+        case ERROR:
+            return ISharedImages.IMG_OBJS_ERROR_TSK;
+        case WARNING:
+            return ISharedImages.IMG_OBJS_WARN_TSK;
+        default:
+            return ISharedImages.IMG_OBJS_INFO_TSK;
+        }
+    }
+
+    private void loadSeverityFilter() {
+
+        IDialogSettings settings = getSettings();
+        for (Severity severity : Severity.values()) {
+            severityFilter.setVisible(severity, !settings.getBoolean(SETTING_HIDE + severity.name()));
+        }
+    }
+
+    private void saveSeverityFilter() {
+
+        IDialogSettings settings = getSettings();
+        for (Severity severity : Severity.values()) {
+            settings.put(SETTING_HIDE + severity.name(), !severityFilter.isVisible(severity));
+        }
+    }
+
+    private static IDialogSettings getSettings() {
+
+        IDialogSettings pluginSettings = IRpgleFormatterPlugin.getDefault().getDialogSettings();
+        IDialogSettings settings = pluginSettings.getSection(SETTINGS_SECTION);
+        if (settings == null) {
+            settings = pluginSettings.addNewSection(SETTINGS_SECTION);
+        }
+
+        return settings;
+    }
+
     private void updateActions() {
 
         boolean haveSelection = !viewer.getSelection().isEmpty();
@@ -298,7 +405,9 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
         copyAction.setEnabled(haveSelection);
         selectAllAction.setEnabled(haveProblems);
         removeAction.setEnabled(haveSelection);
-        removeAllAction.setEnabled(haveProblems || FormatterProblems.getInstance().getSummary() != null);
+        // also the problems, that the filter hides
+        boolean haveAnyProblems = !FormatterProblems.getInstance().getProblems().isEmpty();
+        removeAllAction.setEnabled(haveAnyProblems || FormatterProblems.getInstance().getSummary() != null);
     }
 
     private void goToSelectedProblem() {

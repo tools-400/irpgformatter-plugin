@@ -156,7 +156,7 @@ public abstract class AbstractFormatJob<T> extends Job {
 
             String validationError = RpgleFormatter.validateInput(input);
             if (validationError != null) {
-                reportNotFormatted(problemSource, ProblemFactory.fromMessage(problemSource, validationError));
+                reportNotFormatted(problemSource, ProblemFactory.fromValidation(problemSource, validationError));
             } else {
                 executeFormatter(source, problemSource, input, monitor);
             }

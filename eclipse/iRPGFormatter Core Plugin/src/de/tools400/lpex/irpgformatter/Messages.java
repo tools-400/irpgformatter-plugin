@@ -192,6 +192,11 @@ public class Messages extends NLS {
     public static String Action_Go_to;
     public static String Action_Remove;
     public static String Action_Remove_all;
+    public static String MenuItem_Show_Severity;
+    public static String Severity_Error;
+    public static String Severity_Warning;
+    public static String Severity_Information;
+    public static String Label_N_entries_hidden;
     public static String Error_Source_formatted_N_errors_first_on_line_A;
     public static String Warning_Source_formatted_N_warnings_first_on_line_A;
     public static String Error_Could_not_open_A_B;

@@ -553,8 +553,8 @@ iRPGFormatter recognizes the statements and the blocks of a source, but it does 
 
 ### Problems
 
-The formatter lists its errors and warnings in the view **iRPGFormatter Problems**, one line per problem with the message,
-the source and the line. In the editor, the message line tells the number of problems and the line of the first one, and
+The formatter lists its errors, warnings and informations in the view **iRPGFormatter Problems**, one line per problem with
+the message, the source and the line. In the editor, the message line tells the number of problems and the line of the first one, and
 the view is shown without taking the focus, with the first problem of the source selected. You can also open it with
 **Window > Show View > Other... > iRPGFormatter**.
 
@@ -563,8 +563,14 @@ the view is shown without taking the focus, with the first problem of the source
 - **Warnings**: The source is formatted, but the indentation after the reported line may be wrong.
 - **Source not formatted**: Each declaration block, that is not closed, is an error, e.g.
   `Error on line #196: DCL-DS SYNCIFSWRF is not closed before END-PROC of line #374.` The source stays unchanged.
-- **Formatting several sources**: Sources, that cannot be formatted at all, e.g. because they are not in `**FREE` format,
-  are listed without a line. The result of the formatting is shown above the problems.
+- **Informations**: A source, that is not in `**FREE` format, is skipped. This is no error of the source, so it is listed as
+  an information.
+- **Formatting several sources**: Sources, that cannot be formatted at all, e.g. because they cannot be read or are not in
+  `**FREE` format, are listed without a line. The result of the formatting is shown above the problems.
+
+The menu **Show Severity** of the view (the triangle in its title bar) shows or hides the errors, the warnings and the
+informations, e.g. the many sources in fixed format of a library. The view keeps the choice. If entries are hidden, their
+number is shown above the problems.
 
 Double-click a problem, or select it and press Enter, to open its source and go to its line. A source member or a stream
 file of the IFS is opened like in the **Remote Systems** view; an offline connection is connected. An open source is

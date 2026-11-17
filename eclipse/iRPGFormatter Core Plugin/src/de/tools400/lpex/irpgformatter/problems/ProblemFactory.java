@@ -75,6 +75,15 @@ public final class ProblemFactory {
         return Collections.singletonList(new FormatterProblem(source, Severity.ERROR, 0, message));
     }
 
+    /**
+     * Returns the message of {@link RpgleFormatter#validateInput}, e.g. of a
+     * source, that is not in free format. It is an information, because the
+     * source is not wrong, iRPGFormatter just skips it.
+     */
+    public static List<FormatterProblem> fromValidation(IProblemSource source, String message) {
+        return Collections.singletonList(new FormatterProblem(source, Severity.INFORMATION, 0, message));
+    }
+
     private static void addProblems(List<FormatterProblem> problems, IProblemSource source, Severity severity,
         List<FormatError> formatErrors, FormattedResult result) {
 

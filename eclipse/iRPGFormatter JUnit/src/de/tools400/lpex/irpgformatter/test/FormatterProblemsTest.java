@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +35,7 @@ import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
 import de.tools400.lpex.irpgformatter.problems.IFormatterProblemsListener;
 import de.tools400.lpex.irpgformatter.problems.IProblemSource;
 import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
+import de.tools400.lpex.irpgformatter.views.ProblemSeverityFilter;
 
 /**
  * Tests the problems of the view "iRPGFormatter Problems".
@@ -203,12 +205,56 @@ public class FormatterProblemsTest extends AbstractTestCase {
     }
 
     @Test
-    public void fromMessage_hasNoLineNumber() {
+    public void fromMessage_isErrorWithoutLineNumber() {
 
-        List<FormatterProblem> result = ProblemFactory.fromMessage(new Source("A"), "Source is not in **free format.");
+        List<FormatterProblem> result = ProblemFactory.fromMessage(new Source("A"), "Could not format member. See error log.");
 
         assertEquals(1, result.size());
+        assertEquals(Severity.ERROR, result.get(0).getSeverity());
         assertEquals(0, result.get(0).getLineNumber());
+    }
+
+    /**
+     * A source, that is not in free format, is not wrong. iRPGFormatter skips
+     * it, so it is an information.
+     */
+    @Test
+    public void fromValidation_isInformationWithoutLineNumber() {
+
+        List<FormatterProblem> result = ProblemFactory.fromValidation(new Source("A"), "Source is not in **free format.");
+
+        assertEquals(1, result.size());
+        assertEquals(Severity.INFORMATION, result.get(0).getSeverity());
+        assertEquals(0, result.get(0).getLineNumber());
+    }
+
+    @Test
+    public void severityFilter_showsAllSeveritiesAtFirst() {
+
+        ProblemSeverityFilter filter = new ProblemSeverityFilter();
+
+        for (Severity severity : Severity.values()) {
+            assertTrue(filter.isVisible(severity));
+        }
+    }
+
+    @Test
+    public void severityFilter_hidesSwitchedOffSeverity() {
+
+        Source a = new Source("A");
+        FormatterProblem error = error(a, 1);
+        FormatterProblem information = new FormatterProblem(a, Severity.INFORMATION, 0, "Source is not in **free format.");
+
+        ProblemSeverityFilter filter = new ProblemSeverityFilter();
+        filter.setVisible(Severity.INFORMATION, false);
+
+        assertTrue(filter.select(null, null, error));
+        assertFalse(filter.select(null, null, information));
+        assertEquals(2, filter.countHidden(Arrays.asList(error, information, information)));
+
+        filter.setVisible(Severity.INFORMATION, true);
+        assertTrue(filter.select(null, null, information));
+        assertEquals(0, filter.countHidden(Arrays.asList(error, information)));
     }
 
     private FormatterProblem error(IProblemSource source, int lineNumber) {

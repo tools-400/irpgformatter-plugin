@@ -9,14 +9,18 @@
 package de.tools400.lpex.irpgformatter.problems;
 
 /**
- * A problem of a source, that was formatted: an error or a warning with its
- * message and the line, to which the view goes.
+ * A problem of a source, that was formatted: an error, a warning or an
+ * information with its message and the line, to which the view goes.
  */
 public class FormatterProblem {
 
     public enum Severity {
+        /** A statement or the source could not be formatted. */
         ERROR,
-        WARNING;
+        /** The source was formatted, but the indentation may be wrong. */
+        WARNING,
+        /** The source was skipped, e.g. because it is not in free format. */
+        INFORMATION;
     }
 
     private final IProblemSource source;
