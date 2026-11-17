@@ -12,9 +12,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
-
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
 
@@ -22,8 +19,12 @@ import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
  * Hides the problems of the severities, that the user switched off in the menu
  * "Show Severity" of the view {@link FormatterProblemsView}, e.g. the sources,
  * that are not in free format. At first all severities are shown.
+ * <p>
+ * It does not extend <code>ViewerFilter</code>, so that the tests in the plain
+ * Java project "iRPGFormatter JUnit" do not need JFace; the view wraps it.
+ * </p>
  */
-public class ProblemSeverityFilter extends ViewerFilter {
+public class ProblemSeverityFilter {
 
     private final Set<Severity> visibleSeverities;
 
@@ -63,10 +64,5 @@ public class ProblemSeverityFilter extends ViewerFilter {
         }
 
         return count;
-    }
-
-    @Override
-    public boolean select(Viewer viewer, Object parentElement, Object element) {
-        return isVisible((FormatterProblem)element);
     }
 }

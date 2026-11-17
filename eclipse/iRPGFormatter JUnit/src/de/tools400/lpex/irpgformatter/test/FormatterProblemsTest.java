@@ -14,13 +14,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,11 +33,17 @@ import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
 import de.tools400.lpex.irpgformatter.problems.IFormatterProblemsListener;
 import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.LocalFileSource;
 import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
 import de.tools400.lpex.irpgformatter.views.ProblemSeverityFilter;
 
 /**
  * Tests the problems of the view "iRPGFormatter Problems".
+ * <p>
+ * The project "iRPGFormatter JUnit" is a plain Java project without the Eclipse
+ * bundles, so the tests must not use Eclipse types, e.g. by implementing
+ * {@link IProblemSource}.
+ * </p>
  */
 public class FormatterProblemsTest extends AbstractTestCase {
 
@@ -72,7 +76,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void replace_ordersProblemsOfSourceByLineNumber() {
 
-        Source a = new Source("A");
+        IProblemSource a = source("A");
         problems.replace(a, Arrays.asList(error(a, 20), error(a, 3), error(a, 10)));
 
         List<FormatterProblem> result = problems.getProblems();
@@ -86,8 +90,8 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void replace_keepsOrderOfSources() {
 
-        Source a = new Source("A");
-        Source b = new Source("B");
+        IProblemSource a = source("A");
+        IProblemSource b = source("B");
         problems.replace(a, Arrays.asList(error(a, 1)));
         problems.replace(b, Arrays.asList(error(b, 1)));
 
@@ -105,8 +109,8 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void replace_withoutProblemsRemovesSource() {
 
-        Source a = new Source("A");
-        Source b = new Source("B");
+        IProblemSource a = source("A");
+        IProblemSource b = source("B");
         problems.replace(a, Arrays.asList(error(a, 1)));
         problems.replace(b, Arrays.asList(error(b, 2)));
 
@@ -115,13 +119,13 @@ public class FormatterProblemsTest extends AbstractTestCase {
         List<FormatterProblem> result = problems.getProblems();
         assertEquals(1, result.size());
         assertSame(b, result.get(0).getSource());
-        assertTrue(problems.getProblems("A").isEmpty());
+        assertTrue(problems.getProblems(a.getKey()).isEmpty());
     }
 
     @Test
     public void replace_withoutProblemsOfUnknownSourceChangesNothing() {
 
-        problems.replace(new Source("A"), Collections.<FormatterProblem> emptyList());
+        problems.replace(source("A"), Collections.<FormatterProblem> emptyList());
 
         assertEquals(0, changeCount);
     }
@@ -129,13 +133,13 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void remove_removesTheGivenSources() {
 
-        Source a = new Source("A");
-        Source b = new Source("B");
+        IProblemSource a = source("A");
+        IProblemSource b = source("B");
         problems.replace(a, Arrays.asList(error(a, 1)));
         problems.replace(b, Arrays.asList(error(b, 2)));
         changeCount = 0;
 
-        problems.remove(Arrays.asList("A", "X"));
+        problems.remove(Arrays.asList(a.getKey(), "X"));
 
         assertEquals(1, problems.getProblems().size());
         assertEquals(1, changeCount);
@@ -147,7 +151,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void removeAll_removesProblemsAndSummary() {
 
-        Source a = new Source("A");
+        IProblemSource a = source("A");
         problems.replace(a, Arrays.asList(error(a, 1)));
         problems.setSummary("1 file formatted.");
 
@@ -160,7 +164,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void fromBlockStructureException_keepsLineNumbers() {
 
-        Source a = new Source("A");
+        IProblemSource a = source("A");
         BlockStructureException e = new BlockStructureException(new String[] { "first", "second" }, new int[] { 193, 195 });
 
         List<FormatterProblem> result = ProblemFactory.fromBlockStructureException(a, e);
@@ -197,7 +201,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
         assertEquals(4, formatter.getErrors().get(0).getStartLineNumber());
         assertEquals("// This comment has exactly 39 chars...", result.toLines()[4]);
 
-        Source a = new Source("A");
+        IProblemSource a = source("A");
         List<FormatterProblem> problemsOfA = ProblemFactory.fromFormatter(a, formatter, result);
 
         assertEquals(1, problemsOfA.size());
@@ -208,7 +212,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void fromMessage_isErrorWithoutLineNumber() {
 
-        List<FormatterProblem> result = ProblemFactory.fromMessage(new Source("A"), "Could not format member. See error log.");
+        List<FormatterProblem> result = ProblemFactory.fromMessage(source("A"), "Could not format member. See error log.");
 
         assertEquals(1, result.size());
         assertEquals(Severity.ERROR, result.get(0).getSeverity());
@@ -222,7 +226,7 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void fromValidation_isInformationWithoutLineNumber() {
 
-        List<FormatterProblem> result = ProblemFactory.fromValidation(new Source("A"), "Source is not in **free format.");
+        List<FormatterProblem> result = ProblemFactory.fromValidation(source("A"), "Source is not in **free format.");
 
         assertEquals(1, result.size());
         assertEquals(Severity.INFORMATION, result.get(0).getSeverity());
@@ -242,19 +246,19 @@ public class FormatterProblemsTest extends AbstractTestCase {
     @Test
     public void severityFilter_hidesSwitchedOffSeverity() {
 
-        Source a = new Source("A");
+        IProblemSource a = source("A");
         FormatterProblem error = error(a, 1);
         FormatterProblem information = new FormatterProblem(a, Severity.INFORMATION, 0, "Source is not in **free format.");
 
         ProblemSeverityFilter filter = new ProblemSeverityFilter();
         filter.setVisible(Severity.INFORMATION, false);
 
-        assertTrue(filter.select(null, null, error));
-        assertFalse(filter.select(null, null, information));
+        assertTrue(filter.isVisible(error));
+        assertFalse(filter.isVisible(information));
         assertEquals(2, filter.countHidden(Arrays.asList(error, information, information)));
 
         filter.setVisible(Severity.INFORMATION, true);
-        assertTrue(filter.select(null, null, information));
+        assertTrue(filter.isVisible(information));
         assertEquals(0, filter.countHidden(Arrays.asList(error, information)));
     }
 
@@ -262,32 +266,11 @@ public class FormatterProblemsTest extends AbstractTestCase {
         return new FormatterProblem(source, Severity.ERROR, lineNumber, "Error on line #" + lineNumber);
     }
 
-    private static class Source implements IProblemSource {
-
-        private final String key;
-
-        Source(String key) {
-            this.key = key;
-        }
-
-        @Override
-        public String getKey() {
-            return key;
-        }
-
-        @Override
-        public String getLabel() {
-            return key;
-        }
-
-        @Override
-        public IEditorPart open(IWorkbenchPage page) {
-            return null;
-        }
-
-        @Override
-        public IFile getMarkerFile() {
-            return null;
-        }
+    /**
+     * Returns a source for the tests. A file outside of the workspace needs no
+     * Eclipse type.
+     */
+    private IProblemSource source(String name) {
+        return new LocalFileSource(new File(name));
     }
 }

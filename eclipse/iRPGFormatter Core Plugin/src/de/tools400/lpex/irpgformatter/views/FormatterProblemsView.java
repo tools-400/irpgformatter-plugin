@@ -25,6 +25,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -155,7 +157,12 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
 
         severityFilter = new ProblemSeverityFilter();
         loadSeverityFilter();
-        viewer.addFilter(severityFilter);
+        viewer.addFilter(new ViewerFilter() {
+            @Override
+            public boolean select(Viewer filteredViewer, Object parentElement, Object element) {
+                return severityFilter.isVisible((FormatterProblem)element);
+            }
+        });
 
         // double-click or Enter
         viewer.addOpenListener(event -> goToSelectedProblem());
