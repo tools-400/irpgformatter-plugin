@@ -14,11 +14,26 @@ public class LineOverflowException extends RpgleFormatterException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Longer values, such as long hexadecimal literals, are shortened in the
+     * message, so that it fits into one line of the error dialog.
+     */
+    private static final int MAX_VALUE_LENGTH = 40;
+
     private int startLineNumber = -1;
     private int endLineNumber = -1;
 
     public LineOverflowException(String value, int lineNumber) {
-        super(Messages.bind(Messages.Error_Error_on_line_A_Line_too_small_for_value_A, lineNumber, value));
+        super(Messages.bind(Messages.Error_Error_on_line_A_Line_too_small_for_value_A, lineNumber, shorten(value)));
+    }
+
+    private static String shorten(String value) {
+
+        if (value == null || value.length() <= MAX_VALUE_LENGTH) {
+            return value;
+        }
+
+        return value.substring(0, MAX_VALUE_LENGTH) + "…"; //$NON-NLS-1$
     }
 
     public int getStartLineNumber() {

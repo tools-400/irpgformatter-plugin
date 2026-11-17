@@ -11,6 +11,8 @@ package de.tools400.lpex.irpgformatter.actions;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
+import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -58,6 +60,11 @@ public final class FormatOnSaveListener {
                 executeFormatter(view, input);
             }
 
+        } catch (BlockStructureException e) {
+            // No dialog on save, but the user must learn, why the source was
+            // not formatted. The dialog of the format action lists the errors.
+            LpexViewUtils.displayMessage(view,
+                Messages.bind(Messages.Error_Source_not_formatted_N_errors_first_on_line_A, e.getErrorCount(), e.getFirstLineNumber()));
         } catch (Throwable e) {
             IRpgleFormatterPlugin.logError("Format on save failed", e);
         }

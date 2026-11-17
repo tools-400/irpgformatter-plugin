@@ -12,5 +12,9 @@ public interface IErrorObject {
 
     public String getFullPath();
 
-    public String getErrorMessage();
+    /**
+     * Returns the messages of the error, one per line of the error dialog, e.g.
+     * one per declaration block, that is not closed.
+     */
+    public String[] getErrorMessages();
 }

@@ -8,10 +8,15 @@
 
 package de.tools400.lpex.irpgformatter.statement;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.parser.DirectiveType;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
@@ -29,6 +34,9 @@ import de.tools400.lpex.irpgformatter.parser.StatementType;
  * </p>
  */
 public final class ContinuationHandler {
+
+    /** The name behind the keyword of a declaration, e.g. "*N" or "myProc". */
+    private static final Pattern DECLARATION_NAME = Pattern.compile("^\\s*\\S+\\s+([^\\s;(]+)");
 
     private static boolean isTestMode = false;
 
@@ -67,11 +75,15 @@ public final class ContinuationHandler {
      * @param startLineNumber the line number of the first source line within
      *        the overall source member; the formatter counts from 1
      * @return list of complete statements (may span multiple original lines)
+     * @throws BlockStructureException if declaration blocks, such as
+     *         <code>DCL-DS</code> or <code>DCL-PROC</code>, are not closed
      */
     public static CollectedStatement[] collectStatements(String[] sourceLines, int startLineNumber) throws RpgleFormatterException {
 
         Stack<CollectedStatement> parents = new Stack<>();
         parents.push(null);
+
+        List<StructureError> structureErrors = new ArrayList<>();
 
         List<CollectedStatement> statements = new LinkedList<>();
         CollectedStatement currentStatement = new CollectedStatement();
@@ -97,7 +109,7 @@ public final class ContinuationHandler {
                 if (isAfterEof) {
                     currentStatement.setAfterEof();
                 } else {
-                    nestStatement(parents, currentStatement);
+                    nestStatement(parents, currentStatement, structureErrors);
 
                     if (currentStatement.getType() == StatementType.COMPILER_DIRECTIVE) {
                         DirectiveType directiveType = DirectiveType.of(currentStatement.getStatement());
@@ -136,8 +148,10 @@ public final class ContinuationHandler {
             parents.pop();
         }
 
-        if (!isTestMode && parents.peek() != null) {
-            throw new RpgleFormatterException("Parents stack contains unexpected parent: " + parents.peek().getStatement());
+        addUnclosedBlocks(parents, structureErrors);
+
+        if (!isTestMode && !structureErrors.isEmpty()) {
+            throw createBlockStructureException(structureErrors);
         }
 
         parents.pop();
@@ -206,8 +220,11 @@ public final class ContinuationHandler {
      * @param parents the blocks that enclose the statement, <code>null</code>
      *        at the bottom
      * @param currentStatement the complete statement
+     * @param structureErrors receives the declaration blocks, that an end
+     *        statement leaves open
      */
-    private static void nestStatement(Stack<CollectedStatement> parents, CollectedStatement currentStatement) throws RpgleFormatterException {
+    private static void nestStatement(Stack<CollectedStatement> parents, CollectedStatement currentStatement,
+        List<StructureError> structureErrors) throws RpgleFormatterException {
 
         StatementType currentType = currentStatement.getType();
         if (currentType.isStartOfBLock()) {
@@ -225,18 +242,108 @@ public final class ContinuationHandler {
         } else {
             closeOpenCalculationBlocks(parents, currentType);
             CollectedStatement parent = parents.peek();
-            if (parent != null) {
-                StatementType parentEndOfBlockType = parent.getType().getEndOfBlockType();
-                if (currentType == parentEndOfBlockType) {
-                    parents.pop();
-                } else {
-                    if (currentType == StatementType.DCL_SUBF) {
-                        parent.addChild(currentStatement);
-                    }
-                }
+            if (parent != null && currentType == parent.getType().getEndOfBlockType()) {
+                parents.pop();
+            } else if (currentType.isEndOfBlock() && !currentType.isCalculation()) {
+                closeUnclosedBlocks(parents, currentStatement, structureErrors);
+            } else if (parent != null && currentType == StatementType.DCL_SUBF) {
+                parent.addChild(currentStatement);
             }
             setIndent(currentStatement, parents, 0);
         }
+    }
+
+    /**
+     * Closes the declaration blocks, that an end statement leaves open, such as
+     * a <code>DCL-DS</code> without <code>END-DS</code> in front of
+     * <code>END-PROC</code>, and reports each of them. Then the block, that the
+     * statement ends, is closed, too, so that the error does not cause errors
+     * in the following statements. An end statement without a block, that it
+     * ends, is ignored, because selected lines may start within the block.
+     *
+     * @param parents the blocks that enclose the statement, <code>null</code>
+     *        at the bottom
+     * @param endStatement the statement, that ends a declaration block
+     * @param structureErrors receives the blocks, that are left open
+     */
+    private static void closeUnclosedBlocks(Stack<CollectedStatement> parents, CollectedStatement endStatement,
+        List<StructureError> structureErrors) throws RpgleFormatterException {
+
+        StatementType endType = endStatement.getType();
+
+        int index = parents.size() - 1;
+        while (parents.get(index) != null && parents.get(index).getType().getEndOfBlockType() != endType) {
+            index--;
+        }
+
+        if (parents.get(index) == null) {
+            return;
+        }
+
+        for (int i = index + 1; i < parents.size(); i++) {
+            CollectedStatement block = parents.get(i);
+            if (!block.getType().isCalculation()) {
+                structureErrors.add(new StructureError(block.getStartLineNumber(),
+                    Messages.bind(Messages.Error_Error_on_line_A_B_is_not_closed_before_C_of_line_D, new Object[] {
+                        block.getStartLineNumber(), getDescription(block), getKeyword(endType), endStatement.getStartLineNumber() })));
+            }
+        }
+
+        parents.setSize(index);
+    }
+
+    /**
+     * Reports the declaration blocks, that are still open at the end of the
+     * source.
+     *
+     * @param parents the blocks that are still open, <code>null</code> at the
+     *        bottom
+     * @param structureErrors receives the blocks, that are left open
+     */
+    private static void addUnclosedBlocks(Stack<CollectedStatement> parents, List<StructureError> structureErrors)
+        throws RpgleFormatterException {
+
+        for (CollectedStatement block : parents) {
+            if (block != null && !block.getType().isCalculation()) {
+                structureErrors.add(new StructureError(block.getStartLineNumber(), Messages.bind(
+                    Messages.Error_Error_on_line_A_B_is_not_closed_by_C, new Object[] { block.getStartLineNumber(), getDescription(block),
+                        getKeyword(block.getType().getEndOfBlockType()) })));
+            }
+        }
+    }
+
+    private static BlockStructureException createBlockStructureException(List<StructureError> structureErrors) {
+
+        structureErrors.sort((error1, error2) -> Integer.compare(error1.lineNumber, error2.lineNumber));
+
+        String[] messages = new String[structureErrors.size()];
+        for (int i = 0; i < messages.length; i++) {
+            messages[i] = structureErrors.get(i).message;
+        }
+
+        return new BlockStructureException(messages, structureErrors.get(0).lineNumber);
+    }
+
+    /**
+     * Returns the keyword and the name of a block, e.g. "DCL-DS myDs".
+     */
+    private static String getDescription(CollectedStatement block) throws RpgleFormatterException {
+
+        String keyword = getKeyword(block.getType());
+
+        Matcher matcher = DECLARATION_NAME.matcher(block.getStatement());
+        if (matcher.find()) {
+            return keyword + " " + matcher.group(1);
+        }
+
+        return keyword;
+    }
+
+    /**
+     * Returns the keyword of a declaration statement, e.g. "END-PROC".
+     */
+    private static String getKeyword(StatementType type) {
+        return type.name().replace('_', '-');
     }
 
     /**
@@ -334,6 +441,21 @@ public final class ContinuationHandler {
             break;
         default:
             break;
+        }
+    }
+
+    /**
+     * A declaration block, that is not closed, with the line number, by which
+     * the errors are ordered.
+     */
+    private static final class StructureError {
+
+        private final int lineNumber;
+        private final String message;
+
+        private StructureError(int lineNumber, String message) {
+            this.lineNumber = lineNumber;
+            this.message = message;
         }
     }
 }

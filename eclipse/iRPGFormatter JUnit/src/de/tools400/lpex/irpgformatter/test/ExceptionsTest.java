@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Locale;
@@ -15,6 +16,7 @@ import java.util.Locale;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.CannotAddLineSegmentException;
 import de.tools400.lpex.irpgformatter.formatter.IncompleteStatementException;
 import de.tools400.lpex.irpgformatter.formatter.LineOverflowException;
@@ -59,6 +61,38 @@ public class ExceptionsTest {
         } catch (Exception e) {
             assertEquals("Error on line #10: Line too small for value: dim(10)", e.getLocalizedMessage());
         }
+    }
+
+    /**
+     * A long value, such as a hexadecimal literal, is shortened to 40
+     * characters, so that the message fits into one line of the error dialog.
+     */
+    @Test
+    public void testLineOverflowException_longValueIsShortened() {
+        String value = "x'000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F'";
+        LineOverflowException e = new LineOverflowException(value, 566);
+        assertEquals("Error on line #566: Line too small for value: x'000102030405060708090A0B0C0D0E0F101112…",
+            e.getLocalizedMessage());
+    }
+
+    @Test
+    public void testLineOverflowException_valueOf40CharactersIsNotShortened() {
+        String value = "x'000102030405060708090A0B0C0D0E0F101112'";
+        assertEquals(41, value.length());
+        String value40 = value.substring(0, 40);
+        LineOverflowException e = new LineOverflowException(value40, 1);
+        assertEquals("Error on line #1: Line too small for value: " + value40, e.getLocalizedMessage());
+    }
+
+    @Test
+    public void testBlockStructureException() {
+        String[] messages = { "Error on line #2: DCL-DS ds is not closed before END-PROC of line #4.",
+            "Error on line #10: DCL-PROC p2 is not closed by END-PROC." };
+        BlockStructureException e = new BlockStructureException(messages, 2);
+        assertEquals(messages[0], e.getLocalizedMessage());
+        assertEquals(2, e.getErrorCount());
+        assertEquals(2, e.getFirstLineNumber());
+        assertArrayEquals(messages, e.getErrorMessages());
     }
 
     @Test

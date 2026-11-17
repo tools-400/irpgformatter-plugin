@@ -215,6 +215,21 @@ public enum StatementType {
     }
 
     /**
+     * Returns <code>true</code> for a statement, that ends a block, such as
+     * <code>END-DS</code> or <code>ENDIF</code>.
+     */
+    public boolean isEndOfBlock() {
+
+        for (StatementType type : values()) {
+            if (type.endOfBlockType == this) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns <code>true</code> for a branch of a block, such as
      * <code>ELSE</code>, <code>WHEN</code> or <code>ON-ERROR</code>. A branch
      * is placed on the level of the statement that starts the block.

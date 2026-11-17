@@ -53,7 +53,14 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
      `/IF` and `RpgleFormatter` reports a warning.
    * Lines after an `/EOF` outside of an `/IF` group are marked and not formatted.
    * Calculation blocks, that are still open at the end of the block that encloses them (e.g. `IF` without `ENDIF` at
-     `END-PROC`) or at the end of the source, are closed. A declaration block, that is still open at the end, is an error.
+     `END-PROC`) or at the end of the source, are closed.
+   * Declaration blocks, that an end statement leaves open (e.g. `DCL-DS` without `END-DS` at `END-PROC`), and declaration
+     blocks, that are still open at the end of the source, are errors. The end statement closes the open blocks together
+     with its own block, so that one error does not cause errors in the following statements. An end statement without its
+     block is ignored, because a selection may start within the block. All errors are thrown together as
+     `BlockStructureException`, ordered by line number, and the source is not formatted. The format action shows them in
+     `ErrorDetailsTitleAreaDialog`, **Format on save** in the message line of the editor and the batch jobs as the errors of
+     the source in `MemberErrorsDialog`.
    * A comment line gets the level of the statement that follows it.
 3. **Formatting.** `RpgleFormatter.format()` goes over the statements. The lines in front of a selection only tell the
    nesting. **Format declarations** and **Format calculations** decide, which statements are formatted; a comment line

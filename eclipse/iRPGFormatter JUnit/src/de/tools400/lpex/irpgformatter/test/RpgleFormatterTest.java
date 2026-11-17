@@ -14,12 +14,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -890,6 +892,38 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_dclPr_endPrInSameStatement() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "Dcl-Pr myProc Ind ExtProc( 'MYPROC' ) End-Pr;",
+            "Dcl-Pr myPgm ExtPgm( 'MYPGM' ) End-Pr myPgm;",
+            "Dcl-S i Int( 10 );"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals(3, result.length);
+        assertEquals("dcl-pr myProc ind extproc('MYPROC') end-pr;", result[0]);
+        assertEquals("dcl-pr myPgm extpgm('MYPGM') end-pr myPgm;", result[1]);
+        assertEquals("dcl-s i int(10);", result[2]);
+    }
+
+    @Test
+    public void format_dclPi_endPiInSameStatement_insideDclProc() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "Dcl-Proc myProc;",
+            "Dcl-Pi *N Ind End-Pi;",
+            "Dcl-S i Int( 10 );",
+            "End-Proc;"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals(4, result.length);
+        assertEquals("dcl-proc myProc;", result[0]);
+        assertEquals("  dcl-pi *n ind end-pi;", result[1]);
+        assertEquals("  dcl-s i int(10);", result[2]);
+        assertEquals("end-proc;", result[3]);
+    }
+
+    @Test
     public void format_dclPr() throws RpgleFormatterException {
         // @formatter:off
         String[] result = formatter.format(new TextLinesInput(
@@ -1750,6 +1784,32 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  end-ds name;", result[4]);
         assertEquals("  zip char(5);", result[5]);
         assertEquals("end-ds;", result[6]);
+    }
+
+    /**
+     * A source with a declaration block, that is not closed, is not formatted.
+     * The error names the lines of the source, counted from 1.
+     */
+    @Test
+    public void format_unclosedDataStructureIsReportedWithLineNumbers() throws RpgleFormatterException {
+        // @formatter:off
+        TextLinesInput input = new TextLinesInput(
+            "**free",
+            "dcl-proc myProc;",
+            "  dcl-ds myDs extname('MYFILE') qualified inz;",
+            "  return;",
+            "end-proc;"
+        );
+        // @formatter:on
+
+        try {
+            formatter.format(input, 0);
+            fail("BlockStructureException expected");
+        } catch (BlockStructureException e) {
+            assertArrayEquals(new String[] { "Error on line #3: DCL-DS myDs is not closed before END-PROC of line #5." },
+                e.getErrorMessages());
+            assertEquals(3, e.getFirstLineNumber());
+        }
     }
 
     private String buildStatement(String[] result) throws RpgleFormatterException {

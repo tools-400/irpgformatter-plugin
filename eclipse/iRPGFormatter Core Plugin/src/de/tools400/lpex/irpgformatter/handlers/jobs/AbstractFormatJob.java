@@ -24,6 +24,7 @@ import com.ibm.etools.iseries.subsystems.qsys.api.IBMiConnection;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
@@ -153,6 +154,8 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         } catch (BatchAbortedException e) {
             throw e;
+        } catch (BlockStructureException e) {
+            errors.add(new SourceError(getPath(source), e.getErrorMessages()));
         } catch (Exception e) {
             errors.add(new SourceError(getPath(source), ExceptionUtils.getLocalizedMessage(e)));
         }
@@ -220,11 +223,15 @@ public abstract class AbstractFormatJob<T> extends Job {
     private static final class SourceError implements IErrorObject {
 
         private String fullPath;
-        private String errorMessage;
+        private String[] errorMessages;
 
         public SourceError(String fullPath, String errorMessage) {
+            this(fullPath, new String[] { errorMessage });
+        }
+
+        public SourceError(String fullPath, String[] errorMessages) {
             this.fullPath = fullPath;
-            this.errorMessage = errorMessage;
+            this.errorMessages = errorMessages;
         }
 
         @Override
@@ -233,8 +240,8 @@ public abstract class AbstractFormatJob<T> extends Job {
         }
 
         @Override
-        public String getErrorMessage() {
-            return errorMessage;
+        public String[] getErrorMessages() {
+            return errorMessages;
         }
     }
 }

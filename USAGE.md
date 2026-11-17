@@ -40,7 +40,9 @@ itself. Your key is kept when you restart RDi.
 
 With the setting **Format on save**, a source is formatted, when you save it in the LPEX editor with **Save** or **Save All**.
 It is not formatted, when RDi asks to save it while the editor is closed. Statements, that cannot be formatted, stay
-unchanged. No message is shown.
+unchanged. No message is shown. If a declaration block is not closed, the source is not formatted, and the message line of
+the editor shows the number of errors and the line of the first one. Format the source with **Source > iFormat** to see all
+of them.
 
 ## Preferences
 
@@ -545,11 +547,15 @@ iRPGFormatter recognizes the statements and the blocks of a source, but it does 
   formatter shows a warning.
 - A source with structural errors, such as a missing `ENDIF`, is indented by the blocks as they are written. A block, that
   is not closed, ends with the block that encloses it, e.g. at `END-PROC`.
+- A source, whose declaration blocks, such as `DCL-DS` or `DCL-PROC`, are not closed, is not formatted, because the
+  indentation of all following lines would be wrong.
 
 The formatter reports problems in a dialog:
 
 - **Errors**: A statement, that cannot be formatted, e.g. because a line would exceed the end column, stays unchanged. The
   dialog lists these statements with their line numbers. All other statements are formatted.
 - **Warnings**: The source is formatted, but the indentation after the reported line may be wrong.
+- **Source not formatted**: The dialog lists each declaration block, that is not closed, with its line numbers, e.g.
+  `Error on line #196: DCL-DS SYNCIFSWRF is not closed before END-PROC of line #374.` The source stays unchanged.
 
-If a source cannot be formatted at all, the message line of the editor shows the reason.
+If a source cannot be formatted at all for another reason, e.g. because it cannot be read, a dialog shows the reason.

@@ -15,6 +15,7 @@ import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
@@ -23,6 +24,7 @@ import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
@@ -74,11 +76,15 @@ public class FormatLpexSourceAction implements LpexAction {
                 executeFormatter(view, input, haveSelection, startLine);
             }
 
+        } catch (BlockStructureException e) {
+            // An error of the source, not of the formatter: not logged.
+            UIUtils.displayErrorDetailsDialog(Messages.bind(Messages.Error_Source_not_formatted_N_errors_in_block_structure, e.getErrorCount()),
+                e.getErrorMessages());
         } catch (RpgleFormatterException e) {
-            LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Format_failed_A, e.getMessage()));
+            UIUtils.displaySimpleErrorDialog(Messages.bind(Messages.Error_Format_failed_A, ExceptionUtils.getLocalizedMessage(e)));
             IRpgleFormatterPlugin.logError("Format failed.", e);
         } catch (Throwable e) {
-            LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Unexpected_error_A, e.getMessage()));
+            UIUtils.displaySimpleErrorDialog(Messages.bind(Messages.Error_Unexpected_error_A,ExceptionUtils.getLocalizedMessage(e)));
             IRpgleFormatterPlugin.logError("Unexpected error while formatting.", e);
         }
     }

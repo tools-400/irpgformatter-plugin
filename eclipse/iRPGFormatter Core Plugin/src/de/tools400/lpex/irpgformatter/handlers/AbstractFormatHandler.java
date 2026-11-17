@@ -226,14 +226,15 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     }
 
     /**
-     * Converts write-level error objects (one error message per resource) into
-     * the {@link ErrorGroup} representation used by the master/detail dialog,
-     * so they can be displayed alongside statement-level errors.
+     * Converts write-level error objects (one group per resource, one or more
+     * error messages) into the {@link ErrorGroup} representation used by the
+     * master/detail dialog, so they can be displayed alongside statement-level
+     * errors.
      */
     private static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
         ErrorGroup[] groups = new ErrorGroup[errors.length];
         for (int i = 0; i < errors.length; i++) {
-            groups[i] = new ErrorGroup(errors[i].getFullPath(), new String[] { errors[i].getErrorMessage() });
+            groups[i] = new ErrorGroup(errors[i].getFullPath(), errors[i].getErrorMessages());
         }
         return groups;
     }

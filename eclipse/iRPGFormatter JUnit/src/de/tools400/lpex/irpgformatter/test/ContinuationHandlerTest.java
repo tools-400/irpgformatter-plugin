@@ -13,9 +13,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
@@ -160,6 +162,41 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         String[] lines = {
             "dcl-proc myProc;",
             "  dcl-ds myFile extname('MYFILE') qualified inz end-ds;",
+            "  dcl-s i int(10);",
+            "end-proc;"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals(4, statements.length);
+        assertEquals(1, statements[1].getIndentLevel());
+        assertSame(statements[0], statements[2].getParent());
+        assertEquals(1, statements[2].getIndentLevel());
+        assertEquals(0, statements[3].getIndentLevel());
+    }
+
+    @Test
+    public void singleLine_dcl_pr_with_end_pr() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-pr myProc ind extproc('MYPROC') end-pr;",
+            "dcl-pr myPgm extpgm('MYPGM') end-pr myPgm;",
+            "dcl-s i int(10);"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals(3, statements.length);
+        assertNull(statements[1].getParent());
+        assertEquals(0, statements[1].getIndentLevel());
+        assertNull(statements[2].getParent());
+        assertEquals(0, statements[2].getIndentLevel());
+    }
+
+    @Test
+    public void singleLine_dcl_pi_with_end_pi_inside_procedure() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  dcl-pi *n ind end-pi;",
             "  dcl-s i int(10);",
             "end-proc;"
         };
@@ -472,6 +509,186 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         CollectedStatement statements[] = ContinuationHandler.collectStatements(lines);
         assertEquals(1, statements.length);
         assertEquals("dcl-s path char(100) inz('http://example.com');", statements[0].getStatement());
+    }
+
+    // --- block structure errors ---
+
+    /**
+     * END-PROC leaves a DCL-DS open: the error is reported on the line of the
+     * DCL-DS and names the line of END-PROC, too.
+     */
+    @Test
+    public void collectStatements_endProcLeavesDataStructureOpen() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  dcl-ds myDs qualified;",
+            "    subf char(10);",
+            "end-proc;"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        assertArrayEquals(new String[] { "Error on line #2: DCL-DS myDs is not closed before END-PROC of line #4." }, e.getErrorMessages());
+        assertEquals(2, e.getFirstLineNumber());
+        assertEquals(e.getErrorMessages()[0], e.getMessage());
+    }
+
+    /**
+     * A procedure, that is still open at the end of the source.
+     */
+    @Test
+    public void collectStatements_procedureNotClosedAtEndOfSource() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  dcl-s x int(10);"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        assertArrayEquals(new String[] { "Error on line #1: DCL-PROC myProc is not closed by END-PROC." }, e.getErrorMessages());
+    }
+
+    /**
+     * Two independent errors are both reported. The first error does not cause
+     * further errors, because END-PROC closes the procedure together with the
+     * open DCL-DS.
+     */
+    @Test
+    public void collectStatements_twoIndependentErrorsWithoutFollowUpErrors() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc proc1;",
+            "  dcl-ds ds1;",
+            "    a char(1);",
+            "end-proc;",
+            "dcl-proc proc2;",
+            "end-proc;",
+            "dcl-proc proc3;",
+            "  dcl-pi *n;",
+            "    b char(1);",
+            "end-proc;"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "Error on line #2: DCL-DS ds1 is not closed before END-PROC of line #4.",
+            "Error on line #8: DCL-PI *n is not closed before END-PROC of line #10." },
+            e.getErrorMessages());
+        // @formatter:on
+        assertEquals(2, e.getErrorCount());
+    }
+
+    /**
+     * The errors are ordered by the line numbers of the blocks, also if the
+     * block, that is still open at the end of the source, is found last.
+     */
+    @Test
+    public void collectStatements_errorsOrderedByLineNumber() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-ds ds1;",
+            "  a char(1);",
+            "dcl-proc myProc;",
+            "  dcl-ds ds2;",
+            "    b char(1);",
+            "end-proc;"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "Error on line #1: DCL-DS ds1 is not closed by END-DS.",
+            "Error on line #4: DCL-DS ds2 is not closed before END-PROC of line #6." },
+            e.getErrorMessages());
+        // @formatter:on
+        assertEquals(1, e.getFirstLineNumber());
+    }
+
+    /**
+     * A prototype without END-PR in front of the next prototype is still open
+     * at the end of the source, because END-PR closes the next prototype.
+     */
+    @Test
+    public void collectStatements_prototypeWithoutEndPr() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-pr p1 extproc('P1');",
+            "  parm char(10);",
+            "dcl-pr p2 extproc('P2');",
+            "end-pr;"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        assertArrayEquals(new String[] { "Error on line #1: DCL-PR p1 is not closed by END-PR." }, e.getErrorMessages());
+    }
+
+    /**
+     * A prototype within a procedure, that is not closed before END-PROC,
+     * like a DCL-DS or a DCL-PI.
+     */
+    @Test
+    public void collectStatements_endProcLeavesPrototypeOpen() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  dcl-pr inner extproc('INNER');",
+            "    parm char(10);",
+            "end-proc;"
+        };
+        // @formatter:on
+        BlockStructureException e = collectStatementsWithError(lines);
+        assertArrayEquals(new String[] { "Error on line #2: DCL-PR inner is not closed before END-PROC of line #4." }, e.getErrorMessages());
+    }
+
+    /**
+     * An end statement without a block, that it ends, is no error, because
+     * selected lines may start within the block.
+     */
+    @Test
+    public void collectStatements_endStatementWithoutBlockIsNoError() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "    subf char(10);",
+            "  end-ds;",
+            "end-proc;",
+            "dcl-s x int(10);"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines, 1);
+        assertEquals(4, statements.length);
+    }
+
+    /**
+     * Calculation blocks, that are not closed, only affect the indentation,
+     * also in front of END-PROC.
+     */
+    @Test
+    public void collectStatements_openCalculationBlockBeforeEndProcIsNoError() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  if x;",
+            "    y = 1;",
+            "end-proc;",
+            "if z;",
+            "  y = 2;"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines, 1);
+        assertEquals(6, statements.length);
+    }
+
+    private BlockStructureException collectStatementsWithError(String[] lines) throws RpgleFormatterException {
+
+        try {
+            ContinuationHandler.collectStatements(lines, 1);
+        } catch (BlockStructureException e) {
+            return e;
+        }
+
+        fail("BlockStructureException expected");
+        return null;
     }
 
     private CollectedStatement joinStatements(String[] lines) throws RpgleFormatterException {
