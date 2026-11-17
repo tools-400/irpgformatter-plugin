@@ -553,24 +553,24 @@ iRPGFormatter recognizes the statements and the blocks of a source, but it does 
 
 ### Problems
 
-The formatter lists its errors, warnings and informations in the view **iRPGFormatter Problems**, one line per problem with
-the message, the source and the line. In the editor, the message line tells the number of problems and the line of the first one, and
-the view is shown without taking the focus, with the first problem of the source selected. You can also open it with
-**Window > Show View > Other... > iRPGFormatter**.
+The formatter lists its errors, warnings and information messages in the view **iRPGFormatter Problems**, one line per
+problem with the message, the source and the line. In the editor, the message line tells the number of problems and the
+line of the first one, and the view is shown without taking the focus, with the first problem of the source selected. You
+can also open it with **Window > Show View > Other... > iRPGFormatter**.
 
 - **Errors**: A statement, that cannot be formatted, e.g. because a line would exceed the end column, stays unchanged. All
   other statements are formatted.
 - **Warnings**: The source is formatted, but the indentation after the reported line may be wrong.
 - **Source not formatted**: Each declaration block, that is not closed, is an error, e.g.
   `Error on line #196: DCL-DS SYNCIFSWRF is not closed before END-PROC of line #374.` The source stays unchanged.
-- **Informations**: A source, that is not in `**FREE` format, is skipped. This is no error of the source, so it is listed as
-  an information.
+- **Information messages**: A source, that is not in `**FREE` format, is skipped. This is no error of the source, so it is
+  listed as an information message.
 - **Formatting several sources**: Sources, that cannot be formatted at all, e.g. because they cannot be read or are not in
   `**FREE` format, are listed without a line. The result of the formatting is shown above the problems.
 
 The menu **Show Severity** of the view (the triangle in its title bar) shows or hides the errors, the warnings and the
-informations, e.g. the many sources in fixed format of a library. The view keeps the choice. If entries are hidden, their
-number is shown above the problems.
+information messages, e.g. the many sources in fixed format of a library. The view keeps the choice. If entries are hidden,
+their number is shown above the problems.
 
 Double-click a problem, or select it and press Enter, to open its source and go to its line. A source member or a stream
 file of the IFS is opened like in the **Remote Systems** view; an offline connection is connected. An open source is
@@ -591,8 +591,8 @@ text.
 Each problem is also a marker of the type **iRPGFormatter Problem**, if the source is a file of the workspace or a source
 member or stream file, that Remote Systems downloaded into a local copy:
 
-- The LPEX editor shows the errors, warnings and informations with a line in its ruler; hover over the icon to see the
-  message. The icon moves with the line, when you insert or delete lines above it.
+- The LPEX editor shows the errors, warnings and information messages with a line in its ruler; hover over the icon to see
+  the message. The icon moves with the line, when you insert or delete lines above it.
 - The **Problems** view lists the markers, too. A member or a stream file of the IFS has its markers at its local copy, so
   the Problems view shows the path of the copy in `RemoteSystemsTempFiles`, e.g. `SYNCIFS_23.SQLRPGLE` for the member
   `SYNCIFS#`. A double-click opens the member like in Remote Systems.
