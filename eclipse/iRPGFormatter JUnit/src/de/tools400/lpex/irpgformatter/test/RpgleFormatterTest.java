@@ -860,6 +860,36 @@ public class RpgleFormatterTest extends AbstractTestCase {
     }
 
     @Test
+    public void format_dclDs_endDsInSameStatement() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "Dcl-Ds myFile ExtName( 'MYFILE' ) Qualified Inz End-Ds;",
+            "Dcl-S i Int( 10 );"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals(2, result.length);
+        assertEquals("dcl-ds myFile extname('MYFILE') qualified inz end-ds;", result[0]);
+        assertEquals("dcl-s i int(10);", result[1]);
+    }
+
+    @Test
+    public void format_dclDs_endDsInSameStatement_insideDclProc() throws RpgleFormatterException {
+        // @formatter:off
+        String[] result = formatter.format(new TextLinesInput(
+            "Dcl-Proc myProc;",
+            "Dcl-Ds myFile ExtName( 'MYFILE' ) Qualified Inz End-Ds;",
+            "Dcl-S i Int( 10 );",
+            "End-Proc;"
+        ),0).toLines();
+        // @formatter:on
+        assertEquals(4, result.length);
+        assertEquals("dcl-proc myProc;", result[0]);
+        assertEquals("  dcl-ds myFile extname('MYFILE') qualified inz end-ds;", result[1]);
+        assertEquals("  dcl-s i int(10);", result[2]);
+        assertEquals("end-proc;", result[3]);
+    }
+
+    @Test
     public void format_dclPr() throws RpgleFormatterException {
         // @formatter:off
         String[] result = formatter.format(new TextLinesInput(

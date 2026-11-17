@@ -10,6 +10,8 @@ package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -135,6 +137,39 @@ public class ContinuationHandlerTest extends AbstractTestCase {
         // @formatter:on
         CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
         assertEquals("dcl-ds ds_SUBFILE_OUT likerec(PBSFL: *OUTPUT) inz;", statements[0].getStatement());
+    }
+
+    @Test
+    public void singleLine_dcl_ds_with_end_ds() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-ds myFile extname('MYFILE') qualified inz end-ds;",
+            "dcl-s i int(10);"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals(2, statements.length);
+        assertEquals("dcl-ds myFile extname('MYFILE') qualified inz end-ds;", statements[0].getStatement());
+        assertNull(statements[1].getParent());
+        assertEquals(0, statements[1].getIndentLevel());
+    }
+
+    @Test
+    public void singleLine_dcl_ds_with_end_ds_inside_procedure() throws RpgleFormatterException {
+        // @formatter:off
+        String[] lines = {
+            "dcl-proc myProc;",
+            "  dcl-ds myFile extname('MYFILE') qualified inz end-ds;",
+            "  dcl-s i int(10);",
+            "end-proc;"
+        };
+        // @formatter:on
+        CollectedStatement[] statements = ContinuationHandler.collectStatements(lines);
+        assertEquals(4, statements.length);
+        assertEquals(1, statements[1].getIndentLevel());
+        assertSame(statements[0], statements[2].getParent());
+        assertEquals(1, statements[2].getIndentLevel());
+        assertEquals(0, statements[3].getIndentLevel());
     }
 
     // --- joinContinuedLines tests ---

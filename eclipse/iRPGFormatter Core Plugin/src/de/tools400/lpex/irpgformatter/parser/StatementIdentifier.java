@@ -63,6 +63,8 @@ public class StatementIdentifier implements RpgleSourceConstants {
      * <ul>
      * <li>A <code>DCL-DS</code> with a <code>LIKEDS</code> keyword needs no
      * <code>END-DS</code>.</li>
+     * <li>A <code>DCL-DS</code> with a <code>END-DS</code> in the same
+     * statement has no sub-fields, e.g. with <code>EXTNAME</code>.</li>
      * <li>A <code>DCL-PI</code> with a <code>END-PI</code> in the same
      * statement has no parameters.</li>
      * <li>A <code>DCL-PR</code> with a <code>END-PR</code> in the same
@@ -77,6 +79,8 @@ public class StatementIdentifier implements RpgleSourceConstants {
         if (type == StatementType.DCL_DS && containsToken(line, TokenType.KEYWORD, "LIKEDS")) {
             return true;
         } else if (type == StatementType.DCL_DS && containsToken(line, TokenType.KEYWORD, "LIKEREC")) {
+            return true;
+        } else if (type == StatementType.DCL_DS && containsToken(line, TokenType.DCL, "END-DS")) {
             return true;
         } else if (type == StatementType.DCL_PI && containsToken(line, TokenType.DCL, "END-PI")) {
             return true;

@@ -56,6 +56,13 @@ public class StatementTypeTest extends AbstractTestCase {
     }
 
     @Test
+    public void dcl_ds_closed_in_same_statement() throws RpgleFormatterException {
+        String line = "dcl-ds myFile extname('MYFILE') qualified inz end-ds; // single line statement";
+        assertEquals(StatementType.DCL_DS, StatementIdentifier.identifyStatementType(line));
+        assertTrue(StatementIdentifier.isSingleLineStatement(line));
+    }
+
+    @Test
     public void dcl_pr() throws RpgleFormatterException {
         String line = "dcl-pr myPrototype ind extproc('MODULE_myPrototype');";
         assertEquals(StatementType.DCL_PR, StatementIdentifier.identifyStatementType(line));
