@@ -200,7 +200,7 @@ public class EmbeddedSqlFormatter implements RpgleSourceConstants {
         try {
             formatted = AcsSqlFormatter.format(sql, config, initialIndent, lineLength, adjustCaseOnly);
         } catch (LinkageError e) {
-            // RDi 9.6 does not provide the SQL formatter.
+            // Neither bundle of the SQL formatter is installed.
             isAvailable = false;
             return null;
         } catch (Exception e) {

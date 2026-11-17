@@ -276,7 +276,6 @@ Differences to RDi:
 
 - A comment in front of the first word of the SQL statement is indented like the SQL statement.
 - iRPGFormatter always uses the SQL formatter of IBM i Access Client Solutions, even if **Use the Enhanced SQL Formatter** is off.
-- RDi 9.6 does not provide this SQL formatter to plug-ins. There embedded SQL is only indented.
 
 ### Subfield Alignment
 

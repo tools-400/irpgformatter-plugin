@@ -23,8 +23,12 @@ import de.tools400.lpex.irpgformatter.preferences.SqlCasingStyle;
  * the IBM preference "Use the Enhanced SQL Formatter".
  * <p>
  * This is the only class, that refers to the classes of the SQL formatter. RDi
- * 9.6 does not provide them in bundle <code>com.ibm.ibmi.sql.parser</code>,
- * therefore the callers catch the {@link LinkageError}.
+ * 9.6 provides them in bundle <code>com.ibm.ibmi.sql.parser.lpg</code>, RDi 9.9
+ * in bundle <code>com.ibm.ibmi.sql.parser</code> and RDi 9.8 in both bundles.
+ * <code>MANIFEST.MF</code> requires both bundles optionally and
+ * <code>com.ibm.ibmi.sql.parser</code> first, so that RDi 9.8 uses its newer SQL
+ * formatter. If neither bundle is installed, the callers catch the
+ * {@link LinkageError}.
  * </p>
  */
 final class AcsSqlFormatter {

@@ -69,9 +69,14 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
 ### Embedded SQL
 
 `EmbeddedSqlFormatter` formats `EXEC SQL` statements with the SQL formatter of IBM i Access Client Solutions.
-`AcsSqlFormatter` is the only class, that refers to the bundle `com.ibm.ibmi.sql.parser`, which `MANIFEST.MF` requires with
-`resolution:=optional`. RDi 9.6 does not provide the formatter to plug-ins (checked with RDi 9.6.0.12); the `LinkageError` is
-caught and the statement is only indented.
+`AcsSqlFormatter` is the only class, that refers to its classes (`com.ibm.ibmi.sql.formatter.impl`). RDi 9.6 provides them in
+the bundle `com.ibm.ibmi.sql.parser.lpg`, RDi 9.9 in `com.ibm.ibmi.sql.parser` and RDi 9.8 in both bundles, with the newer
+formatter in `com.ibm.ibmi.sql.parser`. `MANIFEST.MF` requires both bundles with `resolution:=optional` and
+`com.ibm.ibmi.sql.parser` first. `Require-Bundle` searches the bundles in this order, so RDi 9.8 uses the newer formatter;
+keep the order. If neither bundle is installed, the `LinkageError` is caught and the statement is only indented.
+
+The formatter of RDi 9.6 prints its parser statistics and the syntax tree to `System.out`. In RDi this output is not
+visible, in the JUnit output it is.
 
 The formatted statement is used only, if it has the same literals and delimited identifiers and differs otherwise only in
 blanks and casing (`isSameStatement()`). Otherwise, and if the SQL formatter reports a syntax error, a literal is continued,
@@ -180,14 +185,20 @@ correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
 * `iRPGFormatter JUnit`: JUnit 4, *Run As > JUnit Test* in RDi. The tests extend `AbstractTestCase`, which switches
   `PreferenceStoreProvider` to its test mode; they do not need OSGi.
 * Outside of RDi (`org.junit.runner.JUnitCore`), the classpath needs the classes and `resources` of the core plug-in and the
-  bundles of RDi. `com.ibm.ibmi.sql.parser` and `lpg.runtime` contain nested jars (`runtime/sql.tools.jar`,
-  `runtime/sqlparser.jar`, `lpgruntime.jar`), which have to be extracted. Without them `EmbeddedSqlTest` fails, because
-  `AcsSqlFormatter` falls back as in RDi 9.6.
+  bundles of RDi. In RDi 9.8 and 9.9, `com.ibm.ibmi.sql.parser` and `lpg.runtime` contain nested jars
+  (`runtime/sql.tools.jar`, `runtime/sqlparser.jar`, `lpgruntime.jar`), which have to be extracted; in RDi 9.6 the
+  formatter is in `com.ibm.ibmi.sql.parser.lpg`, which has no nested jars. Without the formatter `EmbeddedSqlTest` fails,
+  because `AcsSqlFormatter` falls back (`LinkageError`).
+* With the bundles of RDi 9.6, run the tests with its Java 8 (`C:\IBM\RDi_096\jdk`). It does not read `@argfiles`, so put
+  the classpath into the `Class-Path` of a jar, that contains only a manifest.
 * Code coverage: see `eclipse/iRPGFormatter JUnit/CODE_COVERAGE.md`.
 
 ## Verified facts
 
-* RDi 9.6.0.12 does not provide the SQL formatter of IBM i Access Client Solutions to plug-ins.
+* 2026-11-17: the SQL formatter of IBM i Access Client Solutions (`com.ibm.ibmi.sql.formatter.impl`) is in the bundle
+  `com.ibm.ibmi.sql.parser.lpg` 1.0.3 in RDi 9.6.0.12, in `com.ibm.ibmi.sql.parser` 9.8.3 and `com.ibm.ibmi.sql.parser.lpg`
+  1.0.3 in RDi 9.8 and in `com.ibm.ibmi.sql.parser` 9.9.0 in RDi 9.9. The classes and methods, that `AcsSqlFormatter`
+  uses, are the same in all versions (`javap`).
 * IBM i 7.5, 2026-10-28: a continued line, that starts with `/count;`, compiles as a division (severity 00). Within a
   statement, only `/IF`, `/ELSEIF`, `/ELSE` and `/ENDIF` are taken as directives.
 * IBM i 7.5, 2026-10-28: `if(found) and x;` is rejected with RNF5048 (operation extender not valid). A parenthesis directly
