@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.actions;
 
+import java.util.List;
+
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
@@ -21,6 +23,12 @@ import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.problems.EditorSources;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
+import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
@@ -62,9 +70,13 @@ public final class FormatOnSaveListener {
 
         } catch (BlockStructureException e) {
             // No dialog on save, but the user must learn, why the source was
-            // not formatted. The dialog of the format action lists the errors.
+            // not formatted: the view shows the errors, the editor keeps the
+            // focus.
+            IProblemSource source = EditorSources.get(view);
+            FormatterProblems.getInstance().replace(source, ProblemFactory.fromBlockStructureException(source, e));
             LpexViewUtils.displayMessage(view,
                 Messages.bind(Messages.Error_Source_not_formatted_N_errors_first_on_line_A, e.getErrorCount(), e.getFirstLineNumber()));
+            FormatterProblemsView.show(source);
         } catch (Throwable e) {
             IRpgleFormatterPlugin.logError("Format on save failed", e);
         }
@@ -89,6 +101,13 @@ public final class FormatOnSaveListener {
             output.writeSourceLines(result);
             // No dialog on save, but a bug must not get lost.
             formatter.logUnexpectedErrors(input.getName());
+
+            IProblemSource source = EditorSources.get(view);
+            List<FormatterProblem> problems = ProblemFactory.fromFormatter(source, formatter, result);
+            FormatterProblems.getInstance().replace(source, problems);
+            if (!problems.isEmpty()) {
+                FormatterProblemsView.show(source);
+            }
         }
     }
 }

@@ -58,13 +58,7 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
      blocks, that are still open at the end of the source, are errors. The end statement closes the open blocks together
      with its own block, so that one error does not cause errors in the following statements. An end statement without its
      block is ignored, because a selection may start within the block. All errors are thrown together as
-     `BlockStructureException`, ordered by line number, and the source is not formatted. The format action shows them in
-     `ErrorDetailsTitleAreaDialog`, **Format on save** in the message line of the editor and the batch jobs as the errors of
-     the source in `MemberErrorsDialog`.
-   * `ErrorDetailsTitleAreaDialog` gets the line numbers of its messages (`BlockStructureException.getLineNumbers()`,
-     `RpgleFormatter.getErrorAndWarningLineNumbers()`). A double-click closes it and returns the line; the format action puts
-     the cursor there instead of restoring it. Errors and warnings of statements are shown after the formatted lines were
-     written, so `FormattedResult.getFormattedLineNumber()` maps the line number of the source to the formatted source.
+     `BlockStructureException`, ordered by line number, and the source is not formatted.
    * A comment line gets the level of the statement that follows it.
 3. **Formatting.** `RpgleFormatter.format()` goes over the statements. The lines in front of a selection only tell the
    nesting. **Format declarations** and **Format calculations** decide, which statements are formatted; a comment line
@@ -76,6 +70,31 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
      and becomes a `FormatError`. Unexpected exceptions are logged with their stack trace.
 4. **Writing.** The output writes the `FormattedResult` statement by statement from the bottom to the top, so that inserted
    and deleted lines do not move the statements above.
+
+### Problems view
+
+The package `problems` and the view `views.FormatterProblemsView` replace the error dialogs.
+
+* `FormatterProblems` is the model: per `IProblemSource` the `FormatterProblem`s (severity, line, message), in the order of
+  the sources. Formatting a source replaces its problems (`replace`), an empty list removes the source. The batch jobs change
+  it in their thread, so it is synchronized; the view refreshes with `asyncExec`. `getSummary()` holds the result of the
+  last batch job, the view shows it as its content description.
+* `ProblemFactory` builds the problems: `BlockStructureException` (lines unchanged, the source was not written), the errors
+  and warnings of `RpgleFormatter` (lines mapped with `FormattedResult.getFormattedLineNumber()`, because the formatted lines
+  were written) and a single message without line.
+* `IProblemSource` opens a source: `MemberSource` (`QSYSEditableRemoteSourceFileMember.open`, connects an offline
+  connection), `RemoteStreamFileSource` (`SystemEditableRemoteFile.open`), `WorkspaceFileSource` (`IDE.openEditor`),
+  `LocalFileSource` (`IDE.openEditorOnFileStore`) and `EditorSource` (the LPEX view of the format action and of
+  **Format on save**). `EditorSources` maps an LPEX view to the source of its editor, so that the editor and the batch jobs
+  use the same key: the local copy of Remote Systems knows its `QSYSEditableRemoteSourceFileMember` or
+  `SystemEditableRemoteFile` (`SystemIFileProperties.getRemoteFileObject()`), other files are `WorkspaceFileSource` or, for
+  an `IURIEditorInput`, `LocalFileSource`. Only if the source cannot be determined, the editor is an `EditorSource`, whose
+  problems are removed, when the LPEX view is disposed.
+* `ProblemNavigator.goTo()` opens the source and puts the cursor on the line (`locate line` in LPEX, `selectAndReveal` in
+  other text editors).
+* The format action and **Format on save** show the view with `VIEW_VISIBLE` (the editor keeps the focus) and select the
+  first problem of the source (`FormatterProblemsView.show(IProblemSource)`), because a new source is added at the end of
+  the list. The batch handlers show it with `VIEW_ACTIVATE`. `plugin.xml` stacks the view on the Problems view.
 
 ### Embedded SQL
 

@@ -16,6 +16,8 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.LocalFileSource;
 
 /**
  * Formats files of the local file system, that are not part of the workspace.
@@ -29,6 +31,11 @@ public class FormatJavaIoStreamFileJob extends AbstractFormatJob<File> {
     @Override
     protected String getPath(File file) {
         return file.getAbsolutePath();
+    }
+
+    @Override
+    protected IProblemSource createProblemSource(File file) {
+        return new LocalFileSource(file);
     }
 
     @Override

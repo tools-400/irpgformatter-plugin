@@ -18,6 +18,8 @@ import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.handlers.SourceMember;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.MemberSource;
 
 /**
  * Formats source members.
@@ -31,6 +33,11 @@ public class FormatRemoteSourceMemberJob extends AbstractFormatJob<SourceMember>
     @Override
     protected String getPath(SourceMember sourceMember) {
         return sourceMember.toString();
+    }
+
+    @Override
+    protected IProblemSource createProblemSource(SourceMember sourceMember) {
+        return new MemberSource(sourceMember);
     }
 
     @Override

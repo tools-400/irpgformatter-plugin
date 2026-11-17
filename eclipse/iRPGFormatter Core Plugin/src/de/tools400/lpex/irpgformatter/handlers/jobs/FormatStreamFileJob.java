@@ -15,6 +15,8 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.WorkspaceFileSource;
 
 /**
  * Formats stream files of the workspace.
@@ -28,6 +30,11 @@ public class FormatStreamFileJob extends AbstractFormatJob<IFile> {
     @Override
     protected String getPath(IFile file) {
         return file.getFullPath().toOSString();
+    }
+
+    @Override
+    protected IProblemSource createProblemSource(IFile file) {
+        return new WorkspaceFileSource(file);
     }
 
     @Override

@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.actions;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import com.ibm.lpex.core.LpexAction;
@@ -24,10 +26,17 @@ import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.problems.EditorSources;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
+import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 
 public class FormatLpexSourceAction implements LpexAction {
 
@@ -77,12 +86,12 @@ public class FormatLpexSourceAction implements LpexAction {
             }
 
         } catch (BlockStructureException e) {
-            // An error of the source, not of the formatter: not logged. The
-            // source was not changed, so the line numbers are still valid.
-            int lineNumber = UIUtils.displayErrorDetailsDialog(
-                Messages.bind(Messages.Error_Source_not_formatted_N_errors_in_block_structure, e.getErrorCount()), e.getErrorMessages(),
-                e.getLineNumbers());
-            goToLine(view, lineNumber);
+            // An error of the source, not of the formatter: not logged.
+            IProblemSource source = EditorSources.get(view);
+            FormatterProblems.getInstance().replace(source, ProblemFactory.fromBlockStructureException(source, e));
+            LpexViewUtils.displayMessage(view,
+                Messages.bind(Messages.Error_Source_not_formatted_N_errors_first_on_line_A, e.getErrorCount(), e.getFirstLineNumber()));
+            FormatterProblemsView.show(source);
         } catch (RpgleFormatterException e) {
             UIUtils.displaySimpleErrorDialog(Messages.bind(Messages.Error_Format_failed_A, ExceptionUtils.getLocalizedMessage(e)));
             IRpgleFormatterPlugin.logError("Format failed.", e);
@@ -102,7 +111,6 @@ public class FormatLpexSourceAction implements LpexAction {
         formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
 
         int endLine = -1;
-        int selectedLineNumber = -1;
         saveCursorPosition(view);
 
         if (executeIbmFormatter) {
@@ -125,26 +133,25 @@ public class FormatLpexSourceAction implements LpexAction {
                 LpexViewUtils.selectBlockRange(view, startLine, endLine);
             }
 
+            // The view lists the problems with the lines of the formatted
+            // source; a source without problems is removed from it.
+            IProblemSource source = EditorSources.get(view);
+            List<FormatterProblem> problems = ProblemFactory.fromFormatter(source, formatter, result);
+            FormatterProblems.getInstance().replace(source, problems);
+
             if (formatter.getErrorCount() > 0) {
                 formatter.logUnexpectedErrors(input.getName());
-                selectedLineNumber = UIUtils.displayErrorDetailsDialog(
-                    Messages.bind(Messages.Error_Source_formatted_with_N_errors, formatter.getErrorCount()),
-                    formatter.getErrorAndWarningMessages(), formatter.getErrorAndWarningLineNumbers());
+                LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Source_formatted_N_errors_first_on_line_A,
+                    formatter.getErrorCount(), getFirstLineNumber(problems, Severity.ERROR)));
+                FormatterProblemsView.show(source);
             } else if (formatter.getWarningCount() > 0) {
-                selectedLineNumber = UIUtils.displayWarningDetailsDialog(
-                    Messages.bind(Messages.Warning_Source_formatted_with_N_warnings, formatter.getWarningCount()),
-                    formatter.getWarningMessages(), formatter.getWarningLineNumbers());
+                LpexViewUtils.displayMessage(view, Messages.bind(Messages.Warning_Source_formatted_N_warnings_first_on_line_A,
+                    formatter.getWarningCount(), getFirstLineNumber(problems, Severity.WARNING)));
+                FormatterProblemsView.show(source);
             } else if (haveSelection && result.getLineCount() > 0) {
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Message_Source_Lines_A_B_formatted_successfully, startLine, endLine));
             } else {
                 LpexViewUtils.displayMessage(view, Messages.Message_Source_formatted_successfully);
-            }
-
-            // The line numbers of the messages refer to the source in front of
-            // formatting. The statements in front of the line may have more or
-            // less lines now.
-            if (selectedLineNumber > 0) {
-                selectedLineNumber = result.getFormattedLineNumber(selectedLineNumber);
             }
         } else if (executeIbmFormatter) {
             LpexViewUtils.displayMessage(view, Messages.Message_Source_formatted_successfully);
@@ -152,29 +159,18 @@ public class FormatLpexSourceAction implements LpexAction {
             LpexViewUtils.displayMessage(view, Messages.Message_No_formatting_applied);
         }
 
-        if (selectedLineNumber > 0) {
-            goToLine(view, selectedLineNumber);
-        } else {
-            restoreCursorPosition(view);
-        }
+        restoreCursorPosition(view);
     }
 
-    /**
-     * Puts the cursor on the first column of the given line, e.g. the line of
-     * the message, that the user double-clicked in the error dialog.
-     *
-     * @param view - the editor view
-     * @param lineNumber - the line number, nothing happens, if it is not
-     *        greater than 0
-     */
-    private void goToLine(LpexView view, int lineNumber) {
+    private static int getFirstLineNumber(List<FormatterProblem> problems, Severity severity) {
 
-        if (lineNumber <= 0) {
-            return;
+        for (FormatterProblem problem : problems) {
+            if (problem.getSeverity() == severity) {
+                return problem.getLineNumber();
+            }
         }
 
-        LpexViewUtils.setLine(view, Math.min(lineNumber, LpexViewUtils.getNumLines(view)));
-        LpexViewUtils.setPosition(view, 1);
+        return 0;
     }
 
     /**

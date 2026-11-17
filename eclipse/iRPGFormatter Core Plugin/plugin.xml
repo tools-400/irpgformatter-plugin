@@ -94,6 +94,39 @@
 
    <!--
      ==========================================
+       View of the problems of formatted sources
+     ==========================================
+   -->
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="de.tools400.lpex.irpgformatter.views"
+            name="%Label_category">
+      </category>
+      <view
+            id="de.tools400.lpex.irpgformatter.views.FormatterProblemsView"
+            name="%Label_problemsView"
+            category="de.tools400.lpex.irpgformatter.views"
+            class="de.tools400.lpex.irpgformatter.views.FormatterProblemsView"
+            allowMultiple="false">
+      </view>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               id="de.tools400.lpex.irpgformatter.views.FormatterProblemsView"
+               relative="org.eclipse.ui.views.ProblemView"
+               relationship="stack"
+               visible="false">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+   <!--
+     ==========================================
        Commands
      ==========================================
    -->

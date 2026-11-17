@@ -28,9 +28,10 @@ import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.handlers.jobs.IFormatPostRun;
 import de.tools400.lpex.irpgformatter.handlers.resolvers.AbstractResolver;
-import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.UIUtils;
+import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 
 public abstract class AbstractFormatHandler extends AbstractHandler implements IFormatPostRun {
 
@@ -159,23 +160,23 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     protected abstract void scheduleFormatterJob();
 
     /**
-     * Callback of the formatter job. Called at the end of the formatter. Both
-     * write-level and statement-level errors are presented together in the
-     * master/detail dialog. After a cancel, only the errors are shown.
+     * Callback of the formatter job. Called at the end of the formatter. The
+     * job has put the problems of the sources into the view
+     * {@link FormatterProblemsView}; the view is activated and shows the
+     * result above them. After a cancel, only the problems are shown.
      */
     @Override
-    public void postRun(int formattedCount, IErrorObject[] errors, ErrorGroup[] statementErrors, boolean canceled) {
+    public void postRun(int formattedCount, int notFormattedCount, int statementErrorsCount, boolean canceled) {
 
-        if (errors.length == 0 && statementErrors.length == 0) {
+        if (notFormattedCount == 0 && statementErrorsCount == 0) {
             if (!canceled) {
                 displaySuccessDialog(Messages.bind(sourceKind.finished, formattedCount));
             }
             return;
         }
 
-        ErrorGroup[] groups = concat(toErrorGroups(errors), statementErrors);
-        String message = buildHeader(formattedCount, errors.length, statementErrors.length);
-        displayErrorDialog(message, groups);
+        String summary = buildHeader(formattedCount, notFormattedCount, statementErrorsCount);
+        displayProblemsView(summary);
     }
 
     private String buildHeader(int formatted, int writeErrors, int statementErrorSources) {
@@ -209,44 +210,18 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     }
 
     /**
-     * Shows the unified master/detail error dialog. Both write-level errors
-     * (one resource per group, one detail line) and statement-level errors (one
-     * resource per group, multiple detail lines) are presented in the same
-     * dialog so the user only deals with one window.
+     * Activates the view of the problems, which lists the problems of all
+     * sources, and shows the result of the job above them.
      */
-    private void displayErrorDialog(String message, ErrorGroup[] groups) {
+    private void displayProblemsView(String summary) {
         UIJob job = new UIJob(UIUtils.getDisplay(), "") {
             @Override
             public IStatus runInUIThread(IProgressMonitor arg0) {
-                UIUtils.displayErrorDetailsDialog(message, groups);
+                FormatterProblems.getInstance().setSummary(summary);
+                FormatterProblemsView.show(true);
                 return Status.OK_STATUS;
             }
         };
         job.schedule();
-    }
-
-    /**
-     * Converts write-level error objects (one group per resource, one or more
-     * error messages) into the {@link ErrorGroup} representation used by the
-     * master/detail dialog, so they can be displayed alongside statement-level
-     * errors.
-     */
-    private static ErrorGroup[] toErrorGroups(IErrorObject[] errors) {
-        ErrorGroup[] groups = new ErrorGroup[errors.length];
-        for (int i = 0; i < errors.length; i++) {
-            groups[i] = new ErrorGroup(errors[i].getFullPath(), errors[i].getErrorMessages());
-        }
-        return groups;
-    }
-
-    /**
-     * Concatenates two {@link ErrorGroup} arrays in order. Used when a batch
-     * has both write failures and statement-level errors.
-     */
-    private static ErrorGroup[] concat(ErrorGroup[] a, ErrorGroup[] b) {
-        ErrorGroup[] result = new ErrorGroup[a.length + b.length];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
     }
 }

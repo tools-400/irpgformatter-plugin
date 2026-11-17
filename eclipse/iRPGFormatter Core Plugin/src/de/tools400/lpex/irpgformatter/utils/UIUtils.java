@@ -8,7 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.utils;
 
-import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -24,8 +23,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
 import de.tools400.lpex.irpgformatter.Messages;
-import de.tools400.lpex.irpgformatter.actions.FormatLpexSourceAction;
-import de.tools400.lpex.irpgformatter.handlers.AbstractFormatHandler;
 
 public class UIUtils {
 
@@ -48,68 +45,9 @@ public class UIUtils {
         MessageDialog.openError(getShell(), Messages.E_R_R_O_R, message);
     }
 
-    /**
-     * Application-wide entry point for showing an error message together with a
-     * scrollable list of detail entries. All callers that want the standard
-     * iRPGFormatter look-and-feel for such dialogs should use this method; the
-     * underlying dialog implementation can then be swapped centrally without
-     * touching call sites. Call {@link #displayErrorDetailsMessageDialog}
-     * instead to use the {@link ErrorDetailsMessageDialog}.
-     * <p>
-     * Used by the {@link FormatLpexSourceAction}.
-     *
-     * @param message - the message above the details
-     * @param errorDetails - the details
-     * @param lineNumbers - the line numbers of the details, so that a
-     *        double-click on a detail goes to its line
-     * @return the line number of the detail, that was double-clicked, or -1
-     */
-    public static int displayErrorDetailsDialog(String message, String[] errorDetails, int[] lineNumbers) {
-        return displayErrorDetailsTitleAreaDialog(message, errorDetails, lineNumbers);
-    }
-
-    public static int displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails, int[] lineNumbers) {
-        ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), Messages.E_R_R_O_R, message,
-            IMessageProvider.ERROR, errorDetails, lineNumbers);
-        dialog.open();
-        return dialog.getSelectedLineNumber();
-    }
-
-    /**
-     * Application-wide entry point for showing a warning message together with
-     * a scrollable list of detail entries.
-     * <p>
-     * Used by the {@link FormatLpexSourceAction}.
-     *
-     * @param message - the message above the details
-     * @param warningDetails - the details
-     * @param lineNumbers - the line numbers of the details, so that a
-     *        double-click on a detail goes to its line
-     * @return the line number of the detail, that was double-clicked, or -1
-     */
-    public static int displayWarningDetailsDialog(String message, String[] warningDetails, int[] lineNumbers) {
-        ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), Messages.W_A_R_N_I_N_G, message,
-            IMessageProvider.WARNING, warningDetails, lineNumbers);
-        dialog.open();
-        return dialog.getSelectedLineNumber();
-    }
-
     @SuppressWarnings("unused")
     private static void displayErrorDetailsMessageDialog(String message, String[] errorDetails) {
         ErrorDetailsMessageDialog dialog = new ErrorDetailsMessageDialog(getShell(), message, errorDetails);
-        dialog.open();
-    }
-
-    /**
-     * Application-wide entry point for showing a master/detail error dialog
-     * (table of resources on top, error details of the selected row at the
-     * bottom). Use when errors naturally group by resource — e.g. one group per
-     * source member containing the statement-level errors.
-     * <p>
-     * Used by all handlers inheriting from {@link AbstractFormatHandler}.
-     */
-    public static void displayErrorDetailsDialog(String message, ErrorGroup[] errorGroups) {
-        MemberErrorsDialog dialog = new MemberErrorsDialog(getShell(), message, errorGroups);
         dialog.open();
     }
 

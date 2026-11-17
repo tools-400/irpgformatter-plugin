@@ -23,7 +23,8 @@ context menu:
 - **Project Explorer**: folders and files with the extension RPGLE or SQLRPGLE.
 
 The sources are formatted in the background. Locked members are skipped. At the end a message tells how many sources were
-formatted and lists the sources with errors or warnings and their messages.
+formatted. If sources have errors or warnings, the view **iRPGFormatter Problems** opens instead and shows the result above
+them, see [Problems](#problems).
 
 ### Keyboard Shortcut
 
@@ -40,9 +41,9 @@ itself. Your key is kept when you restart RDi.
 
 With the setting **Format on save**, a source is formatted, when you save it in the LPEX editor with **Save** or **Save All**.
 It is not formatted, when RDi asks to save it while the editor is closed. Statements, that cannot be formatted, stay
-unchanged. No message is shown. If a declaration block is not closed, the source is not formatted, and the message line of
-the editor shows the number of errors and the line of the first one. Format the source with **Source > iFormat** to see all
-of them.
+unchanged. If there are errors or warnings, the view **iRPGFormatter Problems** is shown with the first problem of the source
+selected; the editor keeps the focus. If a declaration block is not closed, the source is not formatted, and the message
+line of the editor shows the number of errors and the line of the first one.
 
 ## Preferences
 
@@ -550,16 +551,34 @@ iRPGFormatter recognizes the statements and the blocks of a source, but it does 
 - A source, whose declaration blocks, such as `DCL-DS` or `DCL-PROC`, are not closed, is not formatted, because the
   indentation of all following lines would be wrong.
 
-The formatter reports problems in a dialog:
+### Problems
 
-- **Errors**: A statement, that cannot be formatted, e.g. because a line would exceed the end column, stays unchanged. The
-  dialog lists these statements with their line numbers. All other statements are formatted.
+The formatter lists its errors and warnings in the view **iRPGFormatter Problems**, one line per problem with the message,
+the source and the line. In the editor, the message line tells the number of problems and the line of the first one, and
+the view is shown without taking the focus, with the first problem of the source selected. You can also open it with
+**Window > Show View > Other... > iRPGFormatter**.
+
+- **Errors**: A statement, that cannot be formatted, e.g. because a line would exceed the end column, stays unchanged. All
+  other statements are formatted.
 - **Warnings**: The source is formatted, but the indentation after the reported line may be wrong.
-- **Source not formatted**: The dialog lists each declaration block, that is not closed, with its line numbers, e.g.
+- **Source not formatted**: Each declaration block, that is not closed, is an error, e.g.
   `Error on line #196: DCL-DS SYNCIFSWRF is not closed before END-PROC of line #374.` The source stays unchanged.
+- **Formatting several sources**: Sources, that cannot be formatted at all, e.g. because they are not in `**FREE` format,
+  are listed without a line. The result of the formatting is shown above the problems.
 
-In the editor, double-click a message to close the dialog and go to the statement of the message. The line numbers of the
-messages refer to the source before formatting; if the statements in front of it got more or less lines, the cursor goes to
-the new line of the statement.
+Double-click a problem, or select it and press Enter, to open its source and go to its line. A source member or a stream
+file of the IFS is opened like in the **Remote Systems** view; an offline connection is connected. An open source is
+activated. The view stays open, so that you can go from problem to problem.
 
-If a source cannot be formatted at all for another reason, e.g. because it cannot be read, a dialog shows the reason.
+The line numbers of the messages refer to the source before formatting. If the statements in front of a problem got more or
+less lines, the column **Line** and the double-click go to the new line. If you change the source afterwards, the lines
+are no longer exact; format the source again to update them.
+
+Formatting a source again replaces its problems, no matter whether it is formatted in the editor, on save or together with
+other sources; a source without problems disappears from the view. The problems stay, when the editor is closed, and a
+double-click opens the source again. Only if the source of an editor cannot be determined, its problems disappear with the
+editor. **Remove** removes the selected problems, **Remove All** all of them. **Copy** copies the selected problems as
+text.
+
+If a source cannot be formatted at all in the editor for another reason, e.g. because it cannot be read, a dialog shows the
+reason.

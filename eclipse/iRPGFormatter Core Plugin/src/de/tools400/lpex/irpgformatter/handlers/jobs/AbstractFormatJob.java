@@ -8,7 +8,6 @@
 
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -27,18 +26,22 @@ import de.tools400.lpex.irpgformatter.formatter.BatchAbortedException;
 import de.tools400.lpex.irpgformatter.formatter.BlockStructureException;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
-import de.tools400.lpex.irpgformatter.handlers.IErrorObject;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.utils.ErrorGroup;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
+import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * Base class of the jobs that format a batch of sources: source members, stream
  * files of the IFS, files of the workspace and files of the local file system.
  * A subclass names, checks and reads a single source. The loop, the progress,
- * the error handling and the result are the same for all sources.
+ * the error handling and the result are the same for all sources. The problems
+ * of each source replace its problems in the view
+ * {@link de.tools400.lpex.irpgformatter.views.FormatterProblemsView}.
  *
  * @param <T> type of the sources
  */
@@ -48,9 +51,9 @@ public abstract class AbstractFormatJob<T> extends Job {
     private RpgleFormatter formatter;
     private IFormatPostRun postRun;
 
-    private List<IErrorObject> errors;
     private int formattedCount;
-    private List<ErrorGroup> statementErrors;
+    private int notFormattedCount;
+    private int statementErrorsCount;
 
     protected AbstractFormatJob(String name, T[] sources, IFormatPostRun postRun) {
         super(name);
@@ -59,9 +62,9 @@ public abstract class AbstractFormatJob<T> extends Job {
         this.formatter = new RpgleFormatter();
         this.postRun = postRun;
 
-        this.errors = new LinkedList<>();
         this.formattedCount = 0;
-        this.statementErrors = new LinkedList<>();
+        this.notFormattedCount = 0;
+        this.statementErrorsCount = 0;
     }
 
     /**
@@ -69,6 +72,11 @@ public abstract class AbstractFormatJob<T> extends Job {
      * errors.
      */
     protected abstract String getPath(T source);
+
+    /**
+     * Returns the source for the view of the problems, which can open it.
+     */
+    protected abstract IProblemSource createProblemSource(T source);
 
     /**
      * Checks that the source can be formatted, e.g. that it is not locked.
@@ -124,8 +132,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         monitor.done();
 
         if (postRun != null) {
-            postRun.postRun(formattedCount, errors.toArray(new IErrorObject[errors.size()]),
-                statementErrors.toArray(new ErrorGroup[statementErrors.size()]), canceled);
+            postRun.postRun(formattedCount, notFormattedCount, statementErrorsCount, canceled);
         }
 
         if (canceled) {
@@ -137,6 +144,8 @@ public abstract class AbstractFormatJob<T> extends Job {
 
     private void executeFormatter(T source, IProgressMonitor monitor) throws BatchAbortedException {
 
+        IProblemSource problemSource = createProblemSource(source);
+
         try {
 
             monitor.subTask(Messages.SubTask_Checking_availability);
@@ -147,21 +156,21 @@ public abstract class AbstractFormatJob<T> extends Job {
 
             String validationError = RpgleFormatter.validateInput(input);
             if (validationError != null) {
-                errors.add(new SourceError(getPath(source), validationError));
+                reportNotFormatted(problemSource, ProblemFactory.fromMessage(problemSource, validationError));
             } else {
-                executeFormatter(source, input, monitor);
+                executeFormatter(source, problemSource, input, monitor);
             }
 
         } catch (BatchAbortedException e) {
             throw e;
         } catch (BlockStructureException e) {
-            errors.add(new SourceError(getPath(source), e.getErrorMessages()));
+            reportNotFormatted(problemSource, ProblemFactory.fromBlockStructureException(problemSource, e));
         } catch (Exception e) {
-            errors.add(new SourceError(getPath(source), ExceptionUtils.getLocalizedMessage(e)));
+            reportNotFormatted(problemSource, ProblemFactory.fromMessage(problemSource, ExceptionUtils.getLocalizedMessage(e)));
         }
     }
 
-    private void executeFormatter(T source, IRpgleInput input, IProgressMonitor monitor) throws Exception {
+    private void executeFormatter(T source, IProblemSource problemSource, IRpgleInput input, IProgressMonitor monitor) throws Exception {
 
         formatter.setSourceLength(getSourceLength(source));
         int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
@@ -176,15 +185,23 @@ public abstract class AbstractFormatJob<T> extends Job {
             monitor.subTask(Messages.SubTask_Writing);
             IRpgleOutput output = input.getOutput();
             if (!output.writeSourceLines(result)) {
-                errors.add(new SourceError(getPath(source), Messages.Error_Could_not_format_member));
+                reportNotFormatted(problemSource, ProblemFactory.fromMessage(problemSource, Messages.Error_Could_not_format_member));
                 return;
             }
         }
 
         formattedCount++;
-        if (formatter.getErrorCount() > 0 || formatter.getWarningCount() > 0) {
-            statementErrors.add(new ErrorGroup(getPath(source), formatter.getErrorAndWarningMessages()));
+
+        List<FormatterProblem> problems = ProblemFactory.fromFormatter(problemSource, formatter, result);
+        if (!problems.isEmpty()) {
+            statementErrorsCount++;
         }
+        FormatterProblems.getInstance().replace(problemSource, problems);
+    }
+
+    private void reportNotFormatted(IProblemSource problemSource, List<FormatterProblem> problems) {
+        notFormattedCount++;
+        FormatterProblems.getInstance().replace(problemSource, problems);
     }
 
     /**
@@ -215,33 +232,5 @@ public abstract class AbstractFormatJob<T> extends Job {
 
         // throws SystemMessageException on failure
         connection.connect();
-    }
-
-    /**
-     * A source that could not be formatted at all.
-     */
-    private static final class SourceError implements IErrorObject {
-
-        private String fullPath;
-        private String[] errorMessages;
-
-        public SourceError(String fullPath, String errorMessage) {
-            this(fullPath, new String[] { errorMessage });
-        }
-
-        public SourceError(String fullPath, String[] errorMessages) {
-            this.fullPath = fullPath;
-            this.errorMessages = errorMessages;
-        }
-
-        @Override
-        public String getFullPath() {
-            return fullPath;
-        }
-
-        @Override
-        public String[] getErrorMessages() {
-            return errorMessages;
-        }
     }
 }

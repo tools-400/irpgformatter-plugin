@@ -18,6 +18,8 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.problems.IProblemSource;
+import de.tools400.lpex.irpgformatter.problems.RemoteStreamFileSource;
 
 /**
  * Formats stream files of the IFS.
@@ -31,6 +33,11 @@ public class FormatRemoteStreamFileJob extends AbstractFormatJob<IRemoteFile> {
     @Override
     protected String getPath(IRemoteFile file) {
         return file.getAbsolutePath();
+    }
+
+    @Override
+    protected IProblemSource createProblemSource(IRemoteFile file) {
+        return new RemoteStreamFileSource(file);
     }
 
     @Override
