@@ -81,10 +81,11 @@ public abstract class AbstractFormatJob<T> extends Job {
 
     /**
      * Returns the length of the source lines. Stream files have no fixed
-     * length.
+     * length, so that only the end column of the preferences limits the lines,
+     * like in the editor.
      */
     protected int getSourceLength(T source) throws Exception {
-        return RpgleFormatter.DEFAULT_END_COLUMN;
+        return Integer.MAX_VALUE;
     }
 
     @Override

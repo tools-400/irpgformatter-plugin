@@ -52,8 +52,6 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  */
 public class RpgleFormatter implements ILineNumberProvider {
 
-    public static final int DEFAULT_END_COLUMN = 100;
-
     private static final String SOURCE_TYPE_RPGLE = "RPGLE";
     private static final String SOURCE_TYPE_SQLRPGLE = "SQLRPGLE";
 
@@ -129,14 +127,15 @@ public class RpgleFormatter implements ILineNumberProvider {
      * <ul>
      * <li><b>Source members</b> — pass the physical SRCDTA field length (e.g.
      * {@code SourceMember.getSourceLength()} or
-     * {@code LpexViewUtils.computeSourceLength()}).</li>
-     * <li><b>Stream files</b> — pass {@link #DEFAULT_END_COLUMN}, because
+     * {@code LpexViewUtils.getMaxLineLength()}).</li>
+     * <li><b>Stream files</b> — pass {@link Integer#MAX_VALUE}, because
      * stream files have no physical record limit and the configured max line
-     * width is applied via the {@code min()} above.</li>
+     * width is applied via the {@code min()} above. With the end column
+     * {@code *MAX} the lines have no limit, like in RDi.</li>
      * </ul>
      *
      * @param sourceLength physical source length, or
-     *        {@link #DEFAULT_END_COLUMN} for stream files
+     *        {@link Integer#MAX_VALUE} for stream files
      */
     public void setSourceLength(int sourceLength) {
         this.endColumn = config.getEndColumn(sourceLength);

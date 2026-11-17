@@ -274,8 +274,6 @@ after the semicolon, the statement is only indented.
 
 Differences to RDi:
 
-- The line length is the end column of iRPGFormatter. RDi uses the end column of the RPG formatter as well, but no limit for
-  stream files with `*MAX`.
 - A comment in front of the first word of the SQL statement is indented like the SQL statement.
 - iRPGFormatter always uses the SQL formatter of IBM i Access Client Solutions, even if **Use the Enhanced SQL Formatter** is off.
 - RDi 9.6 does not provide this SQL formatter to plug-ins. There embedded SQL is only indented.
