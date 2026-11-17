@@ -19,7 +19,7 @@ import org.eclipse.ui.ide.IDE;
 /**
  * A stream file in the local file system, outside of the workspace.
  */
-public class LocalFileSource implements IProblemSource {
+public class LocalFileSource extends AbstractProblemSource {
 
     private final File file;
 

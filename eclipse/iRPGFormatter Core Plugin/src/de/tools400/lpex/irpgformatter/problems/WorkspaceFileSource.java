@@ -16,12 +16,13 @@ import org.eclipse.ui.ide.IDE;
 /**
  * A stream file in the workspace.
  */
-public class WorkspaceFileSource implements IProblemSource {
+public class WorkspaceFileSource extends AbstractProblemSource {
 
     private final IFile file;
 
     public WorkspaceFileSource(IFile file) {
         this.file = file;
+        setMarkerFile(file);
     }
 
     @Override

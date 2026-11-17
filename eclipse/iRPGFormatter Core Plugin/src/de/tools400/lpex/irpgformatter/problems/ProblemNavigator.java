@@ -8,11 +8,13 @@
 
 package de.tools400.lpex.irpgformatter.problems;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.ibm.lpex.core.LpexView;
@@ -43,11 +45,20 @@ public final class ProblemNavigator {
 
         IProblemSource source = problem.getSource();
 
+        // The same way as the Problems view: it opens the file of the marker,
+        // for a member its local copy, which RDi edits as the member, and goes
+        // to the marker also in an editor, that has just been opened.
+        IMarker marker = ProblemMarkers.findMarker(problem);
+
         IEditorPart[] editor = new IEditorPart[1];
         Exception[] error = new Exception[1];
         BusyIndicator.showWhile(page.getWorkbenchWindow().getShell().getDisplay(), () -> {
             try {
-                editor[0] = source.open(page);
+                if (marker != null) {
+                    editor[0] = IDE.openEditor(page, marker);
+                } else {
+                    editor[0] = source.open(page);
+                }
             } catch (Exception e) {
                 error[0] = e;
             }
@@ -75,6 +86,11 @@ public final class ProblemNavigator {
             }
         }
 
+        if (marker != null) {
+            // IDE.openEditor has already gone to the marker
+            return;
+        }
+
         page.activate(editor[0]);
 
         if (view != null) {
@@ -94,6 +110,8 @@ public final class ProblemNavigator {
 
         LpexViewUtils.setLine(view, Math.min(lineNumber, LpexViewUtils.getNumLines(view)));
         LpexViewUtils.setPosition(view, 1);
+        // like the LPEX editor, when it goes to a marker
+        view.doCommand("screenShow view"); //$NON-NLS-1$
     }
 
     private static void goToLine(ITextEditor editor, int lineNumber) {

@@ -19,6 +19,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
+import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
+import de.tools400.lpex.irpgformatter.problems.ProblemMarkers;
 import de.tools400.lpex.menuextension.ILpexMenuExtension;
 import de.tools400.lpex.menuextension.LpexMenuExtensionPlugin;
 
@@ -41,6 +43,9 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
     /** The Lpex menu extension */
     private ILpexMenuExtension menuExtension;
 
+    /** The markers of the problems of formatted sources */
+    private ProblemMarkers problemMarkers;
+
     /**
      * The constructor.
      */
@@ -52,6 +57,9 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
         super.start(context);
         plugin = this;
         installURL = context.getBundle().getEntry("/");
+
+        problemMarkers = new ProblemMarkers();
+        FormatterProblems.getInstance().addListener(problemMarkers);
     }
 
     @Override
@@ -59,6 +67,12 @@ public class IRpgleFormatterPlugin extends AbstractUIPlugin implements LpexMenuE
 
         if (menuExtension != null) {
             menuExtension.uninstall();
+        }
+
+        if (problemMarkers != null) {
+            FormatterProblems.getInstance().removeListener(problemMarkers);
+            problemMarkers.dispose();
+            problemMarkers = null;
         }
 
         plugin = null;

@@ -29,6 +29,7 @@ import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.problems.AbstractProblemSource;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
 import de.tools400.lpex.irpgformatter.problems.IProblemSource;
@@ -155,6 +156,12 @@ public abstract class AbstractFormatJob<T> extends Job {
             IRpgleInput input = createInput(source, monitor);
 
             String validationError = RpgleFormatter.validateInput(input);
+
+            // after validateInput, which downloads a member into its local copy
+            if (problemSource instanceof AbstractProblemSource && problemSource.getMarkerFile() == null) {
+                ((AbstractProblemSource)problemSource).setMarkerFile(input.getLocalResource());
+            }
+
             if (validationError != null) {
                 reportNotFormatted(problemSource, ProblemFactory.fromValidation(problemSource, validationError));
             } else {

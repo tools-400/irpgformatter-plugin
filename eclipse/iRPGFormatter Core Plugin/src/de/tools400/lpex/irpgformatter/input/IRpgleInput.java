@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.input;
 
+import org.eclipse.core.resources.IFile;
+
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 
 /**
@@ -67,4 +69,16 @@ public interface IRpgleInput {
      * @return the output handler for this input
      */
     public IRpgleOutput getOutput();
+
+    /**
+     * Returns the file of the workspace, that holds the source: the file itself
+     * or the local copy of a member, that Remote Systems downloaded. The markers
+     * of the problems are attached to it.
+     *
+     * @return the file or <code>null</code>, e.g. for a stream file of the IFS,
+     *         which is read without a local copy
+     */
+    public default IFile getLocalResource() {
+        return null;
+    }
 }

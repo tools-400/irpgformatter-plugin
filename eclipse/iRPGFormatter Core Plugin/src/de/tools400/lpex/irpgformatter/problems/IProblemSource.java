@@ -8,6 +8,7 @@
 
 package de.tools400.lpex.irpgformatter.problems;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 
@@ -39,4 +40,14 @@ public interface IProblemSource {
      * @throws Exception if the source cannot be opened
      */
     public IEditorPart open(IWorkbenchPage page) throws Exception;
+
+    /**
+     * Returns the file of the workspace, to which the markers of the problems
+     * are attached: the file itself or the local copy of a member or a stream
+     * file of the IFS.
+     *
+     * @return the file or <code>null</code>, if the source has none, e.g. a
+     *         file outside of the workspace
+     */
+    public IFile getMarkerFile();
 }

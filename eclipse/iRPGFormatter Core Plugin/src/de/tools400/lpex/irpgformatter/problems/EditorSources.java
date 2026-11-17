@@ -81,14 +81,23 @@ public final class EditorSources {
     private static IProblemSource createSource(LpexView view) {
 
         IEditorPart editor = findEditor(view);
+        IFile file = editor != null ? (IFile)editor.getEditorInput().getAdapter(IFile.class) : null;
+
+        AbstractProblemSource source = null;
         if (editor != null) {
-            IProblemSource source = getSource(editor.getEditorInput());
-            if (source != null) {
-                return source;
-            }
+            source = getSource(editor.getEditorInput());
         }
 
-        return new EditorSource(view);
+        if (source == null) {
+            source = new EditorSource(view);
+        }
+
+        // e.g. the local copy of a member, which the editor shows
+        if (source.getMarkerFile() == null) {
+            source.setMarkerFile(file);
+        }
+
+        return source;
     }
 
     /**
@@ -99,7 +108,7 @@ public final class EditorSources {
      * @param input - the input of the editor
      * @return the source or <code>null</code>, if it cannot be determined
      */
-    private static IProblemSource getSource(IEditorInput input) {
+    private static AbstractProblemSource getSource(IEditorInput input) {
 
         IFile file = (IFile)input.getAdapter(IFile.class);
         if (file != null) {
@@ -127,7 +136,7 @@ public final class EditorSources {
         return null;
     }
 
-    private static IProblemSource getMemberSource(QSYSEditableRemoteSourceFileMember editableMember) {
+    private static AbstractProblemSource getMemberSource(QSYSEditableRemoteSourceFileMember editableMember) {
 
         IQSYSMember member = editableMember.getMember();
         IBMiConnection connection = editableMember.getISeriesConnection();

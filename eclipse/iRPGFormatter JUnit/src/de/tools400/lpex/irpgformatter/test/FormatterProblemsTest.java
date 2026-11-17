@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.junit.After;
@@ -281,6 +282,11 @@ public class FormatterProblemsTest extends AbstractTestCase {
 
         @Override
         public IEditorPart open(IWorkbenchPage page) {
+            return null;
+        }
+
+        @Override
+        public IFile getMarkerFile() {
             return null;
         }
     }

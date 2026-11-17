@@ -25,6 +25,7 @@ import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.actions.FormatOnSaveListener;
 import de.tools400.lpex.irpgformatter.menu.MenuExtension;
+import de.tools400.lpex.irpgformatter.problems.EditorMarkerRefresher;
 
 public class Preload implements LpexPreload {
 
@@ -44,8 +45,23 @@ public class Preload implements LpexPreload {
         menuExtension.initializeLpexEditor(IRpgleFormatterPlugin.getDefault());
 
         registerFormatOnSave();
+        registerMarkerRefresher();
 
         return;
+    }
+
+    private void registerMarkerRefresher() {
+
+        // Delay registration until the workbench is fully initialized.
+        Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+                try {
+                    EditorMarkerRefresher.install();
+                } catch (Throwable e) {
+                    IRpgleFormatterPlugin.logError("Failed to register the refresher of the markers", e); //$NON-NLS-1$
+                }
+            }
+        });
     }
 
     private void registerFormatOnSave() {

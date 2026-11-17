@@ -23,7 +23,7 @@ import de.tools400.lpex.irpgformatter.handlers.SourceMember;
  * A source member, opened like with the Remote Systems view. If the connection
  * is offline, it is connected.
  */
-public class MemberSource implements IProblemSource {
+public class MemberSource extends AbstractProblemSource {
 
     private final SourceMember sourceMember;
 

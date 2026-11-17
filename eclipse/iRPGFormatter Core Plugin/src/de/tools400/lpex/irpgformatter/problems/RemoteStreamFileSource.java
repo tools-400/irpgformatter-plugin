@@ -17,7 +17,7 @@ import org.eclipse.ui.IWorkbenchPage;
  * A stream file in the IFS of an IBM i, opened like with the Remote Systems
  * view.
  */
-public class RemoteStreamFileSource implements IProblemSource {
+public class RemoteStreamFileSource extends AbstractProblemSource {
 
     private final IRemoteFile remoteFile;
 

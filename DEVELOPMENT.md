@@ -93,8 +93,22 @@ The package `problems` and the view `views.FormatterProblemsView` replace the er
   `SystemEditableRemoteFile` (`SystemIFileProperties.getRemoteFileObject()`), other files are `WorkspaceFileSource` or, for
   an `IURIEditorInput`, `LocalFileSource`. Only if the source cannot be determined, the editor is an `EditorSource`, whose
   problems are removed, when the LPEX view is disposed.
-* `ProblemNavigator.goTo()` opens the source and puts the cursor on the line (`locate line` in LPEX, `selectAndReveal` in
-  other text editors).
+* `ProblemNavigator.goTo()` opens a problem with a marker like the Problems view (`IDE.openEditor(page, marker)`), which
+  opens the file of the marker and goes to it, also for the local copy of a member. Without a marker it opens the source
+  (`IProblemSource.open()`) and puts the cursor on the line (`locate line` and `screenShow view` in LPEX, `selectAndReveal`
+  in other text editors). `QSYSEditableRemoteSourceFileMember.open()` returns, before the editor has loaded the member, so
+  the line could not be set right after it.
+* `ProblemMarkers` (registered by the activator) keeps the markers in line with `FormatterProblems`: a job replaces the
+  markers of the type `de.tools400.lpex.irpgformatter.core.plugin.problem` (`plugin.xml`: problem and text marker, not
+  persistent like the problem markers of RDi) of all files, that have or had problems. The file of a source is
+  `IProblemSource.getMarkerFile()` (`AbstractProblemSource`): the workspace file, the local copy of the editor
+  (`EditorSources`) or the local copy of a member, that the batch job sets after the download
+  (`IRpgleInput.getLocalResource()`). A stream file of the IFS, that a batch job reads without a local copy, has none.
+* The annotation model of the LPEX editor does not take over the markers, that a file has, when the editor opens it, so it
+  neither shows them nor goes to them. `EditorMarkerRefresher` (registered in `Preload`) changes an attribute of these
+  markers, when an LPEX editor opens, at once and again after 200 ms; the model adds a changed marker, that it does not
+  know (`AbstractMarkerAnnotationModel.modifyMarkerAnnotation`). Deleting and creating them again would break
+  `IDE.openEditor(page, marker)`, which goes to the original marker.
 * The format action and **Format on save** show the view with `VIEW_VISIBLE` (the editor keeps the focus) and select the
   first problem of the source (`FormatterProblemsView.show(IProblemSource)`), because a new source is added at the end of
   the list. The batch handlers show it with `VIEW_ACTIVATE`. `plugin.xml` stacks the view on the Problems view.
@@ -228,6 +242,9 @@ correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
 
 ## Verified facts
 
+* RDi 9.6, 2026-11-17: the LPEX editor shows the markers of a file in its ruler and goes to them only, if they are created
+  or changed, while it is open. A double-click on the marker of the local copy of a member in the Problems view opens the
+  member for editing; saving uploads it.
 * 2026-11-17: the SQL formatter of IBM i Access Client Solutions (`com.ibm.ibmi.sql.formatter.impl`) is in the bundle
   `com.ibm.ibmi.sql.parser.lpg` 1.0.3 in RDi 9.6.0.12, in `com.ibm.ibmi.sql.parser` 9.8.3 and `com.ibm.ibmi.sql.parser.lpg`
   1.0.3 in RDi 9.8 and in `com.ibm.ibmi.sql.parser` 9.9.0 in RDi 9.9. The classes and methods, that `AcsSqlFormatter`

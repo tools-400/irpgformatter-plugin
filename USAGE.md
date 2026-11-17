@@ -586,5 +586,20 @@ double-click opens the source again. Only if the source of an editor cannot be d
 editor. **Remove** removes the selected problems, **Remove All** all of them. **Copy** copies the selected problems as
 text.
 
+#### Markers
+
+Each problem is also a marker of the type **iRPGFormatter Problem**, if the source is a file of the workspace or a source
+member or stream file, that Remote Systems downloaded into a local copy:
+
+- The LPEX editor shows the errors, warnings and informations with a line in its ruler; hover over the icon to see the
+  message. The icon moves with the line, when you insert or delete lines above it.
+- The **Problems** view lists the markers, too. A member or a stream file of the IFS has its markers at its local copy, so
+  the Problems view shows the path of the copy in `RemoteSystemsTempFiles`, e.g. `SYNCIFS_23.SQLRPGLE` for the member
+  `SYNCIFS#`. A double-click opens the member like in Remote Systems.
+- The markers follow the view: formatting again, **Remove** and **Remove All** replace or remove them. Like the view, they
+  are not kept, when RDi is closed.
+- Files outside of the workspace and stream files of the IFS, that were formatted together with other sources, have no
+  markers, because they have no file in the workspace. The view lists their problems all the same.
+
 If a source cannot be formatted at all in the editor for another reason, e.g. because it cannot be read, a dialog shows the
 reason.

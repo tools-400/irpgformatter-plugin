@@ -19,7 +19,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * A source, that was formatted in an LPEX editor. Its problems are removed,
  * when the editor is closed, see {@link EditorSources}.
  */
-public class EditorSource implements IProblemSource {
+public class EditorSource extends AbstractProblemSource {
 
     private final LpexView view;
     private final String label;

@@ -48,4 +48,9 @@ public class RpgleStreamFileInput extends AbstractStreamFileInput {
     public IRpgleOutput getOutput() {
         return new RpgleStreamFileOutput(file);
     }
+
+    @Override
+    public IFile getLocalResource() {
+        return file;
+    }
 }

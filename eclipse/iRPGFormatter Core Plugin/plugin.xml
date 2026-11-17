@@ -112,6 +112,19 @@
       </view>
    </extension>
 
+   <!--
+     Marker of the problems of formatted sources. Like the problem markers of
+     RDi, they are not persistent; the view of the problems is not either.
+   -->
+   <extension
+         id="problem"
+         name="%Label_problemMarker"
+         point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.core.resources.problemmarker"/>
+      <super type="org.eclipse.core.resources.textmarker"/>
+      <persistent value="false"/>
+   </extension>
+
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension

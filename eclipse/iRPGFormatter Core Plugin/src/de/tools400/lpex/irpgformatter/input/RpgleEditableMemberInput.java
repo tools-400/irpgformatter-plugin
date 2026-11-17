@@ -100,4 +100,12 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
     public IRpgleOutput getOutput() {
         return new RpgleEditableMemberOutput(editableMember, monitor);
     }
+
+    /**
+     * Returns the local copy, into which the member was downloaded.
+     */
+    @Override
+    public IFile getLocalResource() {
+        return editableMember.getLocalResource();
+    }
 }
