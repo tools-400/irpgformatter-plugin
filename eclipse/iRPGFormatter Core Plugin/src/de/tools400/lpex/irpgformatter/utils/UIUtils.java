@@ -57,14 +57,22 @@ public class UIUtils {
      * instead to use the {@link ErrorDetailsMessageDialog}.
      * <p>
      * Used by the {@link FormatLpexSourceAction}.
+     *
+     * @param message - the message above the details
+     * @param errorDetails - the details
+     * @param lineNumbers - the line numbers of the details, so that a
+     *        double-click on a detail goes to its line
+     * @return the line number of the detail, that was double-clicked, or -1
      */
-    public static void displayErrorDetailsDialog(String message, String[] errorDetails) {
-        displayErrorDetailsTitleAreaDialog(message, errorDetails);
+    public static int displayErrorDetailsDialog(String message, String[] errorDetails, int[] lineNumbers) {
+        return displayErrorDetailsTitleAreaDialog(message, errorDetails, lineNumbers);
     }
 
-    public static void displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails) {
-        ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), message, errorDetails);
+    public static int displayErrorDetailsTitleAreaDialog(String message, String[] errorDetails, int[] lineNumbers) {
+        ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), Messages.E_R_R_O_R, message,
+            IMessageProvider.ERROR, errorDetails, lineNumbers);
         dialog.open();
+        return dialog.getSelectedLineNumber();
     }
 
     /**
@@ -72,11 +80,18 @@ public class UIUtils {
      * a scrollable list of detail entries.
      * <p>
      * Used by the {@link FormatLpexSourceAction}.
+     *
+     * @param message - the message above the details
+     * @param warningDetails - the details
+     * @param lineNumbers - the line numbers of the details, so that a
+     *        double-click on a detail goes to its line
+     * @return the line number of the detail, that was double-clicked, or -1
      */
-    public static void displayWarningDetailsDialog(String message, String[] warningDetails) {
+    public static int displayWarningDetailsDialog(String message, String[] warningDetails, int[] lineNumbers) {
         ErrorDetailsTitleAreaDialog dialog = new ErrorDetailsTitleAreaDialog(getShell(), Messages.W_A_R_N_I_N_G, message,
-            IMessageProvider.WARNING, warningDetails);
+            IMessageProvider.WARNING, warningDetails, lineNumbers);
         dialog.open();
+        return dialog.getSelectedLineNumber();
     }
 
     @SuppressWarnings("unused")

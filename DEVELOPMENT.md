@@ -61,6 +61,10 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
      `BlockStructureException`, ordered by line number, and the source is not formatted. The format action shows them in
      `ErrorDetailsTitleAreaDialog`, **Format on save** in the message line of the editor and the batch jobs as the errors of
      the source in `MemberErrorsDialog`.
+   * `ErrorDetailsTitleAreaDialog` gets the line numbers of its messages (`BlockStructureException.getLineNumbers()`,
+     `RpgleFormatter.getErrorAndWarningLineNumbers()`). A double-click closes it and returns the line; the format action puts
+     the cursor there instead of restoring it. Errors and warnings of statements are shown after the formatted lines were
+     written, so `FormattedResult.getFormattedLineNumber()` maps the line number of the source to the formatted source.
    * A comment line gets the level of the statement that follows it.
 3. **Formatting.** `RpgleFormatter.format()` goes over the statements. The lines in front of a selection only tell the
    nesting. **Format declarations** and **Format calculations** decide, which statements are formatted; a comment line

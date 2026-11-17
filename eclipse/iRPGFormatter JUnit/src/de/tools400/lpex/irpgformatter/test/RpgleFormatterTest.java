@@ -1392,6 +1392,9 @@ public class RpgleFormatterTest extends AbstractTestCase {
         FormatError error = formatter.getErrors().get(0);
         assertEquals(3, error.getStartLineNumber());
         assertTrue("Message must contain the line number: " + error.getMessage(), error.getMessage().contains("#3:"));
+
+        // the error dialog goes to this line
+        assertArrayEquals(new int[] { 3 }, formatter.getErrorAndWarningLineNumbers());
     }
 
     @Test

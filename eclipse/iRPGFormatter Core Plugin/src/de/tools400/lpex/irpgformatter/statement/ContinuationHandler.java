@@ -317,11 +317,13 @@ public final class ContinuationHandler {
         structureErrors.sort((error1, error2) -> Integer.compare(error1.lineNumber, error2.lineNumber));
 
         String[] messages = new String[structureErrors.size()];
+        int[] lineNumbers = new int[structureErrors.size()];
         for (int i = 0; i < messages.length; i++) {
             messages[i] = structureErrors.get(i).message;
+            lineNumbers[i] = structureErrors.get(i).lineNumber;
         }
 
-        return new BlockStructureException(messages, structureErrors.get(0).lineNumber);
+        return new BlockStructureException(messages, lineNumbers);
     }
 
     /**

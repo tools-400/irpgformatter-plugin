@@ -426,6 +426,43 @@ public class RpgleFormatter implements ILineNumberProvider {
         return getMessages(errorsAndWarnings);
     }
 
+    /**
+     * Returns the start line numbers of the statements of the errors followed
+     * by those of the warnings of the last {@link #format(IRpgleInput, int)}
+     * call, in the order of {@link #getErrorAndWarningMessages()}. The error
+     * dialog goes to these lines.
+     *
+     * @return the line numbers (empty if there are neither errors nor warnings)
+     */
+    public int[] getErrorAndWarningLineNumbers() {
+
+        List<FormatError> errorsAndWarnings = new ArrayList<>(errors);
+        errorsAndWarnings.addAll(warnings);
+
+        return getLineNumbers(errorsAndWarnings);
+    }
+
+    /**
+     * Returns the start line numbers of the statements of the warnings of the
+     * last {@link #format(IRpgleInput, int)} call, in the order of
+     * {@link #getWarningMessages()}.
+     *
+     * @return the line numbers (empty if there are no warnings)
+     */
+    public int[] getWarningLineNumbers() {
+        return getLineNumbers(warnings);
+    }
+
+    private static int[] getLineNumbers(List<FormatError> formatErrors) {
+
+        int[] lineNumbers = new int[formatErrors.size()];
+        for (int i = 0; i < formatErrors.size(); i++) {
+            lineNumbers[i] = formatErrors.get(i).getStartLineNumber();
+        }
+
+        return lineNumbers;
+    }
+
     private static String[] getMessages(List<FormatError> formatErrors) {
 
         String[] messages = new String[formatErrors.size()];

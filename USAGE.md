@@ -558,4 +558,8 @@ The formatter reports problems in a dialog:
 - **Source not formatted**: The dialog lists each declaration block, that is not closed, with its line numbers, e.g.
   `Error on line #196: DCL-DS SYNCIFSWRF is not closed before END-PROC of line #374.` The source stays unchanged.
 
+In the editor, double-click a message to close the dialog and go to the statement of the message. The line numbers of the
+messages refer to the source before formatting; if the statements in front of it got more or less lines, the cursor goes to
+the new line of the statement.
+
 If a source cannot be formatted at all for another reason, e.g. because it cannot be read, a dialog shows the reason.

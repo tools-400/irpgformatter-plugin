@@ -135,6 +135,44 @@ public class FormattedResultTest extends AbstractTestCase {
         assertTrue(result.isChanged());
     }
 
+    // -- getFormattedLineNumber: the error dialog goes to the statement of an
+    // error after the formatted lines were written --
+
+    @Test
+    public void getFormattedLineNumber_unchangedStatements() {
+        FormattedResult result = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1"), stmt(4, 2, "C1", "C2"));
+        for (int line = 1; line <= 5; line++) {
+            assertEquals(line, result.getFormattedLineNumber(line));
+        }
+    }
+
+    @Test
+    public void getFormattedLineNumber_statementInFrontExpands() {
+        // B expands from 1 line to 3 lines: C moves from line 4 to line 6
+        FormattedResult result = result(stmt(1, 2, "A1", "A2"), stmt(3, 1, "B1", "B2", "B3"), stmt(4, 2, "C1", "C2"));
+        assertEquals(1, result.getFormattedLineNumber(1));
+        assertEquals(3, result.getFormattedLineNumber(3));
+        assertEquals(6, result.getFormattedLineNumber(4));
+    }
+
+    @Test
+    public void getFormattedLineNumber_statementInFrontContracts() {
+        // B shrinks from 3 lines to 1 line: C moves from line 6 to line 4
+        FormattedResult result = result(stmt(1, 2, "A1", "A2"), stmt(3, 3, "B1"), stmt(6, 1, "C1"));
+        assertEquals(3, result.getFormattedLineNumber(3));
+        assertEquals(4, result.getFormattedLineNumber(6));
+    }
+
+    @Test
+    public void getFormattedLineNumber_selectedLines() {
+        // selected lines 10-14: B expands by one line, the lines in front of
+        // the selection are not part of the result
+        FormattedResult result = result(stmt(10, 1, "A1"), stmt(11, 2, "B1", "B2", "B3"), stmt(13, 2, "C1", "C2"));
+        assertEquals(10, result.getFormattedLineNumber(10));
+        assertEquals(11, result.getFormattedLineNumber(11));
+        assertEquals(14, result.getFormattedLineNumber(13));
+    }
+
     @Test
     public void isChanged_withoutSourceLines() {
         assertTrue(result(stmt(1, 1, "A1")).isChanged());

@@ -157,6 +157,7 @@ public class Messages extends NLS {
     public static String MenuItem_Format;
     public static String MenuItem_Select_All;
     public static String MenuItem_Copy;
+    public static String Label_Double_click_a_message_to_go_to_its_line;
 
     public static String Message_Source_formatted_successfully;
     public static String Message_Source_Lines_A_B_formatted_successfully;

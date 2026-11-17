@@ -114,6 +114,30 @@ public class FormattedResult {
     }
 
     /**
+     * Returns the line number, that a line of the source has after the
+     * formatted lines were written, because the statements in front of it may
+     * have more or less lines than before. The error dialog goes to the
+     * statement of an error with it.
+     *
+     * @param originalLineNumber - the line number in the source, that was
+     *        formatted
+     * @return the line number in the formatted source
+     */
+    public int getFormattedLineNumber(int originalLineNumber) {
+
+        int lineNumber = originalLineNumber;
+        for (FormattedStatement stmt : statements) {
+            int originalEndLine = stmt.getOriginalStartLine() + stmt.getOriginalLineCount() - 1;
+            if (originalEndLine >= originalLineNumber) {
+                break;
+            }
+            lineNumber += stmt.getFormattedLines().length - stmt.getOriginalLineCount();
+        }
+
+        return lineNumber;
+    }
+
+    /**
      * Returns the total number of formatted lines across all statements.
      */
     public int getLineCount() {

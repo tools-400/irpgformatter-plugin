@@ -88,11 +88,17 @@ public class ExceptionsTest {
     public void testBlockStructureException() {
         String[] messages = { "Error on line #2: DCL-DS ds is not closed before END-PROC of line #4.",
             "Error on line #10: DCL-PROC p2 is not closed by END-PROC." };
-        BlockStructureException e = new BlockStructureException(messages, 2);
+        BlockStructureException e = new BlockStructureException(messages, new int[] { 2, 10 });
         assertEquals(messages[0], e.getLocalizedMessage());
         assertEquals(2, e.getErrorCount());
         assertEquals(2, e.getFirstLineNumber());
         assertArrayEquals(messages, e.getErrorMessages());
+        assertArrayEquals(new int[] { 2, 10 }, e.getLineNumbers());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBlockStructureException_oneLineNumberPerMessage() {
+        new BlockStructureException(new String[] { "message 1", "message 2" }, new int[] { 1 });
     }
 
     @Test

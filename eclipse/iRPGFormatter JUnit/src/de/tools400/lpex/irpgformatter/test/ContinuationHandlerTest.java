@@ -577,6 +577,7 @@ public class ContinuationHandlerTest extends AbstractTestCase {
             e.getErrorMessages());
         // @formatter:on
         assertEquals(2, e.getErrorCount());
+        assertArrayEquals(new int[] { 2, 8 }, e.getLineNumbers());
     }
 
     /**
@@ -603,6 +604,7 @@ public class ContinuationHandlerTest extends AbstractTestCase {
             e.getErrorMessages());
         // @formatter:on
         assertEquals(1, e.getFirstLineNumber());
+        assertArrayEquals(new int[] { 1, 4 }, e.getLineNumbers());
     }
 
     /**

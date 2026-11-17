@@ -14,8 +14,9 @@ package de.tools400.lpex.irpgformatter.formatter;
  * <code>END-PROC</code>. The source is not formatted then, because the
  * indentation of the following statements would be wrong.
  * <p>
- * The exception holds the messages of all errors, ordered by their line
- * number. {@link #getMessage()} returns the first one.
+ * The exception holds the messages of all errors and their line numbers,
+ * ordered by the line numbers. {@link #getMessage()} returns the first
+ * message.
  * </p>
  */
 public class BlockStructureException extends RpgleFormatterException {
@@ -23,24 +24,36 @@ public class BlockStructureException extends RpgleFormatterException {
     private static final long serialVersionUID = 1L;
 
     private String[] errorMessages;
-    private int firstLineNumber;
+    private int[] lineNumbers;
 
     /**
      * Creates the exception.
      *
      * @param errorMessages - the messages of the errors, ordered by their line
      *        number, at least one
-     * @param firstLineNumber - the line number of the first error
+     * @param lineNumbers - the line numbers of the errors, one per message
      */
-    public BlockStructureException(String[] errorMessages, int firstLineNumber) {
+    public BlockStructureException(String[] errorMessages, int[] lineNumbers) {
         super(errorMessages[0]);
 
+        if (errorMessages.length != lineNumbers.length) {
+            throw new IllegalArgumentException("One line number per message expected."); //$NON-NLS-1$
+        }
+
         this.errorMessages = errorMessages.clone();
-        this.firstLineNumber = firstLineNumber;
+        this.lineNumbers = lineNumbers.clone();
     }
 
     public String[] getErrorMessages() {
         return errorMessages.clone();
+    }
+
+    /**
+     * Returns the line numbers of the errors in the order of
+     * {@link #getErrorMessages()}.
+     */
+    public int[] getLineNumbers() {
+        return lineNumbers.clone();
     }
 
     public int getErrorCount() {
@@ -48,6 +61,6 @@ public class BlockStructureException extends RpgleFormatterException {
     }
 
     public int getFirstLineNumber() {
-        return firstLineNumber;
+        return lineNumbers[0];
     }
 }

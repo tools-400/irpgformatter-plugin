@@ -16,6 +16,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Shell;
 
@@ -27,10 +28,8 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
     private String errorMessage;
     private int messageType;
     private String[] errorDetails;
-
-    public ErrorDetailsTitleAreaDialog(Shell shell, String errorMessage, String[] errorDetails) {
-        this(shell, Messages.E_R_R_O_R, errorMessage, IMessageProvider.ERROR, errorDetails);
-    }
+    private int[] lineNumbers;
+    private int selectedLineNumber;
 
     /**
      * Creates a dialog with a given title and message type, e.g. for warnings.
@@ -40,14 +39,29 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
      * @param errorMessage - the message above the details
      * @param messageType - the message type, see {@link IMessageProvider}
      * @param errorDetails - the details
+     * @param lineNumbers - the line numbers of the details, or
+     *        <code>null</code>. With line numbers, a double-click on a detail
+     *        closes the dialog and {@link #getSelectedLineNumber()} returns its
+     *        line number.
      */
-    public ErrorDetailsTitleAreaDialog(Shell shell, String title, String errorMessage, int messageType, String[] errorDetails) {
+    public ErrorDetailsTitleAreaDialog(Shell shell, String title, String errorMessage, int messageType, String[] errorDetails,
+        int[] lineNumbers) {
         super(shell);
         setShellStyle(getShellStyle() | SWT.RESIZE);
         this.title = title;
         this.errorMessage = errorMessage;
         this.messageType = messageType;
         this.errorDetails = errorDetails;
+        this.lineNumbers = lineNumbers;
+        this.selectedLineNumber = -1;
+    }
+
+    /**
+     * Returns the line number of the detail, that was double-clicked, or -1, if
+     * the dialog was closed otherwise.
+     */
+    public int getSelectedLineNumber() {
+        return selectedLineNumber;
     }
 
     @Override
@@ -83,7 +97,27 @@ public class ErrorDetailsTitleAreaDialog extends TitleAreaDialog {
 
         UIUtils.addCopySupport(list);
 
+        if (lineNumbers != null) {
+            // Double-click or Enter
+            list.addListener(SWT.DefaultSelection, event -> goToSelectedLine(list));
+
+            Label hint = new Label(container, SWT.NONE);
+            hint.setText(Messages.Label_Double_click_a_message_to_go_to_its_line);
+            hint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        }
+
         return area;
+    }
+
+    private void goToSelectedLine(List list) {
+
+        int index = list.getSelectionIndex();
+        if (index < 0 || index >= lineNumbers.length || lineNumbers[index] <= 0) {
+            return;
+        }
+
+        selectedLineNumber = lineNumbers[index];
+        okPressed();
     }
 
     @Override

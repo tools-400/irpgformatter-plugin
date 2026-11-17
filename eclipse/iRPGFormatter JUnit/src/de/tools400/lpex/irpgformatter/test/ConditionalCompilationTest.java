@@ -255,6 +255,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals(1, formatter.getWarningCount());
         assertEquals("Warning on line #5: The branches of the /IF group of line #1 end in different blocks. "
             + "The indentation of the following lines may be wrong.", formatter.getWarningMessages()[0]);
+        assertArrayEquals(new int[] { 5 }, formatter.getWarningLineNumbers());
 
         // continues with the blocks at the end of the first branch
         assertEquals(7, result.length);
