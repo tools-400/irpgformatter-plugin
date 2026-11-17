@@ -65,7 +65,8 @@ public class ExceptionsTest {
 
     /**
      * A long value, such as a hexadecimal literal, is shortened to 40
-     * characters, so that the message fits into one line of the error dialog.
+     * characters, so that the message fits into one line of the view
+     * iRPGFormatter Problems.
      */
     @Test
     public void testLineOverflowException_longValueIsShortened() {

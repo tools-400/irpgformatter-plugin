@@ -176,7 +176,6 @@ public class Messages extends NLS {
     public static String Error_A_keyword_with_key_A_already_exists;
     public static String Error_A_special_word_with_key_A_already_exists;
     public static String Error_No_valid_entries_found;
-    public static String Error_Error_on_line_A_Unknown_statement_type;
     public static String Error_Error_on_line_A_Unexpected_error_B;
     public static String Error_Error_on_line_A_Incomplete_statement;
     public static String Error_Error_on_line_A_Cannot_add_line_segment_Line_is_already_complete;

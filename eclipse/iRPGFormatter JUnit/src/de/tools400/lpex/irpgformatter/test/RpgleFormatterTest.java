@@ -1375,8 +1375,8 @@ public class RpgleFormatterTest extends AbstractTestCase {
     @Test
     public void format_errorMessageContainsLineNumberOfStatement() throws RpgleFormatterException {
 
-        // The error dialogs show the message as it is, so it must contain the
-        // 1-based line number of the failing statement.
+        // The view iRPGFormatter Problems shows the message as it is, so it
+        // must contain the 1-based line number of the failing statement.
         formatter.setSourceLength(3);
 
         // @formatter:off
@@ -1392,9 +1392,6 @@ public class RpgleFormatterTest extends AbstractTestCase {
         FormatError error = formatter.getErrors().get(0);
         assertEquals(3, error.getStartLineNumber());
         assertTrue("Message must contain the line number: " + error.getMessage(), error.getMessage().contains("#3:"));
-
-        // the error dialog goes to this line
-        assertArrayEquals(new int[] { 3 }, formatter.getErrorAndWarningLineNumbers());
     }
 
     @Test

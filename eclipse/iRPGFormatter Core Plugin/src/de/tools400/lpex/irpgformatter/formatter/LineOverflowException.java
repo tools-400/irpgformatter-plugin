@@ -16,7 +16,8 @@ public class LineOverflowException extends RpgleFormatterException {
 
     /**
      * Longer values, such as long hexadecimal literals, are shortened in the
-     * message, so that it fits into one line of the error dialog.
+     * message, so that it fits into one line of the view iRPGFormatter
+     * Problems.
      */
     private static final int MAX_VALUE_LENGTH = 40;
 

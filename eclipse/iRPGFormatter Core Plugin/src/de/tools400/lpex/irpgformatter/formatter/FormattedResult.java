@@ -116,8 +116,8 @@ public class FormattedResult {
     /**
      * Returns the line number, that a line of the source has after the
      * formatted lines were written, because the statements in front of it may
-     * have more or less lines than before. The error dialog goes to the
-     * statement of an error with it.
+     * have more or less lines than before. The view iRPGFormatter Problems
+     * goes to the statement of an error with it.
      *
      * @param originalLineNumber - the line number in the source, that was
      *        formatted

@@ -135,8 +135,8 @@ public class FormattedResultTest extends AbstractTestCase {
         assertTrue(result.isChanged());
     }
 
-    // -- getFormattedLineNumber: the error dialog goes to the statement of an
-    // error after the formatted lines were written --
+    // -- getFormattedLineNumber: the view iRPGFormatter Problems goes to the
+    // statement of an error after the formatted lines were written --
 
     @Test
     public void getFormattedLineNumber_unchangedStatements() {

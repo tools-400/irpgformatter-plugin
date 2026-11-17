@@ -73,7 +73,7 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
 
 ### Problems view
 
-The package `problems` and the view `views.FormatterProblemsView` replace the error dialogs.
+The package `problems` and the view `views.FormatterProblemsView` show the problems of the formatted sources.
 
 * `FormatterProblems` is the model: per `IProblemSource` the `FormatterProblem`s (severity, line, message), in the order of
   the sources. Formatting a source replaces its problems (`replace`), an empty list removes the source. The batch jobs change
