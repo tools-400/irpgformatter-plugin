@@ -5,6 +5,19 @@ options, the declarations, the calculations, the comments and the embedded SQL s
 
 Further information is available on the [iRPGFormatter web site](https://tools-400.github.io/irpgformatter/).
 
+## Features
+
+- Indents the calculations by the nesting of their blocks and the comment lines like the following statement.
+- Formats embedded SQL statements according to the RDi preferences page *Free-form SQL Formatting*.
+- Formats the branches of conditional compiling (`/IF`, `/ELSE`, `/ENDIF`) like the compiler.
+- Various formatting options, e.g. the casing style, adding or removing the keyword `const()`, replacing the name of
+  `dcl-pi` with `*N` and removing the name of `end-proc`.
+- Optionally formats the calculations with the IBM formatter.
+- Formats the whole source or the selected lines in the LPEX editor. A selection is expanded to the whole block.
+- Formats many sources at once from the *Remote Systems* view or the *Project Explorer*.
+- Optionally formats a source on save.
+- Lists the problems in the view *iRPGFormatter Problems* and in the ruler of the editor.
+
 ## Installation
 
 iRPGFormatter requires RDi 9.6.0.13 or later.
