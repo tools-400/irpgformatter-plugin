@@ -64,11 +64,10 @@ public final class ContinuationHandler {
      * Collects lines from source into complete statements. A statement is
      * complete when it ends with a semicolon or is a single-line statement
      * (like **FREE, comments, or compiler directives).
-     *
      * <p>
      * Lines following an /EOF directive outside of a conditional group are
-     * ignored by the compiler. They are collected as single-line statements
-     * and marked with {@link CollectedStatement#isAfterEof()}.
+     * ignored by the compiler. They are collected as single-line statements and
+     * marked with {@link CollectedStatement#isAfterEof()}.
      * </p>
      *
      * @param sourceLines the source lines to process
@@ -214,8 +213,8 @@ public final class ContinuationHandler {
      * Places a complete statement into the block structure and sets its indent
      * level: a statement that starts a block is pushed onto the stack of
      * parents, the statement that ends the block pops it, together with the
-     * calculation blocks that are still open within it. Sub-fields are added
-     * to their parent.
+     * calculation blocks that are still open within it. Sub-fields are added to
+     * their parent.
      *
      * @param parents the blocks that enclose the statement, <code>null</code>
      *        at the bottom
@@ -223,8 +222,8 @@ public final class ContinuationHandler {
      * @param structureErrors receives the declaration blocks, that an end
      *        statement leaves open
      */
-    private static void nestStatement(Stack<CollectedStatement> parents, CollectedStatement currentStatement,
-        List<StructureError> structureErrors) throws RpgleFormatterException {
+    private static void nestStatement(Stack<CollectedStatement> parents, CollectedStatement currentStatement, List<StructureError> structureErrors)
+        throws RpgleFormatterException {
 
         StatementType currentType = currentStatement.getType();
         if (currentType.isStartOfBLock()) {
@@ -266,8 +265,8 @@ public final class ContinuationHandler {
      * @param endStatement the statement, that ends a declaration block
      * @param structureErrors receives the blocks, that are left open
      */
-    private static void closeUnclosedBlocks(Stack<CollectedStatement> parents, CollectedStatement endStatement,
-        List<StructureError> structureErrors) throws RpgleFormatterException {
+    private static void closeUnclosedBlocks(Stack<CollectedStatement> parents, CollectedStatement endStatement, List<StructureError> structureErrors)
+        throws RpgleFormatterException {
 
         StatementType endType = endStatement.getType();
 
@@ -283,9 +282,9 @@ public final class ContinuationHandler {
         for (int i = index + 1; i < parents.size(); i++) {
             CollectedStatement block = parents.get(i);
             if (!block.getType().isCalculation()) {
-                structureErrors.add(new StructureError(block.getStartLineNumber(),
-                    Messages.bind(Messages.Error_Error_on_line_A_B_is_not_closed_before_C_of_line_D, new Object[] {
-                        block.getStartLineNumber(), getDescription(block), getKeyword(endType), endStatement.getStartLineNumber() })));
+                structureErrors.add(
+                    new StructureError(block.getStartLineNumber(), Messages.bind(Messages.Error_Error_on_line_A_B_is_not_closed_before_C_of_line_D,
+                        new Object[] { block.getStartLineNumber(), getDescription(block), getKeyword(endType), endStatement.getStartLineNumber() })));
             }
         }
 
@@ -300,14 +299,12 @@ public final class ContinuationHandler {
      *        bottom
      * @param structureErrors receives the blocks, that are left open
      */
-    private static void addUnclosedBlocks(Stack<CollectedStatement> parents, List<StructureError> structureErrors)
-        throws RpgleFormatterException {
+    private static void addUnclosedBlocks(Stack<CollectedStatement> parents, List<StructureError> structureErrors) throws RpgleFormatterException {
 
         for (CollectedStatement block : parents) {
             if (block != null && !block.getType().isCalculation()) {
-                structureErrors.add(new StructureError(block.getStartLineNumber(), Messages.bind(
-                    Messages.Error_Error_on_line_A_B_is_not_closed_by_C, new Object[] { block.getStartLineNumber(), getDescription(block),
-                        getKeyword(block.getType().getEndOfBlockType()) })));
+                structureErrors.add(new StructureError(block.getStartLineNumber(), Messages.bind(Messages.Error_Error_on_line_A_B_is_not_closed_by_C,
+                    new Object[] { block.getStartLineNumber(), getDescription(block), getKeyword(block.getType().getEndOfBlockType()) })));
             }
         }
     }
@@ -351,16 +348,15 @@ public final class ContinuationHandler {
     /**
      * Pops the calculation blocks, that are still open, when the statement ends
      * the block that encloses them, such as an <code>IF</code> without
-     * <code>ENDIF</code> at <code>END-PROC</code>. Otherwise the enclosing block
-     * could not be closed. Like at the end of the source, the open calculation
-     * blocks only affect the indentation.
+     * <code>ENDIF</code> at <code>END-PROC</code>. Otherwise the enclosing
+     * block could not be closed. Like at the end of the source, the open
+     * calculation blocks only affect the indentation.
      *
      * @param parents the blocks that enclose the statement, <code>null</code>
      *        at the bottom
      * @param currentType the type of the statement
      */
-    private static void closeOpenCalculationBlocks(Stack<CollectedStatement> parents, StatementType currentType)
-        throws RpgleFormatterException {
+    private static void closeOpenCalculationBlocks(Stack<CollectedStatement> parents, StatementType currentType) throws RpgleFormatterException {
 
         int index = parents.size() - 1;
         while (parents.get(index) != null && parents.get(index).getType().isCalculation()) {
@@ -382,8 +378,7 @@ public final class ContinuationHandler {
      * @param levelOffset -1 for a branch of a block, such as <code>ELSE</code>,
      *        otherwise 0
      */
-    private static void setIndent(CollectedStatement statement, Stack<CollectedStatement> parents, int levelOffset)
-        throws RpgleFormatterException {
+    private static void setIndent(CollectedStatement statement, Stack<CollectedStatement> parents, int levelOffset) throws RpgleFormatterException {
 
         statement.setIndentLevel(Math.max(0, parents.size() - 1 + levelOffset));
 

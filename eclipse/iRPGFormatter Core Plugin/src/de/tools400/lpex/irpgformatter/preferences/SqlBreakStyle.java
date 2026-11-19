@@ -9,9 +9,9 @@
 package de.tools400.lpex.irpgformatter.preferences;
 
 /**
- * Line breaks at the commas and at AND/OR of an embedded SQL statement, see
- * IBM preferences "New line: On comma" and "On AND/OR keywords" of the ILE RPG
- * SQL formatting. The order matches the values of the IBM preferences.
+ * Line breaks at the commas and at AND/OR of an embedded SQL statement, see IBM
+ * preferences "New line: On comma" and "On AND/OR keywords" of the ILE RPG SQL
+ * formatting. The order matches the values of the IBM preferences.
  */
 public enum SqlBreakStyle {
 

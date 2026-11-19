@@ -84,8 +84,8 @@ public final class ProblemFactory {
         return Collections.singletonList(new FormatterProblem(source, Severity.INFORMATION, 0, message));
     }
 
-    private static void addProblems(List<FormatterProblem> problems, IProblemSource source, Severity severity,
-        List<FormatError> formatErrors, FormattedResult result) {
+    private static void addProblems(List<FormatterProblem> problems, IProblemSource source, Severity severity, List<FormatError> formatErrors,
+        FormattedResult result) {
 
         for (FormatError formatError : formatErrors) {
             int lineNumber = result.getFormattedLineNumber(formatError.getStartLineNumber());

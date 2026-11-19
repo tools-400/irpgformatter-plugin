@@ -693,9 +693,9 @@ public class FormatterUtils implements RpgleSourceConstants {
 
     /**
      * Returns the length of the next part of a hexadecimal or UCS-2 literal,
-     * that holds whole bytes or characters only. The first part starts with
-     * the type and the opening quote, e.g. <code>x'</code>, the later parts
-     * start with the digits.
+     * that holds whole bytes or characters only. The first part starts with the
+     * type and the opening quote, e.g. <code>x'</code>, the later parts start
+     * with the digits.
      *
      * @return the length of the part or 0, if not even one byte or character
      *         fits into the part

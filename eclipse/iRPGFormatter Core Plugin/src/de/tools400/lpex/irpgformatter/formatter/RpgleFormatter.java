@@ -128,14 +128,14 @@ public class RpgleFormatter implements ILineNumberProvider {
      * <li><b>Source members</b> — pass the physical SRCDTA field length (e.g.
      * {@code SourceMember.getSourceLength()} or
      * {@code LpexViewUtils.getMaxLineLength()}).</li>
-     * <li><b>Stream files</b> — pass {@link Integer#MAX_VALUE}, because
-     * stream files have no physical record limit and the configured max line
-     * width is applied via the {@code min()} above. With the end column
-     * {@code *MAX} the lines have no limit, like in RDi.</li>
+     * <li><b>Stream files</b> — pass {@link Integer#MAX_VALUE}, because stream
+     * files have no physical record limit and the configured max line width is
+     * applied via the {@code min()} above. With the end column {@code *MAX} the
+     * lines have no limit, like in RDi.</li>
      * </ul>
      *
-     * @param sourceLength physical source length, or
-     *        {@link Integer#MAX_VALUE} for stream files
+     * @param sourceLength physical source length, or {@link Integer#MAX_VALUE}
+     *        for stream files
      */
     public void setSourceLength(int sourceLength) {
         this.endColumn = config.getEndColumn(sourceLength);
@@ -425,10 +425,9 @@ public class RpgleFormatter implements ILineNumberProvider {
     /**
      * Writes the unexpected errors of the last
      * {@link #format(IRpgleInput, int)} call with their stack trace to the
-     * Eclipse error log, because the view iRPGFormatter Problems shows only
-     * the message.
-     * Expected errors like {@link LineOverflowException} have no cause and are
-     * not logged.
+     * Eclipse error log, because the view iRPGFormatter Problems shows only the
+     * message. Expected errors like {@link LineOverflowException} have no cause
+     * and are not logged.
      *
      * @param sourceName name of the formatted source for the log message
      */
@@ -778,9 +777,9 @@ public class RpgleFormatter implements ILineNumberProvider {
      * statement.
      * <p>
      * The directives split the statement into sections. Each section is
-     * formatted on lines of its own, so that no token moves across a
-     * directive. The directives are indented like continuation lines, the
-     * sections within a conditional group one level deeper.
+     * formatted on lines of its own, so that no token moves across a directive.
+     * The directives are indented like continuation lines, the sections within
+     * a conditional group one level deeper.
      * </p>
      * <p>
      * The statement is left unchanged, if a directive is enclosed by a token,
@@ -788,8 +787,7 @@ public class RpgleFormatter implements ILineNumberProvider {
      * declaration.
      * </p>
      */
-    private List<String> formatWithEmbeddedDirectives(CollectedStatement statement, StatementType type, int indent)
-        throws RpgleFormatterException {
+    private List<String> formatWithEmbeddedDirectives(CollectedStatement statement, StatementType type, int indent) throws RpgleFormatterException {
 
         switch (type) {
         case CTL_OPT:

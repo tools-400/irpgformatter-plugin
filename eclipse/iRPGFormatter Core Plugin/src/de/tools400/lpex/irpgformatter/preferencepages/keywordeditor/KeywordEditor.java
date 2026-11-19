@@ -125,8 +125,7 @@ public class KeywordEditor {
      */
     public static KeywordEditor forBuiltInFunctions(Composite parent) {
         KeywordEditor editor = new KeywordEditor(Messages.Title_Add_Built_in_Function, Messages.Title_Change_Built_in_Function,
-            Messages.Title_Duplicate_Built_in_Function, Messages.Error_A_built_in_function_with_key_A_already_exists,
-            KeywordKind.BUILT_IN_FUNCTION);
+            Messages.Title_Duplicate_Built_in_Function, Messages.Error_A_built_in_function_with_key_A_already_exists, KeywordKind.BUILT_IN_FUNCTION);
         editor.createControl(parent);
         return editor;
     }
@@ -288,8 +287,7 @@ public class KeywordEditor {
         IStructuredSelection selection = tableViewer.getStructuredSelection();
         if (!selection.isEmpty()) {
             KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
-            AddKeywordDialog dialog = new AddKeywordDialog(changeButton.getShell(), changeDialogTitle, kind, entry.getKey(),
-                entry.getValue());
+            AddKeywordDialog dialog = new AddKeywordDialog(changeButton.getShell(), changeDialogTitle, kind, entry.getKey(), entry.getValue());
             if (dialog.open() == Window.OK) {
                 String newKey = dialog.getKey();
                 String newValue = dialog.getValue();

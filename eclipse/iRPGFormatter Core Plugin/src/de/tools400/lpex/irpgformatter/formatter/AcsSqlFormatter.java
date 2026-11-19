@@ -26,8 +26,8 @@ import de.tools400.lpex.irpgformatter.preferences.SqlCasingStyle;
  * 9.6 provides them in bundle <code>com.ibm.ibmi.sql.parser.lpg</code>, RDi 9.9
  * in bundle <code>com.ibm.ibmi.sql.parser</code> and RDi 9.8 in both bundles.
  * <code>MANIFEST.MF</code> requires both bundles optionally and
- * <code>com.ibm.ibmi.sql.parser</code> first, so that RDi 9.8 uses its newer SQL
- * formatter. If neither bundle is installed, the callers catch the
+ * <code>com.ibm.ibmi.sql.parser</code> first, so that RDi 9.8 uses its newer
+ * SQL formatter. If neither bundle is installed, the callers catch the
  * {@link LinkageError}.
  * </p>
  */
@@ -57,8 +57,8 @@ final class AcsSqlFormatter {
         settings.setLineLength(lineLength);
         settings.setBreakOnComma(toBreakSetting(config.getSqlBreakOnComma()));
         settings.setBreakOnAndOr(toBreakSetting(config.getSqlBreakOnAndOr()));
-        settings.setUppercasing(
-            new SQLUpperCaseSettings(toUppercaseSetting(config.getSqlKeywordCasingStyle()), toUppercaseSetting(config.getSqlIdentifierCasingStyle())));
+        settings.setUppercasing(new SQLUpperCaseSettings(toUppercaseSetting(config.getSqlKeywordCasingStyle()),
+            toUppercaseSetting(config.getSqlIdentifierCasingStyle())));
         settings.setAdjustCaseOnly(adjustCaseOnly);
 
         SqlFormatter formatter = new SqlFormatter(settings);

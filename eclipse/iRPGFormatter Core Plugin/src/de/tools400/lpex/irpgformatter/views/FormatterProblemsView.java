@@ -86,8 +86,8 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
     }
 
     /**
-     * Shows the view without activating it and selects the first problem of
-     * the given source, so that the problems of the source, that was just
+     * Shows the view without activating it and selects the first problem of the
+     * given source, so that the problems of the source, that was just
      * formatted, are visible, also below the problems of other sources.
      *
      * @param source - the source, that was formatted
@@ -150,8 +150,7 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
 
         createColumn(Messages.ColumnLabel_Message, 500, FormatterProblem::getMessage, true);
         createColumn(Messages.ColumnLabel_Source, 300, problem -> problem.getSource().getLabel(), false);
-        createColumn(Messages.ColumnLabel_Line, 60,
-            problem -> problem.getLineNumber() > 0 ? Integer.toString(problem.getLineNumber()) : "", false); //$NON-NLS-1$
+        createColumn(Messages.ColumnLabel_Line, 60, problem -> problem.getLineNumber() > 0 ? Integer.toString(problem.getLineNumber()) : "", false); //$NON-NLS-1$
 
         viewer.setContentProvider(ArrayContentProvider.getInstance());
 
@@ -333,8 +332,8 @@ public class FormatterProblemsView extends ViewPart implements IFormatterProblem
     }
 
     /**
-     * Creates the menu "Show Severity" of the view, like in the view
-     * "Error List" of RDi.
+     * Creates the menu "Show Severity" of the view, like in the view "Error
+     * List" of RDi.
      */
     private void createViewMenu() {
 

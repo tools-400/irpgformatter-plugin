@@ -27,8 +27,8 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * <p>
  * If the IBM preference "Formatting" of the ILE RPG SQL formatting is enabled,
  * <code>EXEC SQL</code> is put on a line of its own and the SQL statement is
- * formatted one SQL indent deeper. Otherwise only the casing is changed, if
- * the IBM preference "Automatic uppercasing" is enabled.
+ * formatted one SQL indent deeper. Otherwise only the casing is changed, if the
+ * IBM preference "Automatic uppercasing" is enabled.
  * </p>
  * <p>
  * The methods return <code>null</code> and the caller only indents the
@@ -40,8 +40,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  */
 public class EmbeddedSqlFormatter implements RpgleSourceConstants {
 
-    private static final Pattern EXEC_SQL_PATTERN = Pattern.compile("^(\\s*)(exec)(\\s+)(sql)(\\s*)(.*)$",
-        Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern EXEC_SQL_PATTERN = Pattern.compile("^(\\s*)(exec)(\\s+)(sql)(\\s*)(.*)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern LITERAL_PATTERN = Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"");
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
@@ -75,8 +74,8 @@ public class EmbeddedSqlFormatter implements RpgleSourceConstants {
      * @param statement - the <code>EXEC SQL</code> statement
      * @param indent - the indent of the statement
      * @param endColumn - the end column
-     * @return the formatted lines or <code>null</code>, if the statement
-     *         cannot be formatted
+     * @return the formatted lines or <code>null</code>, if the statement cannot
+     *         be formatted
      */
     public List<String> format(CollectedStatement statement, int indent, int endColumn) {
 
@@ -115,8 +114,8 @@ public class EmbeddedSqlFormatter implements RpgleSourceConstants {
      * Changes the casing of an embedded SQL statement and keeps its lines.
      *
      * @param statement - the <code>EXEC SQL</code> statement
-     * @return the lines with the new casing or <code>null</code>, if the
-     *         casing cannot be changed
+     * @return the lines with the new casing or <code>null</code>, if the casing
+     *         cannot be changed
      */
     public List<String> adjustCase(CollectedStatement statement) {
 
@@ -164,10 +163,9 @@ public class EmbeddedSqlFormatter implements RpgleSourceConstants {
     }
 
     /**
-     * Returns the matcher of the <code>EXEC SQL</code> statement, whose group
-     * 2 and 4 are <code>EXEC</code> and <code>SQL</code> and group 6 is the
-     * SQL statement, or <code>null</code>, if the statement must not be
-     * formatted.
+     * Returns the matcher of the <code>EXEC SQL</code> statement, whose group 2
+     * and 4 are <code>EXEC</code> and <code>SQL</code> and group 6 is the SQL
+     * statement, or <code>null</code>, if the statement must not be formatted.
      */
     private Matcher matchExecSql(CollectedStatement statement) {
 

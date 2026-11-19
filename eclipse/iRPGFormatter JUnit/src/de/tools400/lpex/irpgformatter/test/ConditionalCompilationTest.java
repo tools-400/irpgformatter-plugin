@@ -40,8 +40,7 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     private static int MAX_LINE_LENGTH = 90;
 
     /** A compiler directive that follows other text on the same line. */
-    private static final Pattern MERGED_DIRECTIVE = Pattern
-        .compile("(?i).*\\S\\s+/(if|elseif|else|endif|define|undefine|copy|include|eof)\\b.*");
+    private static final Pattern MERGED_DIRECTIVE = Pattern.compile("(?i).*\\S\\s+/(if|elseif|else|endif|define|undefine|copy|include|eof)\\b.*");
 
     private RpgleFormatter formatter;
 
@@ -144,7 +143,8 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals("  dcl-pi *n ind;", result[5]);
         assertEquals("  end-pi;", result[6]);
         assertEquals("  dcl-s v int(10);", result[7]);
-        assertEquals("  RETURN *ON;", result[8]); // calculations are indented only
+        assertEquals("  RETURN *ON;", result[8]); // calculations are indented
+                                                  // only
         assertEquals("end-proc;", result[9]);
         assertEquals("dcl-s after int(10);", result[10]);
     }
@@ -359,7 +359,8 @@ public class ConditionalCompilationTest extends AbstractTestCase {
         assertEquals(7, result.length);
         assertEquals("dcl-ds myDs qualified;", result[0]);
         assertEquals("  f1 char(10);", result[1]);
-        assertEquals("/copy qcpysrc,dsfields", result[2]); // unindent compiler directives
+        assertEquals("/copy qcpysrc,dsfields", result[2]); // unindent compiler
+                                                           // directives
         assertEquals("/if defined(X)", result[3]);
         assertEquals("  f2 int(10);", result[4]);
         assertEquals("/endif", result[5]);

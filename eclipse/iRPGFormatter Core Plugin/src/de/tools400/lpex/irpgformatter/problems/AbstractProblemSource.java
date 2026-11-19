@@ -13,8 +13,7 @@ import org.eclipse.core.resources.IFile;
 /**
  * Base class of the problem sources. It holds the file of the workspace, to
  * which {@link ProblemMarkers} attach the markers: the file itself or the local
- * copy of a member or a stream file of the IFS, that Remote Systems
- * downloaded.
+ * copy of a member or a stream file of the IFS, that Remote Systems downloaded.
  */
 public abstract class AbstractProblemSource implements IProblemSource {
 

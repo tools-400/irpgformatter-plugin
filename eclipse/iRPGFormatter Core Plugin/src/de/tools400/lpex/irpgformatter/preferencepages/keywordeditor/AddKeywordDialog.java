@@ -25,8 +25,7 @@ import de.tools400.lpex.irpgformatter.Messages;
 
 /**
  * Dialog for adding or changing an entry of a keyword table: data type,
- * declaration type, keyword, special word, operation code or built-in
- * function.
+ * declaration type, keyword, special word, operation code or built-in function.
  */
 public class AddKeywordDialog extends TitleAreaDialog {
 

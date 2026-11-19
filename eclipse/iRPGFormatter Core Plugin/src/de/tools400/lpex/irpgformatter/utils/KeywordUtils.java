@@ -73,8 +73,8 @@ public final class KeywordUtils {
     }
 
     /**
-     * Gets the operation codes of the free-form calculations from the
-     * resource file.
+     * Gets the operation codes of the free-form calculations from the resource
+     * file.
      *
      * @return map of operation codes
      */

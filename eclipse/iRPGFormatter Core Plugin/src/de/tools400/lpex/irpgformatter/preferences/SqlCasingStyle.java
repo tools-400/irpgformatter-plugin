@@ -22,7 +22,9 @@ public enum SqlCasingStyle {
     /** "Lowercase" */
     LOWER,
 
-    /** "Initial character": first character upper case, the others lower case */
+    /**
+     * "Initial character": first character upper case, the others lower case
+     */
     INITIAL,
 
     /** "Ignore": casing unchanged */

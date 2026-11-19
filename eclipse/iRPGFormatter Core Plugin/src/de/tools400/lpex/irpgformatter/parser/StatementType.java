@@ -188,8 +188,7 @@ public enum StatementType {
         this(pattern, false, endOfBlockType, isBranchOfBlock, true);
     }
 
-    private StatementType(String pattern, boolean hasSubFields, StatementType endOfBlockType, boolean isBranchOfBlock,
-        boolean isCalculation) {
+    private StatementType(String pattern, boolean hasSubFields, StatementType endOfBlockType, boolean isBranchOfBlock, boolean isCalculation) {
 
         this.pattern = pattern != null ? Pattern.compile(pattern, Pattern.CASE_INSENSITIVE) : null;
         this.hasSubFields = hasSubFields;

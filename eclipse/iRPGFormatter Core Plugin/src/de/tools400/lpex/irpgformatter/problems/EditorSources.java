@@ -74,9 +74,9 @@ public final class EditorSources {
 
     /**
      * Returns the source, that the editor of the view shows, e.g. the member,
-     * so that its problems have the same key, as if it was formatted from Remote
-     * Systems or the Project Explorer. If the source cannot be determined, the
-     * editor itself is the source.
+     * so that its problems have the same key, as if it was formatted from
+     * Remote Systems or the Project Explorer. If the source cannot be
+     * determined, the editor itself is the source.
      */
     private static IProblemSource createSource(LpexView view) {
 
@@ -110,7 +110,7 @@ public final class EditorSources {
      */
     private static AbstractProblemSource getSource(IEditorInput input) {
 
-        IFile file = (IFile)input.getAdapter(IFile.class);
+        IFile file = input.getAdapter(IFile.class);
         if (file != null) {
             SystemIFileProperties properties = new SystemIFileProperties(file);
             Object remoteObject = properties.getRemoteFileObject();
@@ -147,8 +147,8 @@ public final class EditorSources {
         // the source type like RemoteMembersResolver
         String sourceType = member.getType() != null ? member.getType().toUpperCase() : ""; //$NON-NLS-1$
 
-        return new MemberSource(new SourceMember(connection.getConnectionName(), connection.getProfileName(), member.getLibrary(),
-            member.getFile(), member.getName(), sourceType));
+        return new MemberSource(new SourceMember(connection.getConnectionName(), connection.getProfileName(), member.getLibrary(), member.getFile(),
+            member.getName(), sourceType));
     }
 
     /**

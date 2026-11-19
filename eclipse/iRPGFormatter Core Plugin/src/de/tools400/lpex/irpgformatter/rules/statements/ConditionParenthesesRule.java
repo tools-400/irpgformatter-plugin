@@ -23,10 +23,9 @@ import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
- * Adds or removes the outer parentheses of the condition of an
- * <code>IF</code>, <code>ELSEIF</code>, <code>WHEN</code>, <code>DOW</code> or
- * <code>DOU</code> statement, see preference "Outer parentheses of
- * conditions".
+ * Adds or removes the outer parentheses of the condition of an <code>IF</code>,
+ * <code>ELSEIF</code>, <code>WHEN</code>, <code>DOW</code> or <code>DOU</code>
+ * statement, see preference "Outer parentheses of conditions".
  * <p>
  * Example: {@code if a = 1;} becomes {@code if (a = 1);} and vice versa. All
  * outer parentheses are removed, {@code if ((a = 1));} becomes
@@ -56,7 +55,10 @@ public class ConditionParenthesesRule implements RpgleSourceConstants {
     private static final Set<StatementType> CONDITION_TYPES = EnumSet.of(StatementType.IF, StatementType.ELSEIF, StatementType.WHEN,
         StatementType.DOW, StatementType.DOU);
 
-    /** Operation code, optional operation extender and the blanks in front of the condition */
+    /**
+     * Operation code, optional operation extender and the blanks in front of
+     * the condition
+     */
     private static final Pattern OPERATION_CODE_PATTERN = Pattern.compile("^\\s*(if|elseif|when|dow|dou)(\\([a-z]+\\))?\\s+",
         Pattern.CASE_INSENSITIVE);
 
@@ -72,16 +74,15 @@ public class ConditionParenthesesRule implements RpgleSourceConstants {
     }
 
     /**
-     * Returns <code>true</code>, if the rule applies to statements of the
-     * given type.
+     * Returns <code>true</code>, if the rule applies to statements of the given
+     * type.
      */
     public static boolean isCondition(StatementType type) {
         return CONDITION_TYPES.contains(type);
     }
 
     /**
-     * Adds or removes the outer parentheses of the condition of the
-     * statement.
+     * Adds or removes the outer parentheses of the condition of the statement.
      *
      * @param statement - an <code>IF</code>, <code>ELSEIF</code>,
      *        <code>WHEN</code>, <code>DOW</code> or <code>DOU</code> statement
@@ -171,8 +172,8 @@ public class ConditionParenthesesRule implements RpgleSourceConstants {
 
         /**
          * Collects the code from the given column of the first line on. A
-         * literal cannot span lines, because statements with continued
-         * literals are skipped.
+         * literal cannot span lines, because statements with continued literals
+         * are skipped.
          */
         static Code scan(List<String> lines, int firstColumn) {
 

@@ -22,8 +22,8 @@ import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 
 /**
- * Formats the operation code, the built-in functions and the special words of
- * a calculation statement in the keyword casing style, see preferences "Apply
+ * Formats the operation code, the built-in functions and the special words of a
+ * calculation statement in the keyword casing style, see preferences "Apply
  * keyword casing to operation codes and built-in functions" and "Apply keyword
  * casing to special words of the calculations".
  * <p>
@@ -48,10 +48,16 @@ import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
  */
 public class CalculationCasingRule implements RpgleSourceConstants {
 
-    /** First word of the statement, followed by an extender, a blank or the semicolon */
+    /**
+     * First word of the statement, followed by an extender, a blank or the
+     * semicolon
+     */
     private static final Pattern OPERATION_CODE_PATTERN = Pattern.compile("^\\s*([A-Za-z][A-Za-z0-9]*(?:-[A-Za-z]+)?)(?=[\\s(;]|$)");
 
-    /** Operation extender, such as (e) or (he), directly after the operation code */
+    /**
+     * Operation extender, such as (e) or (he), directly after the operation
+     * code
+     */
     private static final Pattern OPERATION_EXTENDER_PATTERN = Pattern.compile("\\(\\s*[A-Za-z]+\\s*\\)");
 
     private static final Pattern BUILT_IN_FUNCTION_PATTERN = Pattern.compile("%[A-Za-z][A-Za-z0-9]*");
@@ -86,8 +92,7 @@ public class CalculationCasingRule implements RpgleSourceConstants {
      */
     public List<String> apply(CollectedStatement statement, List<String> lines) {
 
-        if (!config.isFormatOperationCodesAndBuiltInFunctions() && !config.isFormatSpecialWordsOfCalculations()
-            || statement.hasContinuedLiteral()) {
+        if (!config.isFormatOperationCodesAndBuiltInFunctions() && !config.isFormatSpecialWordsOfCalculations() || statement.hasContinuedLiteral()) {
             return lines;
         }
 
@@ -185,8 +190,7 @@ public class CalculationCasingRule implements RpgleSourceConstants {
          * Formats the word at the given position, if the option is enabled, and
          * returns the position after it.
          */
-        private int format(String line, int start, Pattern pattern, StringBuilder buffer, boolean isEnabled,
-            Map<String, String> canonicalSpellings) {
+        private int format(String line, int start, Pattern pattern, StringBuilder buffer, boolean isEnabled, Map<String, String> canonicalSpellings) {
 
             Matcher matcher = matchAt(pattern, line, start);
             if (isEnabled) {

@@ -24,10 +24,9 @@ import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import de.tools400.lpex.irpgformatter.Messages;
 
 /**
- * Preference page at the root of the preferences, that leads to the
- * preference page of iRPGFormatter. The preference page of iRPGFormatter is
- * located beside the formatter settings of IBM for ILE RPG, which is hard to
- * reach.
+ * Preference page at the root of the preferences, that leads to the preference
+ * page of iRPGFormatter. The preference page of iRPGFormatter is located beside
+ * the formatter settings of IBM for ILE RPG, which is hard to reach.
  * <p>
  * When the page becomes visible, it opens the preference page of iRPGFormatter
  * in the same dialog.

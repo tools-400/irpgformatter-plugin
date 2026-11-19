@@ -15,8 +15,7 @@ package de.tools400.lpex.irpgformatter.formatter;
  * indentation of the following statements would be wrong.
  * <p>
  * The exception holds the messages of all errors and their line numbers,
- * ordered by the line numbers. {@link #getMessage()} returns the first
- * message.
+ * ordered by the line numbers. {@link #getMessage()} returns the first message.
  * </p>
  */
 public class BlockStructureException extends RpgleFormatterException {

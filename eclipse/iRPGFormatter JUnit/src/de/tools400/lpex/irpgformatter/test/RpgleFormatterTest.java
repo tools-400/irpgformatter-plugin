@@ -82,7 +82,8 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  end-pr;", line[9]);
         assertEquals("  dcl-c MY_CONSTANT 1;", line[10]);
         assertEquals("  dcl-ds myStructure likeds(refStruct_t);", line[11]);
-        assertEquals("  Return *Null;", line[12]); // calculations are indented only
+        assertEquals("  Return *Null;", line[12]); // calculations are indented
+                                                   // only
         assertEquals("end-proc;", line[13]);
     }
 
@@ -1806,8 +1807,7 @@ public class RpgleFormatterTest extends AbstractTestCase {
             formatter.format(input, 0);
             fail("BlockStructureException expected");
         } catch (BlockStructureException e) {
-            assertArrayEquals(new String[] { "Error on line #3: DCL-DS myDs is not closed before END-PROC of line #5." },
-                e.getErrorMessages());
+            assertArrayEquals(new String[] { "Error on line #3: DCL-DS myDs is not closed before END-PROC of line #5." }, e.getErrorMessages());
             assertEquals(3, e.getFirstLineNumber());
         }
     }

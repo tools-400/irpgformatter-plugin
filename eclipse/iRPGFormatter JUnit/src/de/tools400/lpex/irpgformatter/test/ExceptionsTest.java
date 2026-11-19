@@ -72,8 +72,7 @@ public class ExceptionsTest {
     public void testLineOverflowException_longValueIsShortened() {
         String value = "x'000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F'";
         LineOverflowException e = new LineOverflowException(value, 566);
-        assertEquals("Error on line #566: Line too small for value: x'000102030405060708090A0B0C0D0E0F101112…",
-            e.getLocalizedMessage());
+        assertEquals("Error on line #566: Line too small for value: x'000102030405060708090A0B0C0D0E0F101112…", e.getLocalizedMessage());
     }
 
     @Test

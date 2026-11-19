@@ -36,8 +36,7 @@ class ConditionalGroup {
      * Starts a conditional group at an <code>/IF</code> directive.
      *
      * @param ifDirective the <code>/IF</code> directive
-     * @param parents the blocks that are open at the <code>/IF</code>
-     *        directive
+     * @param parents the blocks that are open at the <code>/IF</code> directive
      */
     ConditionalGroup(CollectedStatement ifDirective, Stack<CollectedStatement> parents) {
         this.ifDirective = ifDirective;
@@ -108,12 +107,11 @@ class ConditionalGroup {
     }
 
     /**
-     * Returns <code>true</code>, if both lists contain blocks of the same types,
-     * such as the alternative headers of a prototype in the branches of a
-     * group.
+     * Returns <code>true</code>, if both lists contain blocks of the same
+     * types, such as the alternative headers of a prototype in the branches of
+     * a group.
      */
-    private static boolean haveSameBlocks(List<CollectedStatement> blocks, List<CollectedStatement> otherBlocks)
-        throws RpgleFormatterException {
+    private static boolean haveSameBlocks(List<CollectedStatement> blocks, List<CollectedStatement> otherBlocks) throws RpgleFormatterException {
 
         if (blocks.size() != otherBlocks.size()) {
             return false;

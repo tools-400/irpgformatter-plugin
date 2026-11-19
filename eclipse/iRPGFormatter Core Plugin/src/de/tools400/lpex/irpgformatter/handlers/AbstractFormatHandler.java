@@ -162,8 +162,8 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     /**
      * Callback of the formatter job. Called at the end of the formatter. The
      * job has put the problems of the sources into the view
-     * {@link FormatterProblemsView}; the view is activated and shows the
-     * result above them. After a cancel, only the problems are shown.
+     * {@link FormatterProblemsView}; the view is activated and shows the result
+     * above them. After a cancel, only the problems are shown.
      */
     @Override
     public void postRun(int formattedCount, int notFormattedCount, int statementErrorsCount, boolean canceled) {

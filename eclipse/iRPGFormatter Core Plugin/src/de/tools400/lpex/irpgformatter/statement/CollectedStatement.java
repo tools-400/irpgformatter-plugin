@@ -114,8 +114,8 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
 
     /**
      * For a comment line, returns the statement, that follows it. Blank lines
-     * and compiler directives in between are skipped. The comment line gets
-     * the indent of this statement. Returns <code>null</code> for any other
+     * and compiler directives in between are skipped. The comment line gets the
+     * indent of this statement. Returns <code>null</code> for any other
      * statement or if no statement follows.
      */
     public CollectedStatement getFollowingStatement() {
@@ -186,17 +186,17 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
     }
 
     /**
-     * Returns the compiler directives between the lines of the statement in
-     * the order of the source.
+     * Returns the compiler directives between the lines of the statement in the
+     * order of the source.
      */
     public List<EmbeddedDirective> getEmbeddedDirectives() {
         return embeddedDirectives;
     }
 
     /**
-     * Returns <code>true</code>, if the statement follows an
-     * <code>/EOF</code> directive outside of a conditional group. The compiler
-     * ignores such lines.
+     * Returns <code>true</code>, if the statement follows an <code>/EOF</code>
+     * directive outside of a conditional group. The compiler ignores such
+     * lines.
      */
     public boolean isAfterEof() {
         return isAfterEof;
@@ -285,9 +285,9 @@ public class CollectedStatement implements Iterable<String>, RpgleSourceConstant
      * Returns <code>true</code> for a directive of a conditional group, that
      * appears between the lines of a statement: <code>/IF</code>,
      * <code>/ELSEIF</code>, <code>/ELSE</code> or <code>/ENDIF</code>. Any
-     * other line, that starts with a slash, continues the statement, such as
-     * an SQL comment or a division like <code>/count;</code>, which the
-     * compiler accepts as well.
+     * other line, that starts with a slash, continues the statement, such as an
+     * SQL comment or a division like <code>/count;</code>, which the compiler
+     * accepts as well.
      */
     private boolean isConditionalDirective(String line) {
 

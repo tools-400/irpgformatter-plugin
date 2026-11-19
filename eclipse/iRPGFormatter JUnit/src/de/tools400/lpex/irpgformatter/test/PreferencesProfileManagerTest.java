@@ -54,13 +54,11 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
      * IDs of the settings, that a complete profile contains. The custom preview
      * source is only exported, if there is one.
      */
-    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("useConstKeyword", "delimiterBeforeParameter",
-        "parameterSpacingStyle", "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName",
-        "removeEndProcName", "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatCalculations",
-        "formatOnSave",
+    private static final List<String> REQUIRED_SETTING_IDS = Arrays.asList("useConstKeyword", "delimiterBeforeParameter", "parameterSpacingStyle",
+        "alignSubFields", "breakBetweenCaseChange", "breakBeforeKeyword", "sortConstValueToEnd", "replacePiName", "removeEndProcName",
+        "unindentCompilerDirectives", "maxNameLength", "minNameLength", "executeIrpgFormatter", "formatCalculations", "formatOnSave",
         "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "formatOperationCodesAndBuiltInFunctions",
-        "formatSpecialWordsOfCalculations", "dataTypes", "declarationTypes", "keywords", "specialWords",
-        "operationCodes", "builtInFunctions");
+        "formatSpecialWordsOfCalculations", "dataTypes", "declarationTypes", "keywords", "specialWords", "operationCodes", "builtInFunctions");
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -225,18 +223,17 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
 
     @Test
     public void importProfile_completeProfileWithExecuteIbmFormatterReturnsTrue() throws Exception {
-        assertTrue(importProfile(writeProfileWithout("formatCalculations", "<setting id=\"executeIbmFormatter\" value=\"true\"/>"),
-            new ProfileData()));
+        assertTrue(
+            importProfile(writeProfileWithout("formatCalculations", "<setting id=\"executeIbmFormatter\" value=\"true\"/>"), new ProfileData()));
     }
 
     /**
      * A profile of the version before "formatCalculations",
      * "conditionParentheses", "formatOperationCodesAndBuiltInFunctions",
-     * "formatSpecialWordsOfCalculations",
-     * "operationCodes" and "builtInFunctions",
-     * with the settings in the order of its export: all its settings are
-     * imported, the missing ones keep their values and the profile is reported
-     * as incomplete.
+     * "formatSpecialWordsOfCalculations", "operationCodes" and
+     * "builtInFunctions", with the settings in the order of its export: all its
+     * settings are imported, the missing ones keep their values and the profile
+     * is reported as incomplete.
      */
     @Test
     public void importProfile_profileOfFormerVersion() throws Exception {
@@ -412,10 +409,10 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
             + data.isAlignSubFields() + "|" + data.isBreakBetweenCaseChange() + "|" + data.isBreakBeforeKeyword() + "|" + data.isSortConstValueToEnd()
             + "|" + data.isReplacePiName() + "|" + data.isRemoveEndProcName() + "|" + data.isUnindentCompilerDirectives() + "|"
             + data.getMaxNameLength() + "|" + data.getMinNameLength() + "|" + data.getCalculationFormatter() + "|" + data.isFormatDeclarations() + "|"
-            + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|" + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|"
-            + data.isFormatSpecialWordsOfCalculations() + "|" + data.getDataTypes()
-            + "|" + data.getDeclarationTypes() + "|" + data.getKeywords() + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|"
-            + data.getBuiltInFunctions() + "|" + data.getCustomPreviewSource();
+            + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|"
+            + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|"
+            + data.isFormatSpecialWordsOfCalculations() + "|" + data.getDataTypes() + "|" + data.getDeclarationTypes() + "|" + data.getKeywords()
+            + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|" + data.getBuiltInFunctions() + "|" + data.getCustomPreviewSource();
     }
 
     private File export(ProfileData data) throws Exception {

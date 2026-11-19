@@ -22,10 +22,10 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * Formats the calculation statements for the {@link RpgleFormatter}.
  * <p>
  * An embedded SQL statement is formatted with the SQL formatter of IBM. The
- * other statements get the outer parentheses of their condition and the
- * casing of their operation code and built-in functions, if the preferences
- * ask for it. Then the lines are indented by the nesting of the blocks. Apart
- * from that the content of a calculation statement is not changed.
+ * other statements get the outer parentheses of their condition and the casing
+ * of their operation code and built-in functions, if the preferences ask for
+ * it. Then the lines are indented by the nesting of the blocks. Apart from that
+ * the content of a calculation statement is not changed.
  * </p>
  */
 final class CalculationStatementFormatter {

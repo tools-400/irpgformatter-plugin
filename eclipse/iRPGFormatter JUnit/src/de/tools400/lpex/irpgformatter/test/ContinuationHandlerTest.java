@@ -626,8 +626,8 @@ public class ContinuationHandlerTest extends AbstractTestCase {
     }
 
     /**
-     * A prototype within a procedure, that is not closed before END-PROC,
-     * like a DCL-DS or a DCL-PI.
+     * A prototype within a procedure, that is not closed before END-PROC, like
+     * a DCL-DS or a DCL-PI.
      */
     @Test
     public void collectStatements_endProcLeavesPrototypeOpen() throws RpgleFormatterException {

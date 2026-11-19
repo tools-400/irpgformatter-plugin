@@ -72,8 +72,8 @@ public interface IRpgleInput {
 
     /**
      * Returns the file of the workspace, that holds the source: the file itself
-     * or the local copy of a member, that Remote Systems downloaded. The markers
-     * of the problems are attached to it.
+     * or the local copy of a member, that Remote Systems downloaded. The
+     * markers of the problems are attached to it.
      *
      * @return the file or <code>null</code>, e.g. for a stream file of the IFS,
      *         which is read without a local copy

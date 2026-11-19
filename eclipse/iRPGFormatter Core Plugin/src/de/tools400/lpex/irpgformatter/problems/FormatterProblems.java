@@ -18,9 +18,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The problems of the sources, that were formatted, for the view
- * {@link de.tools400.lpex.irpgformatter.views.FormatterProblemsView}. Formatting
- * a source replaces its problems; a source without problems is removed. The
- * sources keep the order, in which they got their first problems.
+ * {@link de.tools400.lpex.irpgformatter.views.FormatterProblemsView}.
+ * Formatting a source replaces its problems; a source without problems is
+ * removed. The sources keep the order, in which they got their first problems.
  * <p>
  * The problems are changed from the UI thread and from the job, that formats
  * several sources, therefore the methods are synchronized.
@@ -71,7 +71,8 @@ public final class FormatterProblems {
     /**
      * Removes the problems of the sources with the given keys.
      *
-     * @param keys - the keys of the sources, see {@link IProblemSource#getKey()}
+     * @param keys - the keys of the sources, see
+     *        {@link IProblemSource#getKey()}
      */
     public void remove(Collection<String> keys) {
 
@@ -158,8 +159,8 @@ public final class FormatterProblems {
     }
 
     /**
-     * Returns the result of the last formatting of several sources, e.g.
-     * "15 files formatted. 53 files not formatted.", or <code>null</code>.
+     * Returns the result of the last formatting of several sources, e.g. "15
+     * files formatted. 53 files not formatted.", or <code>null</code>.
      */
     public synchronized String getSummary() {
         return summary;

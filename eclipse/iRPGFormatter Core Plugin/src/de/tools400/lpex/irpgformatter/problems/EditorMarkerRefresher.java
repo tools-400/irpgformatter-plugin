@@ -59,7 +59,7 @@ public final class EditorMarkerRefresher implements IWindowListener, IPartListen
             return;
         }
 
-        IFile file = (IFile)editor.getEditorInput().getAdapter(IFile.class);
+        IFile file = editor.getEditorInput().getAdapter(IFile.class);
         if (file != null) {
             ProblemMarkers.refresh(file);
         }

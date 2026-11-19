@@ -28,8 +28,8 @@ import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
 
 /**
- * Keeps the markers of the problems in line with {@link FormatterProblems}: each
- * problem of a source with a file of the workspace (see
+ * Keeps the markers of the problems in line with {@link FormatterProblems}:
+ * each problem of a source with a file of the workspace (see
  * {@link IProblemSource#getMarkerFile()}) becomes a marker of the type
  * {@link #MARKER_TYPE}. The LPEX editor shows the markers in its ruler, the
  * Problems view lists them.
@@ -113,9 +113,8 @@ public final class ProblemMarkers implements IFormatterProblemsListener {
      * (<code>AbstractMarkerAnnotationModel.modifyMarkerAnnotation</code>).
      * <p>
      * The markers are changed at once, so that the Problems view, which opened
-     * the editor, can go to its marker, and once more later, in case the
-     * editor had not yet loaded the document. The markers stay the same
-     * objects.
+     * the editor, can go to its marker, and once more later, in case the editor
+     * had not yet loaded the document. The markers stay the same objects.
      * </p>
      *
      * @param file - the file of the editor
