@@ -22,15 +22,17 @@ import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.problems.EditorSources;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblems;
 import de.tools400.lpex.irpgformatter.problems.IProblemSource;
 import de.tools400.lpex.irpgformatter.problems.ProblemFactory;
-import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 import de.tools400.lpex.irpgformatter.utils.IBMRpgleFormatterUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
+import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 
 /**
  * Formats an RPGLE source in the given {@link LpexView} silently. Used by the
@@ -51,7 +53,9 @@ public final class FormatOnSaveListener {
 
         try {
 
-            if (!Preferences.getInstance().isFormatOnSave()) {
+            // The project of the source may switch format on save on or off.
+            Preferences preferences = SourcePreferences.get(view);
+            if (!preferences.isFormatOnSave()) {
                 return;
             }
 
@@ -65,7 +69,7 @@ public final class FormatOnSaveListener {
             if (validationError != null) {
                 return;
             } else {
-                executeFormatter(view, input);
+                executeFormatter(view, input, preferences);
             }
 
         } catch (BlockStructureException e) {
@@ -82,20 +86,20 @@ public final class FormatOnSaveListener {
         }
     }
 
-    private static void executeFormatter(LpexView view, IRpgleInput input) throws RpgleFormatterException {
+    private static void executeFormatter(LpexView view, IRpgleInput input, Preferences preferences) throws RpgleFormatterException {
 
-        RpgleFormatter formatter = new RpgleFormatter();
+        RpgleFormatter formatter = new RpgleFormatter(FormatterConfig.fromPreferences(preferences));
         formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
 
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+        int defaultIndent = preferences.getStartColumn() - 1;
 
-        CalculationFormatter calculationFormatter = Preferences.getInstance().getCalculationFormatter();
+        CalculationFormatter calculationFormatter = preferences.getCalculationFormatter();
 
         if (calculationFormatter == CalculationFormatter.IBM_FORMATTER) {
             IBMRpgleFormatterUtils.executeIBMFormatter(view);
         }
 
-        if (Preferences.getInstance().isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER) {
+        if (preferences.isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER) {
             FormattedResult result = formatter.format(input, defaultIndent);
             IRpgleOutput output = input.getOutput();
             output.writeSourceLines(result);

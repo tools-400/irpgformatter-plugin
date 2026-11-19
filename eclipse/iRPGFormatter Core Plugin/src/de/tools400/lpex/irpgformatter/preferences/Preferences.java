@@ -8,10 +8,12 @@
 
 package de.tools400.lpex.irpgformatter.preferences;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import de.tools400.lpex.irpgformatter.menu.MenuExtension;
@@ -21,24 +23,26 @@ import de.tools400.lpex.irpgformatter.utils.ResourceUtils;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
- * Constants for RPGLE Formatter preferences.
+ * The preferences of iRPGFormatter: the preferences of the workspace
+ * ({@link #getInstance()}) or of a project
+ * ({@link #forProject(IPreferenceStore)}).
  */
 public final class Preferences implements RpgleSourceConstants {
 
     /**
-     * The instance of this Singleton class.
+     * The preferences of the workspace.
      */
     private static Preferences instance;
 
     /**
-     * Global preferences of the plugin.
+     * Preferences of the plugin: of the workspace or of a project.
      */
-    private IPreferenceStore preferenceStore;
+    private final IPreferenceStore preferenceStore;
 
     /**
-     * Preferences of the IBM formatter
+     * Preferences of the IBM formatter, always those of the workspace.
      */
-    private IPreferenceStore ibmPreferenceStore;
+    private final IPreferenceStore ibmPreferenceStore;
 
     private static final String PARAMETER_SPACING_STYLE = "parameterSpacingStyle";
     private static final String USE_CONST_KEYWORD = "useConstKeyword";
@@ -58,6 +62,11 @@ public final class Preferences implements RpgleSourceConstants {
     private static final String MAX_NAME_LENGTH = "maxNameLength";
     private static final String MIN_NAME_LENGTH = "minNameLength";
     private static final String FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN = "formatterPreviewVertialRulerColumn";
+
+    /**
+     * Only in the preferences of a project: the project has settings of its own
+     */
+    private static final String PROJECT_SPECIFIC_SETTINGS = "projectSpecificSettings";
 
     /** "Execute IBM formatter", replaced by {@link #CALCULATION_FORMATTER} */
     private static final String EXECUTE_IBM_FORMATTER = "executeIbmFormatter";
@@ -106,39 +115,134 @@ public final class Preferences implements RpgleSourceConstants {
     private static final CalculationFormatter DEFAULT_CALCULATION_FORMATTER = CalculationFormatter.IRPG_FORMATTER;
     private static final boolean DEFAULT_FORMAT_ON_SAVE = false;
 
-    private static Map<String, String> cachedDataTypes;
-    private static Map<String, String> cachedDeclarationTypes;
-    private static Map<String, String> cachedKeywords;
-    private static Map<String, String> cachedKeywordParameters;
-    private static Map<String, String> cachedOperationCodes;
-    private static Map<String, String> cachedBuiltInFunctions;
+    /**
+     * The settings of the formatter, that a project can have of its own. The
+     * word lists, the settings of the preview and the shortcut stay those of
+     * the workspace.
+     */
+    private static final String[] PROJECT_SETTINGS = { PROJECT_SPECIFIC_SETTINGS, PARAMETER_SPACING_STYLE, USE_CONST_KEYWORD,
+        DELIMITER_BEFORE_PARAMETER, ALIGN_SUB_FIELDS, BREAK_BETWEEN_CASE_CHANGE, BREAK_BEFORE_KEYWORD, SORT_CONST_VALUE_TO_END, REPLACE_PI_NAME,
+        REMOVE_END_PROC_NAME, UNINDENT_COMPILER_DIRECTIVES, REMOVE_EMPTY_COMMENT_LINES, REMOVE_EMPTY_LINES_BEFORE_DCL_PI, CONDITION_PARENTHESES,
+        FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS, FORMAT_SPECIAL_WORDS_OF_CALCULATIONS, MAX_NAME_LENGTH, MIN_NAME_LENGTH, EXECUTE_IBM_FORMATTER,
+        FORMAT_DECLARATIONS, CALCULATION_FORMATTER, FORMAT_ON_SAVE };
 
-    private Preferences() {
-        // Singleton class
+    /**
+     * <code>true</code> for the preferences of a project. They return the word
+     * lists of the workspace.
+     */
+    private final boolean project;
+
+    private Map<String, String> cachedDataTypes;
+    private Map<String, String> cachedDeclarationTypes;
+    private Map<String, String> cachedKeywords;
+    private Map<String, String> cachedKeywordParameters;
+    private Map<String, String> cachedOperationCodes;
+    private Map<String, String> cachedBuiltInFunctions;
+
+    private Preferences(IPreferenceStore preferenceStore, IPreferenceStore ibmPreferenceStore, boolean project) {
+        this.preferenceStore = preferenceStore;
+        this.ibmPreferenceStore = ibmPreferenceStore;
+        this.project = project;
     }
 
     /**
-     * Thread-safe method that returns the instance of this Singleton class.
+     * Thread-safe method that returns the preferences of the workspace.
      */
     public synchronized static Preferences getInstance() {
         if (instance == null) {
-            instance = new Preferences();
-            instance.preferenceStore = PreferenceStoreProvider.getPreferenceStore();
-            instance.ibmPreferenceStore = PreferenceStoreProvider.getIbmPreferenceStore();
+            instance = new Preferences(PreferenceStoreProvider.getPreferenceStore(), PreferenceStoreProvider.getIbmPreferenceStore(), false);
         }
         return instance;
+    }
+
+    /**
+     * Returns the preferences of a project, that are kept in the given
+     * preference store of the project. Their default values are those of the
+     * workspace. The settings of IBM and the word lists have no project
+     * specific values: they are always those of the workspace.
+     * <p>
+     * The preferences of a project apply only, if
+     * {@link #isProjectSpecificSettings()} returns <code>true</code>. Then all
+     * settings of the formatter come from the project, a setting, that the
+     * project does not contain, has the default value.
+     * </p>
+     *
+     * @param projectPreferenceStore - the preference store of the project
+     * @return the preferences of the project
+     */
+    public static Preferences forProject(IPreferenceStore projectPreferenceStore) {
+        return new Preferences(projectPreferenceStore, PreferenceStoreProvider.getIbmPreferenceStore(), true);
+    }
+
+    /**
+     * Returns <code>true</code> for the preferences of a project.
+     */
+    public boolean isProject() {
+        return project;
+    }
+
+    /**
+     * A project has no word lists of its own: its getters return the lists of
+     * the workspace, its setters must not be called.
+     */
+    private void checkWordListsOfWorkspace() {
+        if (project) {
+            throw new IllegalStateException("A project has no word lists of its own.");
+        }
     }
 
     /**
      * Resets the singleton instance. Call this when switching between test mode
      * and normal mode.
      */
-    public static void resetInstance() {
-        clearCache();
+    public static synchronized void resetInstance() {
         instance = null;
     }
 
-    private static void clearCache() {
+    /**
+     * Returns <code>true</code>, if the project of the preferences has settings
+     * of its own. The preferences of the workspace never have.
+     */
+    public boolean isProjectSpecificSettings() {
+        return preferenceStore.getBoolean(PROJECT_SPECIFIC_SETTINGS);
+    }
+
+    /**
+     * Switches the settings of the project on, that are stored with the
+     * setters. Use {@link #removeProjectSpecificSettings()} to switch them off.
+     */
+    public void setProjectSpecificSettings() {
+        preferenceStore.setValue(PROJECT_SPECIFIC_SETTINGS, true);
+    }
+
+    /**
+     * Removes the settings of the project, so that the settings of the
+     * workspace apply again.
+     */
+    public void removeProjectSpecificSettings() {
+
+        for (String name : PROJECT_SETTINGS) {
+            preferenceStore.setToDefault(name);
+        }
+
+        clearCache();
+    }
+
+    /**
+     * Writes the preferences into their file, e.g. the file of the project in
+     * its folder <code>.settings</code>. The preferences of the workspace are
+     * saved by Eclipse.
+     *
+     * @throws IOException - the file could not be written
+     */
+    public void save() throws IOException {
+
+        if (preferenceStore instanceof IPersistentPreferenceStore) {
+            ((IPersistentPreferenceStore)preferenceStore).save();
+        }
+    }
+
+    private void clearCache() {
         cachedDataTypes = null;
         cachedDeclarationTypes = null;
         cachedKeywords = null;
@@ -212,8 +316,8 @@ public final class Preferences implements RpgleSourceConstants {
 
     /**
      * Returns <code>true</code>, if embedded SQL statements are formatted, see
-     * IBM preference "Formatting" of the ILE RPG SQL formatting. Otherwise
-     * only their casing is changed.
+     * IBM preference "Formatting" of the ILE RPG SQL formatting. Otherwise only
+     * their casing is changed.
      */
     public boolean isFormatEmbeddedSql() {
         return ibmPreferenceStore.getBoolean("SQLRPGLE.FORMATTING.base");
@@ -483,6 +587,9 @@ public final class Preferences implements RpgleSourceConstants {
      * code in upper case.
      */
     public Map<String, String> getOperationCodes() {
+        if (project) {
+            return getInstance().getOperationCodes();
+        }
         if (cachedOperationCodes == null) {
             String value = preferenceStore.getString(OPERATION_CODES);
             cachedOperationCodes = KeywordUtils.stringToKeywords(value);
@@ -491,6 +598,7 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void setOperationCodes(Map<String, String> operationCodes) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(operationCodes);
         preferenceStore.setValue(OPERATION_CODES, value);
         clearCache();
@@ -501,10 +609,13 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     /**
-     * Returns the canonical spellings of the built-in functions by the
-     * built-in function in upper case.
+     * Returns the canonical spellings of the built-in functions by the built-in
+     * function in upper case.
      */
     public Map<String, String> getBuiltInFunctions() {
+        if (project) {
+            return getInstance().getBuiltInFunctions();
+        }
         if (cachedBuiltInFunctions == null) {
             String value = preferenceStore.getString(BUILT_IN_FUNCTIONS);
             cachedBuiltInFunctions = KeywordUtils.stringToKeywords(value);
@@ -513,6 +624,7 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void setBuiltInFunctions(Map<String, String> builtInFunctions) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(builtInFunctions);
         preferenceStore.setValue(BUILT_IN_FUNCTIONS, value);
         clearCache();
@@ -523,9 +635,9 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     /**
-     * Returns <code>true</code>, if iRPGFormatter formats everything except
-     * the calculations: the control options, the declarations and the
-     * compiler directives.
+     * Returns <code>true</code>, if iRPGFormatter formats everything except the
+     * calculations: the control options, the declarations and the compiler
+     * directives.
      */
     public boolean isFormatDeclarations() {
         return preferenceStore.getBoolean(FORMAT_DECLARATIONS);
@@ -538,8 +650,8 @@ public final class Preferences implements RpgleSourceConstants {
     /**
      * Returns the formatter of the calculations.
      * <p>
-     * The preference replaces "Execute IBM formatter". If that one was
-     * switched off, the calculations stay unchanged.
+     * The preference replaces "Execute IBM formatter". If that one was switched
+     * off, the calculations stay unchanged.
      * </p>
      */
     public CalculationFormatter getCalculationFormatter() {
@@ -632,6 +744,9 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public Map<String, String> getDataTypes() {
+        if (project) {
+            return getInstance().getDataTypes();
+        }
         if (cachedDataTypes == null) {
             String value = preferenceStore.getString(DATA_TYPES);
             cachedDataTypes = KeywordUtils.stringToKeywords(value);
@@ -640,6 +755,9 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public Map<String, String> getDeclarationTypes() {
+        if (project) {
+            return getInstance().getDeclarationTypes();
+        }
         if (cachedDeclarationTypes == null) {
             String value = preferenceStore.getString(DECLARATION_TYPES);
             cachedDeclarationTypes = KeywordUtils.stringToKeywords(value);
@@ -648,18 +766,23 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void setDataTypes(Map<String, String> dataTypes) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(dataTypes);
         preferenceStore.setValue(DATA_TYPES, value);
         clearCache();
     }
 
     public void setDeclarationTypes(Map<String, String> declarationTypes) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(declarationTypes);
         preferenceStore.setValue(DECLARATION_TYPES, value);
         clearCache();
     }
 
     public Map<String, String> getKeywords() {
+        if (project) {
+            return getInstance().getKeywords();
+        }
         if (cachedKeywords == null) {
             String value = preferenceStore.getString(KEYWORDS);
             cachedKeywords = KeywordUtils.stringToKeywords(value);
@@ -668,12 +791,16 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void setKeywords(Map<String, String> keywords) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(keywords);
         preferenceStore.setValue(KEYWORDS, value);
         clearCache();
     }
 
     public Map<String, String> getSpecialWords() {
+        if (project) {
+            return getInstance().getSpecialWords();
+        }
         if (cachedKeywordParameters == null) {
             String value = preferenceStore.getString(SPECIAL_WORDS);
             cachedKeywordParameters = KeywordUtils.stringToKeywords(value);
@@ -682,6 +809,7 @@ public final class Preferences implements RpgleSourceConstants {
     }
 
     public void setSpecialWords(Map<String, String> keywordParameters) {
+        checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(keywordParameters);
         preferenceStore.setValue(SPECIAL_WORDS, value);
         clearCache();

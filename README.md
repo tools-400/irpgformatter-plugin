@@ -16,6 +16,7 @@ Further information is available on the [iRPGFormatter web site](https://tools-4
 - Formats the whole source or the selected lines in the LPEX editor. A selection is expanded to the whole block.
 - Formats many sources at once from the *Remote Systems* view or the *Project Explorer*.
 - Optionally formats a source on save.
+- Project specific settings, e.g. for the sources of a Git repository, that the team formats the same way.
 - Lists the problems in the view *iRPGFormatter Problems* and in the ruler of the editor.
 
 ## Installation

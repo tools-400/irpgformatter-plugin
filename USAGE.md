@@ -155,6 +155,26 @@ The settings can be exported to and imported from XML files, e.g. to share a pro
   **Apply and Close**. Settings, that are missing in the profile, e.g. in a profile of a former version, keep their current
   values; a message tells so.
 
+### Project Specific Settings
+
+A project of the workspace can have settings of its own, e.g. a project of a Git repository, whose sources the team formats
+the same way. Right-click the project in the **Project Explorer**, select **Properties > iRPGFormatter** and check
+**Enable project specific settings**.
+
+- The page has the same settings as the preference page, but no word lists. Without project specific settings it shows the
+  settings of the workspace, which then apply to the project.
+- The settings of the project apply to its files, when they are formatted in the editor, on save or from the
+  **Project Explorer**. **Format on save** is a setting of the project, too.
+- The settings are stored in the file `.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs` of the project. Commit it,
+  so that the team gets the settings.
+- The IBM settings, the word lists and the preview always are those of the workspace. **Import...** on the page of a project
+  takes over the settings of a profile, but not its word lists; **Export...** saves the word lists of the workspace.
+- **Restore Defaults** and unchecking **Enable project specific settings** remove the settings of the project, so that the
+  settings of the workspace apply again. **Configure Workspace Settings...** opens the preference page.
+- Source members and stream files of the IFS, that are opened or formatted from **Remote Systems**, and local files outside
+  of the workspace are formatted with the settings of the workspace. The project **RemoteSystemsTempFiles**, that holds the
+  local copies of Remote Systems, has no settings of its own.
+
 ## Formatting Rules
 
 ### What Gets Formatted

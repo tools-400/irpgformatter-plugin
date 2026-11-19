@@ -79,6 +79,29 @@
       </page>
    </extension>
 
+   <!--
+     Project specific settings: the same page as property page of a project.
+     The local copies of Remote Systems are formatted with the settings of the
+     workspace, therefore their project has no page.
+   -->
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+         name="%Label_preferences"
+         class="de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage"
+         id="de.tools400.lpex.irpgformatter.propertypages.IRPGFormatterPropertyPage">
+         <enabledWhen>
+            <adapt type="org.eclipse.core.resources.IProject">
+               <test property="org.eclipse.core.resources.open" value="true"/>
+               <not>
+                  <test property="org.eclipse.core.resources.name" value="RemoteSystemsTempFiles"/>
+               </not>
+            </adapt>
+         </enabledWhen>
+         <keywordReference id="de.tools400.lpex.irpgformatter.IRPGFormatterPreferencePage"/>
+      </page>
+   </extension>
+
    <extension point="org.eclipse.ui.keywords">
       <keyword
          label="%preferenceKeywords.IRPGFormatterPreferencePage"

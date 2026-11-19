@@ -25,7 +25,9 @@ import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
 import de.tools400.lpex.irpgformatter.input.RpgleLpexInput;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.problems.EditorSources;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem.Severity;
@@ -103,11 +105,13 @@ public class FormatLpexSourceAction implements LpexAction {
 
     private void executeFormatter(LpexView view, RpgleLpexInput input, boolean haveSelection, int startLine) throws RpgleFormatterException {
 
-        CalculationFormatter calculationFormatter = Preferences.getInstance().getCalculationFormatter();
-        boolean executeIbmFormatter = calculationFormatter == CalculationFormatter.IBM_FORMATTER;
-        boolean executeIrpgFormatter = Preferences.getInstance().isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER;
+        Preferences preferences = SourcePreferences.get(view);
 
-        RpgleFormatter formatter = new RpgleFormatter();
+        CalculationFormatter calculationFormatter = preferences.getCalculationFormatter();
+        boolean executeIbmFormatter = calculationFormatter == CalculationFormatter.IBM_FORMATTER;
+        boolean executeIrpgFormatter = preferences.isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER;
+
+        RpgleFormatter formatter = new RpgleFormatter(FormatterConfig.fromPreferences(preferences));
         formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
 
         int endLine = -1;
@@ -141,8 +145,8 @@ public class FormatLpexSourceAction implements LpexAction {
 
             if (formatter.getErrorCount() > 0) {
                 formatter.logUnexpectedErrors(input.getName());
-                LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Source_formatted_N_errors_first_on_line_A,
-                    formatter.getErrorCount(), getFirstLineNumber(problems, Severity.ERROR)));
+                LpexViewUtils.displayMessage(view, Messages.bind(Messages.Error_Source_formatted_N_errors_first_on_line_A, formatter.getErrorCount(),
+                    getFirstLineNumber(problems, Severity.ERROR)));
                 FormatterProblemsView.show(source);
             } else if (formatter.getWarningCount() > 0) {
                 LpexViewUtils.displayMessage(view, Messages.bind(Messages.Warning_Source_formatted_N_warnings_first_on_line_A,
@@ -175,8 +179,8 @@ public class FormatLpexSourceAction implements LpexAction {
 
     /**
      * Formats the input. The lines in front of a selection tell the formatter
-     * the blocks, that enclose the selection, so that the selection is
-     * indented like the whole source. If these lines cannot be collected into
+     * the blocks, that enclose the selection, so that the selection is indented
+     * like the whole source. If these lines cannot be collected into
      * statements, the selection is formatted alone, starting with the current
      * indent of its first line.
      */

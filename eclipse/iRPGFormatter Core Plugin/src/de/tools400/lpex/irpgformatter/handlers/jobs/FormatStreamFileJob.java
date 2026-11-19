@@ -15,6 +15,8 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FileLockedException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.problems.IProblemSource;
 import de.tools400.lpex.irpgformatter.problems.WorkspaceFileSource;
 
@@ -48,5 +50,10 @@ public class FormatStreamFileJob extends AbstractFormatJob<IFile> {
     @Override
     protected IRpgleInput createInput(IFile file, IProgressMonitor monitor) {
         return RpgleInputFactory.createFromStreamFile(file);
+    }
+
+    @Override
+    protected Preferences getPreferences(IFile file) {
+        return SourcePreferences.get(file);
     }
 }

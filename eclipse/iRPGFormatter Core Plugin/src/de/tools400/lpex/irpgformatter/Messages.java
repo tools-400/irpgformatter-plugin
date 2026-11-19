@@ -106,7 +106,6 @@ public class Messages extends NLS {
     public static String ColumnLabel_Key_read_only;
     public static String ColumnLabel_Value_editable;
 
-
     public static String Label_Preview;
     public static String Label_Preview_Edit;
     public static String Label_View_Edit_raw_code;
@@ -228,7 +227,6 @@ public class Messages extends NLS {
 
     public static String I_N_F_O_R_M_A_T_I_O_N;
 
-
     public static String Info_Finished_formatting_stream_files_A;
     public static String Info_Finished_formatting_source_members_A;
     public static String Error_A_formatted_B_errors;
@@ -248,6 +246,12 @@ public class Messages extends NLS {
     public static String Error_Download_failed_A;
 
     public static String Error_Mixed_selection_not_supported;
+
+    public static String Label_Enable_project_specific_settings;
+    public static String Tooltip_Enable_project_specific_settings;
+    public static String Label_Configure_workspace_settings;
+    public static String Label_Workspace_settings_of_project;
+    public static String Error_Project_settings_not_saved_A;
 
     static {
         // initialize resource bundle

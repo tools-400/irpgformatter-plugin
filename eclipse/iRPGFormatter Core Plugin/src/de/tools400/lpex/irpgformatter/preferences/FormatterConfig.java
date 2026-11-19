@@ -355,11 +355,17 @@ public class FormatterConfig {
 
     /**
      * Creates a {@link FormatterConfig} from the currently saved
-     * {@link Preferences}.
+     * {@link Preferences} of the workspace.
      */
     public static FormatterConfig fromPreferences() {
+        return fromPreferences(Preferences.getInstance());
+    }
 
-        Preferences prefs = Preferences.getInstance();
+    /**
+     * Creates a {@link FormatterConfig} from the given {@link Preferences},
+     * e.g. the preferences of the project of a source.
+     */
+    public static FormatterConfig fromPreferences(Preferences prefs) {
 
         FormatterConfig config = new FormatterConfig();
         config.formatDeclarations = prefs.isFormatDeclarations();

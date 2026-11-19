@@ -9,12 +9,17 @@
 package de.tools400.lpex.irpgformatter.preferencepages;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.dialogs.ControlEnableState;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -35,6 +40,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
@@ -48,16 +54,37 @@ import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
+import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
 import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 
 /**
  * Preference page for RPGLE Formatter settings.
+ * <p>
+ * The page is also the property page of a project. There it edits the settings
+ * of the project, if the project specific settings are enabled. Otherwise it
+ * shows the settings of the workspace, which apply to the project. The settings
+ * of the preview and the IBM settings always are those of the workspace.
+ * </p>
  */
-public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IPropertyChangeListener {
+public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IWorkbenchPropertyPage, IPropertyChangeListener {
 
+    /** ID of the preference page, see plugin.xml */
+    public static final String ID = "de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage";
+
+    /**
+     * The preferences, that the page edits: the preferences of the workspace or
+     * of the project of the property page.
+     */
     private Preferences preferences;
+
+    /* Property page of a project */
+    private IAdaptable element;
+    private IProject project;
+    private Button projectSpecificSettingsCheckbox;
+    private Composite settingsContainer;
+    private ControlEnableState settingsEnableState;
 
     private PreviewPanel previewPanel;
 
@@ -114,6 +141,39 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     }
 
     @Override
+    public IAdaptable getElement() {
+        return element;
+    }
+
+    /**
+     * Sets the project of the property page. The page then edits the
+     * preferences of the project.
+     */
+    @Override
+    public void setElement(IAdaptable element) {
+
+        this.element = element;
+
+        project = element.getAdapter(IProject.class);
+        if (project != null) {
+            preferences = SourcePreferences.getProjectPreferences(project);
+        }
+    }
+
+    private boolean isPropertyPage() {
+        return project != null;
+    }
+
+    /**
+     * Returns <code>true</code>, if the page has the tabs of the word lists. A
+     * project has no word lists of its own, so that its page has no tabs of
+     * them.
+     */
+    private boolean hasWordLists() {
+        return !isPropertyPage();
+    }
+
+    @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
     }
@@ -127,8 +187,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         container.setLayout(new GridLayout(2, false));
         container.setLayoutData(new GridData(GridData.FILL_BOTH));
 
+        if (isPropertyPage()) {
+            createProjectSpecificSettingsHeader(container);
+        }
+
         // Create settings container first (left column in grid)
-        Composite settingsContainer = new Composite(container, SWT.NONE);
+        settingsContainer = new Composite(container, SWT.NONE);
         settingsContainer.setLayout(new GridLayout(1, false));
         settingsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -136,13 +200,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         previewPanel = new PreviewPanel(container, () -> {
             if (!isUIFullyInitialized()) return null;
             return createConfigFromUI();
-        }, error -> setErrorMessage(error), preferences);
+        }, error -> setErrorMessage(error), Preferences.getInstance());
 
         // Populate settings panel (needs previewPanel for addPreviewTrigger)
         createKeywordsTabs(settingsContainer);
 
         // Load current values
         loadPreferences();
+
+        if (isPropertyPage()) {
+            updateProjectSpecificSettings();
+        }
 
         // Listen for IBM preference changes
         registerPropertyChangeListeners();
@@ -153,7 +221,99 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return container;
     }
 
+    /**
+     * Creates the check box, that enables the settings of the project, and the
+     * link to the settings of the workspace, like the property pages of JDT.
+     */
+    private void createProjectSpecificSettingsHeader(Composite parent) {
+
+        Composite header = new Composite(parent, SWT.NONE);
+        GridLayout headerLayout = new GridLayout(2, false);
+        headerLayout.marginWidth = 0;
+        header.setLayout(headerLayout);
+        GridData headerData = new GridData(GridData.FILL_HORIZONTAL);
+        headerData.horizontalSpan = 2;
+        header.setLayoutData(headerData);
+
+        projectSpecificSettingsCheckbox = WidgetFactory.createCheckbox(header, Messages.Label_Enable_project_specific_settings,
+            Messages.Tooltip_Enable_project_specific_settings);
+        projectSpecificSettingsCheckbox.setSelection(preferences.isProjectSpecificSettings());
+        projectSpecificSettingsCheckbox.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateProjectSpecificSettings();
+            }
+        });
+
+        Link workspaceSettingsLink = new Link(header, SWT.NONE);
+        workspaceSettingsLink.setText(Messages.Label_Configure_workspace_settings);
+        workspaceSettingsLink.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
+        workspaceSettingsLink.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                openWorkspaceSettings();
+            }
+        });
+
+        // The page has no tabs of the word lists: tell, where they are.
+        Label workspaceSettingsHint = new Label(header, SWT.NONE);
+        workspaceSettingsHint.setText(Messages.Label_Workspace_settings_of_project);
+        GridData hintData = new GridData(GridData.FILL_HORIZONTAL);
+        hintData.horizontalSpan = 2;
+        workspaceSettingsHint.setLayoutData(hintData);
+
+        Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+        GridData separatorData = new GridData(GridData.FILL_HORIZONTAL);
+        separatorData.horizontalSpan = 2;
+        separator.setLayoutData(separatorData);
+    }
+
+    /**
+     * Enables the settings, if the project has settings of its own. Otherwise
+     * the page shows the settings of the workspace, that apply to the project,
+     * and disables them.
+     */
+    private void updateProjectSpecificSettings() {
+
+        if (projectSpecificSettingsCheckbox.getSelection()) {
+            // The settings of the workspace are the start of the settings of
+            // the project.
+            if (settingsEnableState != null) {
+                settingsEnableState.restore();
+                settingsEnableState = null;
+            }
+        } else if (settingsEnableState == null) {
+            loadSettings(Preferences.getInstance());
+            settingsEnableState = ControlEnableState.disable(settingsContainer);
+            refreshPreview();
+        }
+    }
+
+    private void openWorkspaceSettings() {
+
+        int result = PreferencesUtil.createPreferenceDialogOn(getShell(), ID, new String[] { ID }, null).open();
+
+        // The page shows the settings of the workspace, that may have changed.
+        if (result == Window.OK && !projectSpecificSettingsCheckbox.isDisposed() && !projectSpecificSettingsCheckbox.getSelection()) {
+            loadSettings(Preferences.getInstance());
+            refreshPreview();
+        }
+    }
+
+    private void refreshPreview() {
+
+        if (!previewPanel.isEditMode()) {
+            previewPanel.formatPreview();
+        }
+    }
+
     private boolean isUIFullyInitialized() {
+
+        // The check box of the save actions is created after the other
+        // settings.
+        if (!hasWordLists()) {
+            return formatOnSaveCheckbox != null;
+        }
 
         if (keywordsEditor == null || keywordsEditor.getEntries() == null) {
             return false;
@@ -214,12 +374,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
         config.setCalculationFormatter(calculationFormatter);
         config.setParameterSpacingStyle(ParameterSpacingStyle.fromLabel(parameterSpacingStyleCombo.getText()));
-        config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
-        config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
-        config.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
-        config.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
-        config.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
-        config.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
+        // Without tabs the config keeps the word lists of the workspace.
+        if (hasWordLists()) {
+            config.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+            config.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+            config.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+            config.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+            config.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+            config.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
+        }
         return config;
     }
 
@@ -404,8 +567,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         previewPanel.addPreviewTrigger(minNameLengthSpinner, PreviewComments.BREAK_NAME_ON_CASE_CHANGE);
 
         // Format declarations
-        formatDeclarationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_declarations, Messages.Tooltip_Format_declarations,
-            null);
+        formatDeclarationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_declarations, Messages.Tooltip_Format_declarations, null);
 
         // Format calculations
         Label formatCalculationsLabel = new Label(group, SWT.NONE);
@@ -449,9 +611,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         conditionParenthesesCombo.setToolTipText(Messages.Tooltip_Condition_parentheses);
         previewPanel.addPreviewTrigger(conditionParenthesesCombo, PreviewComments.CONDITION_PARENTHESES);
 
-        formatOperationCodesAndBuiltInFunctionsCheckbox = createSettingCheckbox(group,
-            Messages.Label_Format_operation_codes_and_built_in_functions, Messages.Tooltip_Format_operation_codes_and_built_in_functions,
-            PreviewComments.FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS);
+        formatOperationCodesAndBuiltInFunctionsCheckbox = createSettingCheckbox(group, Messages.Label_Format_operation_codes_and_built_in_functions,
+            Messages.Tooltip_Format_operation_codes_and_built_in_functions, PreviewComments.FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS);
 
         formatSpecialWordsOfCalculationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_special_words_of_calculations,
             Messages.Tooltip_Format_special_words_of_calculations, PreviewComments.FORMAT_SPECIAL_WORDS_OF_CALCULATIONS);
@@ -615,12 +776,23 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         data.setConditionParentheses(ConditionParentheses.fromLabel(conditionParenthesesCombo.getText()).name());
         data.setFormatOperationCodesAndBuiltInFunctions(formatOperationCodesAndBuiltInFunctionsCheckbox.getSelection());
         data.setFormatSpecialWordsOfCalculations(formatSpecialWordsOfCalculationsCheckbox.getSelection());
-        data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
-        data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
-        data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
-        data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
-        data.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
-        data.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
+        if (hasWordLists()) {
+            data.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+            data.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+            data.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+            data.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+            data.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+            data.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
+        } else {
+            // The word lists, that apply to the project.
+            Preferences workspacePreferences = Preferences.getInstance();
+            data.setDataTypes(workspacePreferences.getDataTypes());
+            data.setDeclarationTypes(workspacePreferences.getDeclarationTypes());
+            data.setKeywords(workspacePreferences.getKeywords());
+            data.setSpecialWords(workspacePreferences.getSpecialWords());
+            data.setOperationCodes(workspacePreferences.getOperationCodes());
+            data.setBuiltInFunctions(workspacePreferences.getBuiltInFunctions());
+        }
 
         // Custom preview source
         data.setCustomPreviewSource(previewPanel.getCustomSource());
@@ -667,13 +839,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         formatOperationCodesAndBuiltInFunctionsCheckbox.setSelection(data.isFormatOperationCodesAndBuiltInFunctions());
         formatSpecialWordsOfCalculationsCheckbox.setSelection(data.isFormatSpecialWordsOfCalculations());
 
-        // Map settings
-        dataTypesEditor.load(KeywordUtils.mapToEntries(data.getDataTypes()));
-        declarationTypesEditor.load(KeywordUtils.mapToEntries(data.getDeclarationTypes()));
-        keywordsEditor.load(KeywordUtils.mapToEntries(data.getKeywords()));
-        specialWordsEditor.load(KeywordUtils.mapToEntries(data.getSpecialWords()));
-        operationCodesEditor.load(KeywordUtils.mapToEntries(data.getOperationCodes()));
-        builtInFunctionsEditor.load(KeywordUtils.mapToEntries(data.getBuiltInFunctions()));
+        // Map settings: a project takes over the settings of a profile, but
+        // not its word lists.
+        if (hasWordLists()) {
+            dataTypesEditor.load(KeywordUtils.mapToEntries(data.getDataTypes()));
+            declarationTypesEditor.load(KeywordUtils.mapToEntries(data.getDeclarationTypes()));
+            keywordsEditor.load(KeywordUtils.mapToEntries(data.getKeywords()));
+            specialWordsEditor.load(KeywordUtils.mapToEntries(data.getSpecialWords()));
+            operationCodesEditor.load(KeywordUtils.mapToEntries(data.getOperationCodes()));
+            builtInFunctionsEditor.load(KeywordUtils.mapToEntries(data.getBuiltInFunctions()));
+        }
 
         // Custom preview source
         String customSource = data.getCustomPreviewSource();
@@ -704,6 +879,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         TabItem settingsTab = new TabItem(tabFolder, SWT.NONE);
         settingsTab.setText(Messages.Label_Settings);
         settingsTab.setControl(createSettingsTab(tabFolder));
+
+        if (!hasWordLists()) {
+            return;
+        }
 
         // Data Types tab
         dataTypesEditor = KeywordEditor.forDataTypes(tabFolder);
@@ -776,37 +955,54 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         loadIbmPreferences();
 
-        formatOnSaveCheckbox.setSelection(preferences.isFormatOnSave());
-        removeEmptyCommentLinesCheckbox.setSelection(preferences.isRemoveEmptyCommentLines());
-        removeEmptyLinesBeforeDclPiCheckbox.setSelection(preferences.isRemoveEmptyLinesBeforeDclPi());
-        conditionParenthesesCombo.select(preferences.getConditionParentheses().ordinal());
-        formatOperationCodesAndBuiltInFunctionsCheckbox.setSelection(preferences.isFormatOperationCodesAndBuiltInFunctions());
-        formatSpecialWordsOfCalculationsCheckbox.setSelection(preferences.isFormatSpecialWordsOfCalculations());
-        useConstKeywordCheckbox.setSelection(preferences.isUseConstKeyword());
-        putDelimiterBeforeParameterCheckbox.setSelection(preferences.isDelimiterBeforeParameter());
-        parameterSpacingStyleCombo.select(preferences.getParameterSpacingStyle().ordinal());
-        alignSubFieldsCheckbox.setSelection(preferences.isAlignSubFields());
-        breakNameOnCaseChangeCheckbox.setSelection(preferences.isBreakBetweenCaseChange());
-        breakBeforeKeywordCheckbox.setSelection(preferences.isBreakBeforeKeyword());
-        sortConstValueToEndCheckbox.setSelection(preferences.isSortConstValueToEnd());
-        replacePiNameCheckbox.setSelection(preferences.isReplacePiName());
-        removeEndProcNameCheckbox.setSelection(preferences.isRemoveEndProcName());
-        unindentCompilerDirectivesCheckbox.setSelection(preferences.isUnindentCompilerDirectives());
-        maxNameLengthSpinner.setSelection(preferences.getMaxNameLength());
-        minNameLengthSpinner.setSelection(preferences.getMinNameLength());
+        if (isPropertyPage() && !preferences.isProjectSpecificSettings()) {
+            loadSettings(Preferences.getInstance());
+        } else {
+            loadSettings(preferences);
+        }
 
-        formatCalculationsCombo.select(preferences.getCalculationFormatter().ordinal());
-        formatDeclarationsCheckbox.setSelection(preferences.isFormatDeclarations());
+        // The preview belongs to the workspace.
+        Preferences workspacePreferences = Preferences.getInstance();
+        previewPanel.loadSources(workspacePreferences.getDefaultPluginFormatterSource(), workspacePreferences.getCustomFormatterSource(),
+            workspacePreferences.isCustomPreviewContent(), workspacePreferences.getFormatterPreviewVerticalRulerColumn());
+    }
 
-        dataTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDataTypes()));
-        declarationTypesEditor.load(KeywordUtils.mapToEntries(preferences.getDeclarationTypes()));
-        keywordsEditor.load(KeywordUtils.mapToEntries(preferences.getKeywords()));
-        specialWordsEditor.load(KeywordUtils.mapToEntries(preferences.getSpecialWords()));
-        operationCodesEditor.load(KeywordUtils.mapToEntries(preferences.getOperationCodes()));
-        builtInFunctionsEditor.load(KeywordUtils.mapToEntries(preferences.getBuiltInFunctions()));
+    /**
+     * Loads the settings of the formatter from the given preferences into the
+     * page.
+     */
+    private void loadSettings(Preferences source) {
 
-        previewPanel.loadSources(preferences.getDefaultPluginFormatterSource(), preferences.getCustomFormatterSource(),
-            preferences.isCustomPreviewContent(), preferences.getFormatterPreviewVerticalRulerColumn());
+        formatOnSaveCheckbox.setSelection(source.isFormatOnSave());
+        removeEmptyCommentLinesCheckbox.setSelection(source.isRemoveEmptyCommentLines());
+        removeEmptyLinesBeforeDclPiCheckbox.setSelection(source.isRemoveEmptyLinesBeforeDclPi());
+        conditionParenthesesCombo.select(source.getConditionParentheses().ordinal());
+        formatOperationCodesAndBuiltInFunctionsCheckbox.setSelection(source.isFormatOperationCodesAndBuiltInFunctions());
+        formatSpecialWordsOfCalculationsCheckbox.setSelection(source.isFormatSpecialWordsOfCalculations());
+        useConstKeywordCheckbox.setSelection(source.isUseConstKeyword());
+        putDelimiterBeforeParameterCheckbox.setSelection(source.isDelimiterBeforeParameter());
+        parameterSpacingStyleCombo.select(source.getParameterSpacingStyle().ordinal());
+        alignSubFieldsCheckbox.setSelection(source.isAlignSubFields());
+        breakNameOnCaseChangeCheckbox.setSelection(source.isBreakBetweenCaseChange());
+        breakBeforeKeywordCheckbox.setSelection(source.isBreakBeforeKeyword());
+        sortConstValueToEndCheckbox.setSelection(source.isSortConstValueToEnd());
+        replacePiNameCheckbox.setSelection(source.isReplacePiName());
+        removeEndProcNameCheckbox.setSelection(source.isRemoveEndProcName());
+        unindentCompilerDirectivesCheckbox.setSelection(source.isUnindentCompilerDirectives());
+        maxNameLengthSpinner.setSelection(source.getMaxNameLength());
+        minNameLengthSpinner.setSelection(source.getMinNameLength());
+
+        formatCalculationsCombo.select(source.getCalculationFormatter().ordinal());
+        formatDeclarationsCheckbox.setSelection(source.isFormatDeclarations());
+
+        if (hasWordLists()) {
+            dataTypesEditor.load(KeywordUtils.mapToEntries(source.getDataTypes()));
+            declarationTypesEditor.load(KeywordUtils.mapToEntries(source.getDeclarationTypes()));
+            keywordsEditor.load(KeywordUtils.mapToEntries(source.getKeywords()));
+            specialWordsEditor.load(KeywordUtils.mapToEntries(source.getSpecialWords()));
+            operationCodesEditor.load(KeywordUtils.mapToEntries(source.getOperationCodes()));
+            builtInFunctionsEditor.load(KeywordUtils.mapToEntries(source.getBuiltInFunctions()));
+        }
     }
 
     private void loadIbmPreferences() {
@@ -825,7 +1021,46 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         casingStyleText.setText(preferences.getKeywordCasingStyle().getDisplayName());
     }
 
-    private void storePreferences() {
+    /**
+     * Stores the settings of the page. The property page of a project either
+     * stores the settings of the project or removes them.
+     *
+     * @return <code>false</code>, if the settings of the project could not be
+     *         saved
+     */
+    private boolean storePreferences() {
+
+        // The preview belongs to the workspace.
+        previewPanel.storeState(Preferences.getInstance());
+
+        if (!isPropertyPage()) {
+            storeSettings();
+            return true;
+        }
+
+        if (projectSpecificSettingsCheckbox.getSelection()) {
+            preferences.setProjectSpecificSettings();
+            storeSettings();
+        } else {
+            preferences.removeProjectSpecificSettings();
+        }
+
+        try {
+            preferences.save();
+        } catch (IOException e) {
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_Project_settings_not_saved_A, ExceptionUtils.getLocalizedMessage(e)));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Stores the settings of the formatter of the page into the preferences,
+     * that the page edits.
+     */
+    private void storeSettings() {
 
         preferences.setFormatOnSave(formatOnSaveCheckbox.getSelection());
         preferences.setRemoveEmptyCommentLines(removeEmptyCommentLinesCheckbox.getSelection());
@@ -850,19 +1085,27 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         preferences.setCalculationFormatter(CalculationFormatter.fromLabel(formatCalculationsCombo.getText()));
         preferences.setFormatDeclarations(formatDeclarationsCheckbox.getSelection());
 
-        preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
-        preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
-        preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
-        preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
-        preferences.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
-        preferences.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
-
-        previewPanel.storeState(preferences);
+        if (hasWordLists()) {
+            preferences.setDataTypes(KeywordUtils.entriesToMap(dataTypesEditor.getEntries()));
+            preferences.setDeclarationTypes(KeywordUtils.entriesToMap(declarationTypesEditor.getEntries()));
+            preferences.setKeywords(KeywordUtils.entriesToMap(keywordsEditor.getEntries()));
+            preferences.setSpecialWords(KeywordUtils.entriesToMap(specialWordsEditor.getEntries()));
+            preferences.setOperationCodes(KeywordUtils.entriesToMap(operationCodesEditor.getEntries()));
+            preferences.setBuiltInFunctions(KeywordUtils.entriesToMap(builtInFunctionsEditor.getEntries()));
+        }
     }
 
     @Override
     protected void performDefaults() {
         super.performDefaults();
+
+        // Like the property pages of JDT: the settings of the workspace apply
+        // to the project again.
+        if (isPropertyPage()) {
+            projectSpecificSettingsCheckbox.setSelection(false);
+            updateProjectSpecificSettings();
+            return;
+        }
 
         // Reset format on save
         formatOnSaveCheckbox.setSelection(preferences.getDefaultFormatOnSave());
@@ -905,7 +1148,9 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     @Override
     public boolean performOk() {
 
-        storePreferences();
+        if (!storePreferences()) {
+            return false;
+        }
 
         return super.performOk();
     }

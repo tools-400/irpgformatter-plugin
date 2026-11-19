@@ -28,6 +28,7 @@ import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.IRpgleOutput;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.problems.AbstractProblemSource;
 import de.tools400.lpex.irpgformatter.problems.FormatterProblem;
@@ -49,7 +50,6 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 public abstract class AbstractFormatJob<T> extends Job {
 
     private T[] sources;
-    private RpgleFormatter formatter;
     private IFormatPostRun postRun;
 
     private int formattedCount;
@@ -60,7 +60,6 @@ public abstract class AbstractFormatJob<T> extends Job {
         super(name);
 
         this.sources = sources;
-        this.formatter = new RpgleFormatter();
         this.postRun = postRun;
 
         this.formattedCount = 0;
@@ -96,6 +95,14 @@ public abstract class AbstractFormatJob<T> extends Job {
      */
     protected int getSourceLength(T source) throws Exception {
         return Integer.MAX_VALUE;
+    }
+
+    /**
+     * Returns the preferences, with which the source is formatted. Only a file
+     * of the workspace can have the preferences of its project.
+     */
+    protected Preferences getPreferences(T source) {
+        return Preferences.getInstance();
     }
 
     @Override
@@ -179,8 +186,12 @@ public abstract class AbstractFormatJob<T> extends Job {
 
     private void executeFormatter(T source, IProblemSource problemSource, IRpgleInput input, IProgressMonitor monitor) throws Exception {
 
+        // The sources of a batch may belong to projects with different
+        // settings: each source gets a formatter of its own.
+        Preferences preferences = getPreferences(source);
+        RpgleFormatter formatter = new RpgleFormatter(FormatterConfig.fromPreferences(preferences));
         formatter.setSourceLength(getSourceLength(source));
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+        int defaultIndent = preferences.getStartColumn() - 1;
 
         monitor.subTask(Messages.SubTask_Formatting);
         FormattedResult result = formatter.format(input, defaultIndent);

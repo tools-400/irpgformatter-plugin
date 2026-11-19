@@ -120,13 +120,32 @@ public final class PreferenceStoreProvider {
     }
 
     /**
-     * Removes a value of the test preference store, like the Eclipse
-     * preference store does, when a value is set to its default value.
+     * Removes a value of the test preference store, like the Eclipse preference
+     * store does, when a value is set to its default value.
      *
      * @throws IllegalStateException if test mode is not enabled
      */
     public static void setTestValueToDefault(String name) {
         getTestPreferenceStore().setToDefault(name);
+    }
+
+    /**
+     * Creates the preferences of a project for a test. They have a store of
+     * their own with the default values of the workspace, like the project
+     * scope of Eclipse.
+     *
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static Preferences createTestProjectPreferences() {
+
+        if (!testMode) {
+            throw new IllegalStateException("Test mode is not enabled.");
+        }
+
+        Preferences preferences = Preferences.forProject(new MapPreferenceStore());
+        preferences.initializeDefaultPreferences();
+
+        return preferences;
     }
 
     private static IPreferenceStore getTestPreferenceStore() {

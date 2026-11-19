@@ -207,6 +207,26 @@ The order of `SqlBreakStyle` and `SqlCasingStyle` matches the values of the IBM 
 * `FormatterConfig` is a snapshot of the preferences for one run. The preference page builds one from its controls for the
   preview.
 
+### Project specific settings
+
+* `Preferences` has one instance per preference store: `getInstance()` for the workspace and `forProject()` for the
+  `ProjectScope` of a project (file `.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs`). The IBM settings always
+  come from the workspace.
+* A project has no word lists of its own: the getters of the lists return those of the workspace, the setters throw an
+  `IllegalStateException`. Different lists per project would only be half a feature, because the keyword casing style is
+  an IBM setting of the workspace; `StatementIdentifier` and `FormatCompilerDirectiveRule` tokenize with the lists of the
+  workspace; and a changed list is stored as one line, that does not get the new entries of later versions.
+* The key `projectSpecificSettings` switches the settings of a project on. Then all settings come from the project, a key,
+  that the project does not contain, has the default value. Keys are never mixed with the workspace: `ScopedPreferenceStore`
+  removes a value, that equals the default value, so that a search in the workspace would return the value of the
+  workspace instead. `removeProjectSpecificSettings()` resets all keys of the project.
+* `SourcePreferences` finds the preferences of a source for `FormatLpexSourceAction`, `FormatOnSaveListener` and
+  `FormatStreamFileJob` (each source of a batch gets a formatter of its own). Local copies of Remote Systems (properties of
+  `SystemIFileProperties`, like `EditorSources`) and files of `FormatJavaIoStreamFileJob` use the workspace.
+* The property page is `IRPGFormatterPreferencePage` as `IWorkbenchPropertyPage`, without the tabs of the word lists
+  (`hasWordLists()`). Without project specific settings it shows the settings of the workspace and disables them with
+  `ControlEnableState`. The state of the preview is always stored in the workspace.
+
 ### Word lists
 
 The defaults are in `resources`: `data_types`, `declaration_types`, `keywords`, `special_words`, `operation_codes` and
