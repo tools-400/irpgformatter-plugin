@@ -31,6 +31,7 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
     private final QSYSEditableRemoteSourceFileMember editableMember;
     private final IProgressMonitor monitor;
     private String[] cachedLines;
+    private String[] cachedRecords;
 
     RpgleEditableMemberInput(QSYSEditableRemoteSourceFileMember editableMember, IProgressMonitor monitor) {
         this.editableMember = editableMember;
@@ -53,18 +54,21 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
 
             IFile localFile = editableMember.getLocalResource();
 
+            List<String> records = new ArrayList<>();
             List<String> lines = new ArrayList<>();
             BufferedReader reader = new BufferedReader(new InputStreamReader(localFile.getContents(), "UTF-8")); //$NON-NLS-1$
 
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    records.add(line);
                     lines.add(StringUtils.trimR(line.substring(12)));
                 }
             } finally {
                 reader.close();
             }
 
+            cachedRecords = records.toArray(new String[records.size()]);
             cachedLines = lines.toArray(new String[lines.size()]);
 
         } catch (RpgleFormatterException e) {
@@ -96,9 +100,14 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
         return editableMember.getMember().getType();
     }
 
+    /**
+     * Returns the output, that writes the formatted source with the sequence
+     * numbers and dates of the downloaded records, see
+     * {@link SourceMemberRecords}.
+     */
     @Override
     public IRpgleOutput getOutput() {
-        return new RpgleEditableMemberOutput(editableMember, monitor);
+        return new RpgleEditableMemberOutput(editableMember, monitor, cachedRecords);
     }
 
     /**

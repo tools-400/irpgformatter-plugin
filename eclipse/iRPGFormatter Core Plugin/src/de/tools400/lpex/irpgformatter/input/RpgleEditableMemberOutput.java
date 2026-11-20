@@ -12,8 +12,11 @@ import java.io.ByteArrayInputStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ibm.etools.iseries.rse.ui.resources.QSYSEditableRemoteSourceFileMember;
+import com.ibm.etools.systems.editor.SystemEditorPlugin;
+import com.ibm.etools.systems.editor.preferences.ISystemTextEditorPreferenceConstants;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
@@ -28,10 +31,20 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
 
     private final QSYSEditableRemoteSourceFileMember editableMember;
     private final IProgressMonitor monitor;
+    private final String[] originalRecords;
 
-    RpgleEditableMemberOutput(QSYSEditableRemoteSourceFileMember editableMember, IProgressMonitor monitor) {
+    /**
+     * Creates the output of a member.
+     *
+     * @param editableMember - the member
+     * @param monitor - the monitor of the upload
+     * @param originalRecords - the records of the local copy before formatting
+     *        or <code>null</code>, if they are not known
+     */
+    RpgleEditableMemberOutput(QSYSEditableRemoteSourceFileMember editableMember, IProgressMonitor monitor, String[] originalRecords) {
         this.editableMember = editableMember;
         this.monitor = monitor;
+        this.originalRecords = originalRecords;
     }
 
     @Override
@@ -55,16 +68,11 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
 
         try {
 
-            String[] lines = result.toLines();
-            int currentDate = DateUtils.getSourceLineDate();
-
             // Write local file with 12-character prefix (SRCSEQ + SRCDAT +
             // SRCDTA)
             StringBuilder content = new StringBuilder();
-            for (int i = 0; i < lines.length; i++) {
-                String srcSeq = String.format("%06d", (i + 1) * 100);
-                String srcDat = String.format("%06d", currentDate);
-                content.append(srcSeq).append(srcDat).append(lines[i]).append("\n");
+            for (String record : createRecords().build(originalRecords, result)) {
+                content.append(record).append("\n");
             }
 
             IFile localFile = editableMember.getLocalResource();
@@ -76,4 +84,19 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
         }
     }
 
+    /**
+     * Creates the builder of the records with the settings <i>Resequence lines
+     * at save</i>, <i>Resequence start at</i> and <i>Resequence increment
+     * by</i> of the Remote Systems LPEX Editor, that RDi applies, when it saves
+     * a member in the editor.
+     */
+    private static SourceMemberRecords createRecords() {
+
+        IPreferenceStore store = SystemEditorPlugin.getDefault().getPreferenceStore();
+        boolean isResequenceAtSave = store.getBoolean(ISystemTextEditorPreferenceConstants.PREF_RESEQ_SAVE);
+        int start = store.getInt(ISystemTextEditorPreferenceConstants.PREF_RESEQ_START);
+        int increment = store.getInt(ISystemTextEditorPreferenceConstants.PREF_RESEQ_INCR);
+
+        return new SourceMemberRecords(DateUtils.getSourceLineDate(), isResequenceAtSave, start, increment);
+    }
 }

@@ -26,6 +26,12 @@ The sources are formatted in the background. Locked members are skipped. At the 
 formatted. If sources have errors or warnings, the view **iRPGFormatter Problems** opens instead and shows the result above
 them, see [Problems](#problems).
 
+In a formatted member, unchanged lines keep their date, changed and inserted lines get the date of today. The sequence
+numbers follow **Resequence lines at save** of **Remote Systems > Remote Systems LPEX Editor**: if it is on, the member is
+resequenced with **Resequence start at** and **Resequence increment by**. If it is off, the lines keep their sequence
+numbers and an inserted line gets the next number behind the line in front of it; only if there is no free number, the
+member is resequenced.
+
 ### Keyboard Shortcut
 
 iRPGFormatter does not assign a key. To format with a key, map a **User Key Action** to the action `iRPGFormatter.Format`:
