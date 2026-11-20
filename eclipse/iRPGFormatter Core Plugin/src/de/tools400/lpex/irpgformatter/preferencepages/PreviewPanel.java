@@ -654,6 +654,9 @@ public class PreviewPanel implements IPropertyChangeListener {
             previewViewer.addPainter(whitespacePainter);
         } else {
             if (whitespacePainter != null) {
+                // A painter, that the viewer still has, activates itself again,
+                // when the viewer paints.
+                previewViewer.removePainter(whitespacePainter);
                 whitespacePainter.deactivate(true);
                 whitespacePainter = null;
             }
