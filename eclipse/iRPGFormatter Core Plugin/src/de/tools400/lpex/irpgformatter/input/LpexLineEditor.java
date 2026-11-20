@@ -14,7 +14,11 @@ import com.ibm.lpex.core.LpexView;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
 /**
- * {@link LineEditor} implementation that delegates to an LPEX view.
+ * {@link LineEditor} implementation that delegates to an LPEX view. The line
+ * numbers are those of the document: an LPEX view also has show elements, e.g.
+ * the messages of the syntax check of RDi, which are elements, but no lines.
+ * Each line is mapped to its element when it is accessed, because inserted and
+ * deleted lines move the elements behind them.
  */
 class LpexLineEditor implements LineEditor {
 
@@ -26,23 +30,23 @@ class LpexLineEditor implements LineEditor {
 
     @Override
     public String getElementText(int lineNumber) {
-        return LpexViewUtils.getElementText(view, lineNumber);
+        return LpexViewUtils.getLineText(view, lineNumber);
     }
 
     @Override
     public void setElementText(int lineNumber, String text) {
-        LpexViewUtils.setElementText(view, lineNumber, text);
+        LpexViewUtils.setLineText(view, lineNumber, text);
     }
 
     @Override
-    public void addLineAt(int element) {
+    public void addLineAt(int lineNumber) {
         // doCommand with explicit location avoids moving the visible cursor,
         // eliminating screen flicker from cursor jumps during batch updates.
-        view.doCommand(new LpexDocumentLocation(element, 1), "add");
+        view.doCommand(new LpexDocumentLocation(view.elementOfLine(lineNumber), 1), "add");
     }
 
     @Override
-    public void deleteLineAt(int element) {
-        view.doCommand(new LpexDocumentLocation(element, 1), "delete");
+    public void deleteLineAt(int lineNumber) {
+        view.doCommand(new LpexDocumentLocation(view.elementOfLine(lineNumber), 1), "delete");
     }
 }

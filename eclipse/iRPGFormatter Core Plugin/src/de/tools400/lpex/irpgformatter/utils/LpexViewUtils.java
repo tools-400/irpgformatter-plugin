@@ -64,12 +64,29 @@ public final class LpexViewUtils {
         return view.queryInt("lines");
     }
 
-    public static String getElementText(LpexView view, int index) {
-        return view.elementText(index);
+    /**
+     * Returns the text of a line of the document. The lines do not count the
+     * show elements, e.g. the messages of the syntax check of RDi, which are
+     * elements, but no lines.
+     *
+     * @param view - the LPEX view
+     * @param line - the line (1-based)
+     * @return the text of the line
+     */
+    public static String getLineText(LpexView view, int line) {
+        return view.elementText(view.elementOfLine(line));
     }
 
-    public static void setElementText(LpexView view, int index, String text) {
-        view.setElementText(index, text);
+    /**
+     * Sets the text of a line of the document, see
+     * {@link #getLineText(LpexView, int)}.
+     *
+     * @param view - the LPEX view
+     * @param line - the line (1-based)
+     * @param text - the new text
+     */
+    public static void setLineText(LpexView view, int line, String text) {
+        view.setElementText(view.elementOfLine(line), text);
     }
 
     public static String getName(LpexView view) {
@@ -80,31 +97,23 @@ public final class LpexViewUtils {
         return view.queryOn("readonly");
     }
 
-    public static boolean isSourceLine(LpexView aLpexView, int aLineNumber) {
-        boolean isSourceLine = !aLpexView.show(aLineNumber);
-        return isSourceLine;
-    }
-
     /**
-     * Returns the indent of the first source line at or after the given
-     * element, that is neither blank nor the <code>**FREE</code> directive. The
-     * manual format of a selection starts with this indent, if the lines in
-     * front of the selection cannot be collected into statements.
+     * Returns the indent of the first source line at or after the given line,
+     * that is neither blank nor the <code>**FREE</code> directive. The manual
+     * format of a selection starts with this indent, if the lines in front of
+     * the selection cannot be collected into statements.
      *
      * @return indent or 0, if there is no such line up to the end of the source
      */
-    public static int getIndentOfFirstStatement(LpexView view, int startElement) {
+    public static int getIndentOfFirstStatement(LpexView view, int startLine) {
 
-        int numElements = view.elements();
-        for (int element = startElement; element <= numElements; element++) {
-            if (!isSourceLine(view, element)) {
+        int numLines = getNumLines(view);
+        for (int line = startLine; line <= numLines; line++) {
+            String text = getLineText(view, line);
+            if (text == null || text.trim().length() == 0 || text.toUpperCase().startsWith("**FREE")) {
                 continue;
             }
-            String line = getElementText(view, element);
-            if (line == null || line.trim().length() == 0 || line.toUpperCase().startsWith("**FREE")) {
-                continue;
-            }
-            return StringUtils.getIndent(line).length();
+            return StringUtils.getIndent(text).length();
         }
 
         return 0;
@@ -132,6 +141,8 @@ public final class LpexViewUtils {
 
     /**
      * Returns the block selection range as an int array [startLine, endLine].
+     * The selection is made of elements; a show element belongs to the line in
+     * front of it, see {@link #getLineText(LpexView, int)}.
      *
      * @return array with start and end line, or null if no selection
      */
@@ -145,7 +156,7 @@ public final class LpexViewUtils {
         if (column == 1) {
             bottom--;
         }
-        return new int[] { top, bottom };
+        return new int[] { Math.max(1, view.lineOfElement(top)), view.lineOfElement(bottom) };
     }
 
     /**
@@ -161,11 +172,11 @@ public final class LpexViewUtils {
         view.doCommand("block clear");
 
         // Position at start of first line and begin selection
-        locateElement(view, startLine);
+        locateElement(view, view.elementOfLine(startLine));
         view.doCommand("block set element");
 
         // Position at end of last line and extend selection
-        locateElement(view, endLine);
+        locateElement(view, view.elementOfLine(endLine));
         view.doCommand("block set element");
     }
 }

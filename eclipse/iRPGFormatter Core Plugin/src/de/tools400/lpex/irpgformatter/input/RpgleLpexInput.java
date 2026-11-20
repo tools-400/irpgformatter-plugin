@@ -18,7 +18,9 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
 /**
- * {@link IRpgleInput} implementation that wraps an LPEX view.
+ * {@link IRpgleInput} implementation that wraps an LPEX view. It reads the
+ * lines of the document, not the show elements, see
+ * {@link LpexViewUtils#getLineText(LpexView, int)}.
  */
 public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
 
@@ -57,18 +59,11 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
     @Override
     public String getFirstSourceLine() throws RpgleFormatterException {
 
-        int numLines = view.elements();
-
-        String line = "";
-
-        for (int index = 1; index <= numLines; index++) {
-            if (LpexViewUtils.isSourceLine(view, index)) {
-                line = LpexViewUtils.getElementText(view, index);
-                break;
-            }
+        if (LpexViewUtils.getNumLines(view) == 0) {
+            return "";
         }
 
-        return line;
+        return LpexViewUtils.getLineText(view, 1);
     }
 
     @Override
@@ -76,9 +71,7 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
 
         List<String> lines = new ArrayList<>();
         for (int i = startLine; i <= endLine; i++) {
-            if (LpexViewUtils.isSourceLine(view, i)) {
-                lines.add(LpexViewUtils.getElementText(view, i));
-            }
+            lines.add(LpexViewUtils.getLineText(view, i));
         }
         return lines.toArray(new String[0]);
     }
@@ -113,9 +106,7 @@ public class RpgleLpexInput extends AbstractRpgleInput implements IRpgleInput {
 
         List<String> lines = new ArrayList<>();
         for (int i = 1; i < startLine; i++) {
-            if (LpexViewUtils.isSourceLine(view, i)) {
-                lines.add(LpexViewUtils.getElementText(view, i));
-            }
+            lines.add(LpexViewUtils.getLineText(view, i));
         }
         return lines.toArray(new String[0]);
     }

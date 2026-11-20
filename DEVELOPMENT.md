@@ -274,3 +274,7 @@ correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
 * IBM i 7.5, 2026-10-28: `if(found) and x;` is rejected with RNF5048 (operation extender not valid). A parenthesis directly
   after the operation code is an operation extender.
 * RDi 9.8: `LpexView.elementText()` returns `null` behind the last element.
+* LPEX 4.6.12, 4.23.5 and 4.31.5 (RDi 9.6, 9.8 and 9.9), 2026-11-20: show elements, e.g. the messages of the syntax check
+  of RDi, are elements, but no lines of the document. `queryInt("lines")` does not count them, `elementOfLine()` returns
+  the element of a line and `lineOfElement()` of a show element the line in front of it. The editor input and output and
+  `BlockFinder` therefore work with lines (`LpexViewUtils.getLineText()`), the selection is converted to lines.

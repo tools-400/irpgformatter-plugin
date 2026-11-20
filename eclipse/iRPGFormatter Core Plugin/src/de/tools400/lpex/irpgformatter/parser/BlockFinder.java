@@ -339,7 +339,7 @@ public final class BlockFinder {
     }
 
     /**
-     * Reads all source lines from an LPEX view.
+     * Reads all source lines from an LPEX view, without the show elements.
      *
      * @param view the LPEX view
      * @return array of source lines (0-based)
@@ -348,7 +348,7 @@ public final class BlockFinder {
         List<String> lines = new ArrayList<>();
         int totalLines = LpexViewUtils.getNumLines(view);
         for (int i = 1; i <= totalLines; i++) {
-            lines.add(LpexViewUtils.getElementText(view, i));
+            lines.add(LpexViewUtils.getLineText(view, i));
         }
         return lines.toArray(new String[0]);
     }
