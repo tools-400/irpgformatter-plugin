@@ -26,15 +26,17 @@ import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
- * Writes formatted source lines back to an Eclipse IFile. The line separator of
- * the file is kept.
+ * Writes formatted source lines back to an Eclipse IFile. The line separator
+ * and the byte order mark of the file are kept.
  */
 public class RpgleStreamFileOutput implements IRpgleOutput {
 
     private final IFile file;
+    private final boolean byteOrderMark;
 
-    RpgleStreamFileOutput(IFile file) {
+    RpgleStreamFileOutput(IFile file, boolean byteOrderMark) {
         this.file = file;
+        this.byteOrderMark = byteOrderMark;
     }
 
     @Override
@@ -44,6 +46,9 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
 
             Charset charset = Charset.forName(file.getCharset());
             String content = FileUtils.joinLines(result.toLines(), getLineSeparator(charset));
+            if (byteOrderMark) {
+                content = AbstractStreamFileInput.BYTE_ORDER_MARK + content;
+            }
             InputStream stream = new ByteArrayInputStream(content.getBytes(charset));
             file.setContents(stream, true, true, null);
 

@@ -27,10 +27,12 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
 
     private final AS400 system;
     private final String path;
+    private final boolean byteOrderMark;
 
-    RpgleRemoteStreamFileOutput(AS400 system, String path) {
+    RpgleRemoteStreamFileOutput(AS400 system, String path, boolean byteOrderMark) {
         this.system = system;
         this.path = path;
+        this.byteOrderMark = byteOrderMark;
     }
 
     @Override
@@ -39,6 +41,10 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
         IFSFile file = new IFSFile(system, path);
 
         try (Writer writer = new IFSFileWriter(file, RpgleRemoteStreamFileInput.getCcsid(file))) {
+
+            if (byteOrderMark) {
+                writer.write(AbstractStreamFileInput.BYTE_ORDER_MARK);
+            }
 
             for (String line : result.toLines()) {
                 writer.write(line);

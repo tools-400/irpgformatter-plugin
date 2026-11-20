@@ -19,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,6 +94,54 @@ public class StreamFileInputTest extends AbstractTestCase {
         } catch (RpgleFormatterException e) {
             assertTrue(e.getMessage(), e.getMessage().contains(ExceptionUtils.getLocalizedMessage(e.getCause())));
         }
+    }
+
+    // --- character set and byte order mark of files outside the workspace ---
+
+    private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
+
+    /**
+     * A UTF-8 file is read as UTF-8, also if the fallback, e.g. the encoding of
+     * the workspace, is windows-1252, which lacks some of its characters.
+     */
+    @Test
+    public void getSourceLines_ofUtf8File_readsUtf8() throws Exception {
+
+        File file = createFile("**free\n// Á Í Ő 丁\n".getBytes(StandardCharsets.UTF_8));
+
+        IRpgleInput input = RpgleInputFactory.createFromJavaIoFile(file, WINDOWS_1252);
+
+        assertEquals("// Á Í Ő 丁", input.getSourceLines()[1]);
+    }
+
+    @Test
+    public void getSourceLines_ofNonUtf8File_readsFallback() throws Exception {
+
+        File file = createFile("**free\n// äöü\n".getBytes(WINDOWS_1252));
+
+        IRpgleInput input = RpgleInputFactory.createFromJavaIoFile(file, WINDOWS_1252);
+
+        assertEquals("// äöü", input.getSourceLines()[1]);
+    }
+
+    @Test
+    public void getFirstSourceLine_ofFileWithByteOrderMark_isFreeFormat() throws Exception {
+
+        File file = createFile("﻿**FREE\ndcl-s x char(10);\n".getBytes(StandardCharsets.UTF_8));
+
+        IRpgleInput input = RpgleInputFactory.createFromJavaIoFile(file, WINDOWS_1252);
+
+        assertEquals("**FREE", input.getFirstSourceLine());
+        assertTrue(input.isFreeFormat());
+        assertEquals("**FREE", input.getSourceLines()[0]);
+    }
+
+    private File createFile(byte[] content) throws Exception {
+
+        File file = folder.newFile("source.rpgle");
+        Files.write(file.toPath(), content);
+
+        return file;
     }
 
     private File createFile(String... lines) throws Exception {

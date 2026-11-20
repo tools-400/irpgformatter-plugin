@@ -27,16 +27,18 @@ import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
  * Writes formatted source lines back to a {@link java.io.File}. The line
- * separator of the file is kept.
+ * separator and the byte order mark of the file are kept.
  */
 public class RpgleJavaIoFileOutput implements IRpgleOutput {
 
     private final File file;
     private final Charset charset;
+    private final boolean byteOrderMark;
 
-    RpgleJavaIoFileOutput(File file, Charset charset) {
+    RpgleJavaIoFileOutput(File file, Charset charset, boolean byteOrderMark) {
         this.file = file;
         this.charset = charset;
+        this.byteOrderMark = byteOrderMark;
     }
 
     @Override
@@ -45,6 +47,9 @@ public class RpgleJavaIoFileOutput implements IRpgleOutput {
         try {
 
             String content = FileUtils.joinLines(result.toLines(), getLineSeparator());
+            if (byteOrderMark) {
+                content = AbstractStreamFileInput.BYTE_ORDER_MARK + content;
+            }
 
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, false), charset)) {
                 writer.write(content);

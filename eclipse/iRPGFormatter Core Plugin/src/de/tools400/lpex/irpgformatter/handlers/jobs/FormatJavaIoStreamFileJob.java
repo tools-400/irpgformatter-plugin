@@ -9,7 +9,9 @@
 package de.tools400.lpex.irpgformatter.handlers.jobs;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import de.tools400.lpex.irpgformatter.Messages;
@@ -48,6 +50,10 @@ public class FormatJavaIoStreamFileJob extends AbstractFormatJob<File> {
 
     @Override
     protected IRpgleInput createInput(File file, IProgressMonitor monitor) {
-        return RpgleInputFactory.createFromJavaIoFile(file);
+
+        // A file outside of the workspace has no character set of its own:
+        // a file, that is not UTF-8, is read with the encoding of the
+        // workspace, if it can read the file.
+        return RpgleInputFactory.createFromJavaIoFile(file, Charset.forName(ResourcesPlugin.getEncoding()));
     }
 }

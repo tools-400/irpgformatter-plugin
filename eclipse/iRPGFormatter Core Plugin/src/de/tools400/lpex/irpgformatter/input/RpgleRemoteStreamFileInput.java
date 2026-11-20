@@ -67,7 +67,7 @@ public class RpgleRemoteStreamFileInput extends AbstractStreamFileInput {
 
     @Override
     public IRpgleOutput getOutput() {
-        return new RpgleRemoteStreamFileOutput(system, path);
+        return new RpgleRemoteStreamFileOutput(system, path, hasByteOrderMark());
     }
 
     @Override

@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.input;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,13 +79,30 @@ public class RpgleInputFactory {
     /**
      * Creates an {@link IRpgleInput} from a local filesystem file (outside any
      * Eclipse workspace project), e.g. a file selected via an RSE Local Files
-     * filter.
+     * filter. The default character set of the JVM is the fallback, see
+     * {@link #createFromJavaIoFile(File, Charset)}.
      *
      * @param file the local filesystem file
      * @return an IRpgleInput for the local file
      */
     public static IRpgleInput createFromJavaIoFile(File file) {
-        return new RpgleJavaIoFileInput(file);
+        return createFromJavaIoFile(file, Charset.defaultCharset());
+    }
+
+    /**
+     * Creates an {@link IRpgleInput} from a local filesystem file (outside any
+     * Eclipse workspace project), e.g. a file selected via an RSE Local Files
+     * filter. The file is read and written as UTF-8, if it is UTF-8, otherwise
+     * with the fallback, if it can read the file, otherwise as ISO-8859-1, so
+     * that no byte is lost.
+     *
+     * @param file the local filesystem file
+     * @param fallbackCharset the character set of a file, that is not UTF-8,
+     *        e.g. the encoding of the workspace
+     * @return an IRpgleInput for the local file
+     */
+    public static IRpgleInput createFromJavaIoFile(File file, Charset fallbackCharset) {
+        return new RpgleJavaIoFileInput(file, fallbackCharset);
     }
 
     /**
