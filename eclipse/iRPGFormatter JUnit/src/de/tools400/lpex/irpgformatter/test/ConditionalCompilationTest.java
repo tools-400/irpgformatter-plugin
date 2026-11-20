@@ -731,6 +731,101 @@ public class ConditionalCompilationTest extends AbstractTestCase {
     }
 
     // ----------------------------------------------------------------------
+    // Directives and the end column
+    //
+    // A directive cannot be split. Like a comment, a directive, that the
+    // indent pushes behind the end column, stays unchanged and is reported,
+    // unless it was not shorter before.
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_directiveBehindEndColumn_isKeptAndReported() throws RpgleFormatterException {
+
+        formatter.getConfig().setUnindentCompilerDirectives(false);
+        formatter.setSourceLength(40);
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "if a = 1;",
+            "/include qrpglesrc,mymember01_long_name",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertArrayEquals(new String[] { "dcl-proc p;", "  if a = 1;", "/include qrpglesrc,mymember01_long_name", "  endif;", "end-proc;" }, result);
+        assertEquals(1, formatter.getErrorCount());
+        assertEquals(3, formatter.getErrors().get(0).getStartLineNumber());
+    }
+
+    @Test
+    public void format_directiveUpToEndColumn_isIndented() throws RpgleFormatterException {
+
+        formatter.getConfig().setUnindentCompilerDirectives(false);
+        formatter.setSourceLength(40);
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "if a = 1;",
+            "/include qrpglesrc,mymember01_long_n",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals("    /include qrpglesrc,mymember01_long_n", result[2]);
+        assertEquals(40, result[2].length());
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    @Test
+    public void format_directiveBehindEndColumnBefore_isIndentedIfNotLonger() throws RpgleFormatterException {
+
+        formatter.getConfig().setUnindentCompilerDirectives(false);
+        formatter.setSourceLength(40);
+
+        // @formatter:off
+        String[] result = format(
+            "DCL-PROC p;",
+            "if a = 1;",
+            "      /include qrpglesrc,mymember01_long_name",
+            "endif;",
+            "END-PROC;"
+        );
+        // @formatter:on
+
+        assertEquals("    /include qrpglesrc,mymember01_long_name", result[2]);
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    @Test
+    public void format_embeddedDirectiveBehindEndColumn_isKeptAndReported() throws RpgleFormatterException {
+
+        formatter.setSourceLength(40);
+
+        // @formatter:off
+        String[] source = new String[] {
+            "DCL-S fld",
+            "/IF DEFINED(SOME_LONG_CONDITION_NAME_XY)",
+            "  CHAR(10)",
+            "/ELSE",
+            "  CHAR(20)",
+            "/ENDIF",
+            "  ;"
+        };
+        // @formatter:on
+
+        String[] result = format(source);
+
+        assertArrayEquals(source, result);
+        assertEquals(1, formatter.getErrorCount());
+        assertEquals(1, formatter.getErrors().get(0).getStartLineNumber());
+        assertEquals(7, formatter.getErrors().get(0).getEndLineNumber());
+    }
+
+    // ----------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------
 

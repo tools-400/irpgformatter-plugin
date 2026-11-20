@@ -609,10 +609,25 @@ public class RpgleFormatter implements ILineNumberProvider {
      *         column and is longer than before
      */
     private String indentComment(String comment, int indent, int lineNumber) throws RpgleFormatterException {
+        return indentLine(comment.trim(), comment, indent, lineNumber);
+    }
 
-        String formatted = StringUtils.spaces(indent) + comment.trim();
-        if (formatted.length() > ensureEndColumn() && formatted.length() > comment.length()) {
-            throw new LineOverflowException(comment.trim(), lineNumber);
+    /**
+     * Returns the text of a line, that cannot be split, such as a comment or a
+     * compiler directive, with the indent.
+     *
+     * @param text - the text of the line without the indent
+     * @param originalLine - the line before formatting
+     * @param indent - the indent
+     * @param lineNumber - the line number for the error message
+     * @throws LineOverflowException if the indented text exceeds the end column
+     *         and is longer than the original line
+     */
+    private String indentLine(String text, String originalLine, int indent, int lineNumber) throws RpgleFormatterException {
+
+        String formatted = StringUtils.spaces(indent) + text;
+        if (formatted.length() > ensureEndColumn() && formatted.length() > originalLine.length()) {
+            throw new LineOverflowException(text, lineNumber);
         }
 
         return formatted;
@@ -630,8 +645,11 @@ public class RpgleFormatter implements ILineNumberProvider {
 
     /**
      * Formats a compiler directive.
+     *
+     * @throws LineOverflowException if the indented directive exceeds the end
+     *         column and is longer than before
      */
-    private List<String> formatCompilerDirective(CollectedStatement statement, int indent) {
+    private List<String> formatCompilerDirective(CollectedStatement statement, int indent) throws RpgleFormatterException {
 
         List<String> result = new ArrayList<>();
 
@@ -639,7 +657,7 @@ public class RpgleFormatter implements ILineNumberProvider {
         if (config.isUnindentCompilerDirectives()) {
             indent = 0;
         }
-        result.add(StringUtils.spaces(indent) + formatted);
+        result.add(indentLine(formatted, statement.getLine(0), indent, statement.getStartLineNumber()));
 
         return result;
     }
@@ -855,7 +873,7 @@ public class RpgleFormatter implements ILineNumberProvider {
                     groupDepth = Math.max(0, groupDepth - 1);
                 }
                 String formatted = formatterUtils.getFormattingRules().formatCompilerDirective(directive.trim());
-                results.add(StringUtils.spaces(indent + (groupDepth + 1) * indentStep) + formatted);
+                results.add(indentLine(formatted, directive, indent + (groupDepth + 1) * indentStep, statement.getStartLineNumber()));
                 if (directiveType == DirectiveType.IF || directiveType == DirectiveType.ELSEIF || directiveType == DirectiveType.ELSE) {
                     groupDepth++;
                 }
