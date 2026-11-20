@@ -553,9 +553,11 @@ public class Tokenizer implements RpgleSourceConstants {
     private boolean checkNameToken(String line) {
 
         // The first character of the name must be alphabetic. This includes the
-        // characters $, #, and @.
-        // @ is § on German boxes.
-        final String firstChars = "$#@§a-z";
+        // characters $, #, and @, which appear as different symbols on some
+        // code pages (ILE RPG Reference 7.3, page 73): the symbols of the bytes
+        // x'5B', x'7B' and x'7C' of the EBCDIC code pages, e.g. @ is § in CCSID
+        // 273 and # is Æ in CCSID 277.
+        final String firstChars = "$#@§£¥ÄÅÆÐÑÖØàİŞa-z";
 
         // The remaining characters must be alphabetic or numeric. This includes
         // the underscore (_).

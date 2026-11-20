@@ -43,6 +43,22 @@ public class TokenizerTest extends AbstractTestCase {
         assertEquals("name2", tokens[1].getValue());
     }
 
+    /**
+     * The characters $, # and @ appear as different symbols on some code pages
+     * (ILE RPG Reference 7.3, page 73), e.g. # as Æ in CCSID 277: the symbols
+     * of the bytes x'5B', x'7B' and x'7C' of the EBCDIC code pages.
+     */
+    @Test
+    public void test_name_nationalCharacters() throws RpgleFormatterException {
+
+        for (char ch : "$#@§£¥ÄÅÆÐÑÖØàİŞ".toCharArray()) {
+            String name = ch + "re" + ch;
+            IToken[] tokens = tokenizer.tokenize(" " + name + " ");
+            assertEquals(name, TokenType.NAME, tokens[0].getType());
+            assertEquals(name, name, tokens[0].getValue());
+        }
+    }
+
     @Test
     public void test_literal() throws RpgleFormatterException {
 
