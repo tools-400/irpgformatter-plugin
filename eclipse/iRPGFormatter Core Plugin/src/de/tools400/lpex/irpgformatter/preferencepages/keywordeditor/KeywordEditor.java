@@ -15,6 +15,8 @@ import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -268,7 +270,15 @@ public class KeywordEditor {
         // Enable tooltips
         ColumnViewerToolTipSupport.enableFor(viewer);
 
-        // Add sorting by key column
+        // Add sorting by key column: ascending like the entries, unless the
+        // user switched the direction of the key column to descending.
+        viewer.setComparator(new ViewerComparator() {
+            @Override
+            public int compare(Viewer comparedViewer, Object e1, Object e2) {
+                int result = ((KeywordEntry)e1).getKey().compareToIgnoreCase(((KeywordEntry)e2).getKey());
+                return table.getSortDirection() == SWT.DOWN ? -result : result;
+            }
+        });
         TableColumn keyCol = keyColumn.getColumn();
         keyCol.addSelectionListener(new SelectionAdapter() {
             @Override
