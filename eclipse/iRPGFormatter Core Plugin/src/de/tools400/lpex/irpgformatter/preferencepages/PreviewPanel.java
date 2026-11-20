@@ -229,10 +229,15 @@ public class PreviewPanel implements IPropertyChangeListener {
     }
 
     /**
-     * Sets the custom preview source (e.g. from an imported profile).
+     * Sets the custom preview source (e.g. from an imported profile). In edit
+     * mode the document shows the custom source, too, because leaving edit mode
+     * and OK take the source from the document.
      */
     public void setCustomSource(String source) {
         rawCustomSource = source;
+        if (isEditMode && isCustomContent && previewViewer != null) {
+            previewViewer.getDocument().set(source);
+        }
     }
 
     /**
