@@ -22,6 +22,7 @@ import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.utils.DateUtils;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * {@link IRpgleOutput} implementation for IBM i source members via
@@ -80,7 +81,8 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
             localFile.setContents(stream, true, false, monitor);
 
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, editableMember.getMember().getAbsoluteName()), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A_B, editableMember.getMember().getAbsoluteName(),
+                ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 

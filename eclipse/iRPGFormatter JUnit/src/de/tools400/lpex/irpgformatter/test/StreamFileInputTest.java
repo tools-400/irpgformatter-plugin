@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.IRpgleInput;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * Checks the reading of the stream file inputs with the input of the local file
@@ -73,6 +74,23 @@ public class StreamFileInputTest extends AbstractTestCase {
             fail("RpgleFormatterException expected");
         } catch (RpgleFormatterException e) {
             assertTrue(e.getMessage(), e.getMessage().contains("missing.rpgle"));
+        }
+    }
+
+    /**
+     * The message tells the reason, e.g. a missing authority, because a batch
+     * job shows only the message.
+     */
+    @Test
+    public void getSourceLines_ofMissingFileTellsTheReason() {
+
+        IRpgleInput input = RpgleInputFactory.createFromJavaIoFile(new File(folder.getRoot(), "missing.rpgle"));
+
+        try {
+            input.getSourceLines();
+            fail("RpgleFormatterException expected");
+        } catch (RpgleFormatterException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains(ExceptionUtils.getLocalizedMessage(e.getCause())));
         }
     }
 

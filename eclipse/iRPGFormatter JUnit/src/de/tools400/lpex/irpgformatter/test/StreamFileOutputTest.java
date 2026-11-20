@@ -9,6 +9,8 @@
 package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -20,7 +22,9 @@ import org.junit.rules.TemporaryFolder;
 
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.FormattedStatement;
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.RpgleInputFactory;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * Checks that the output of the local file system keeps the line separator of
@@ -46,6 +50,25 @@ public class StreamFileOutputTest extends AbstractTestCase {
     @Test
     public void writeSourceLines_endsLastLine() throws Exception {
         assertEquals("**free\ndcl-s f int(10);\nreturn;\n", writeLines("**free\ndcl-s f int(10);\nreturn;"));
+    }
+
+    /**
+     * The message tells the reason, e.g. a locked file, because a batch job
+     * shows only the message.
+     */
+    @Test
+    public void writeSourceLines_intoFolderTellsTheReason() throws Exception {
+
+        File notAFile = folder.newFolder("source.rpgle");
+        FormattedResult result = new FormattedResult(new FormattedStatement[] { new FormattedStatement(1, LINES.length, LINES) });
+
+        try {
+            RpgleInputFactory.createFromJavaIoFile(notAFile).getOutput().writeSourceLines(result);
+            fail("RpgleFormatterException expected");
+        } catch (RpgleFormatterException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("source.rpgle"));
+            assertTrue(e.getMessage(), e.getMessage().contains(ExceptionUtils.getLocalizedMessage(e.getCause())));
+        }
     }
 
     /**

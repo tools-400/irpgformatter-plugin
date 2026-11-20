@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.FileUtils;
 
 /**
@@ -52,7 +53,8 @@ public class RpgleJavaIoFileOutput implements IRpgleOutput {
             return true;
 
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, file.getName()), e);
+            throw new RpgleFormatterException(
+                Messages.bind(Messages.Error_Failed_writing_file_A_B, file.getName(), ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 

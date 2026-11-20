@@ -15,6 +15,7 @@ import java.util.List;
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * Base class of the inputs of stream files: files of the workspace, of the
@@ -33,7 +34,8 @@ public abstract class AbstractStreamFileInput extends AbstractRpgleInput impleme
         try (BufferedReader reader = new BufferedReader(openReader())) {
             return reader.readLine();
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, getName()), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A_B, getName(), ExceptionUtils.getLocalizedMessage(e)),
+                e);
         }
     }
 
@@ -48,7 +50,8 @@ public abstract class AbstractStreamFileInput extends AbstractRpgleInput impleme
                 lines.add(line);
             }
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, getName()), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A_B, getName(), ExceptionUtils.getLocalizedMessage(e)),
+                e);
         }
 
         return lines.toArray(new String[0]);

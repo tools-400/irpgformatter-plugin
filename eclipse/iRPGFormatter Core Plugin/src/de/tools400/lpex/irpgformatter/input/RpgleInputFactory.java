@@ -22,6 +22,7 @@ import com.ibm.lpex.core.LpexView;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.parser.BlockFinder;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
 /**
@@ -116,7 +117,8 @@ public class RpgleInputFactory {
             QSYSEditableRemoteSourceFileMember editableMember = new QSYSEditableRemoteSourceFileMember(qsysMember);
             return new RpgleEditableMemberInput(editableMember, monitor);
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, library + "/" + file + "(" + member + ")"), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A_B, library + "/" + file + "(" + member + ")",
+                ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 }

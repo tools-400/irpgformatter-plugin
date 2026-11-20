@@ -158,8 +158,8 @@ public class Messages extends NLS {
     public static String Message_No_formatting_applied;
 
     public static String Error_Format_failed_A;
-    public static String Error_Failed_reading_file_A;
-    public static String Error_Failed_writing_file_A;
+    public static String Error_Failed_reading_file_A_B;
+    public static String Error_Failed_writing_file_A_B;
     public static String Error_Unexpected_error_A;
     public static String Error_Unsupported_source_type_A;
     public static String Error_Not_free_format;

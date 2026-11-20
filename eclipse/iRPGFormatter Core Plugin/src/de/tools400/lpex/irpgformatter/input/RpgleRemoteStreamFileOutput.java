@@ -17,6 +17,7 @@ import com.ibm.as400.access.IFSFileWriter;
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.FormattedResult;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 
 /**
  * Writes formatted source lines back to a remote IFS stream file via JT400, in
@@ -47,7 +48,7 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
             return true;
 
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A, path), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);
         }
     }
 }

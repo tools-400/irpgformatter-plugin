@@ -20,6 +20,7 @@ import com.ibm.etools.iseries.rse.ui.resources.QSYSEditableRemoteSourceFileMembe
 
 import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.StringUtils;
 
 /**
@@ -74,7 +75,8 @@ public class RpgleEditableMemberInput extends AbstractRpgleInput implements IRpg
         } catch (RpgleFormatterException e) {
             throw e;
         } catch (Exception e) {
-            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A, getName()), e);
+            throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_reading_file_A_B, getName(), ExceptionUtils.getLocalizedMessage(e)),
+                e);
         }
     }
 
