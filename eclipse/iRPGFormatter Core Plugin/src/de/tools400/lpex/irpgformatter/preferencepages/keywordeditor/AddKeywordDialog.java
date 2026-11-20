@@ -217,6 +217,8 @@ public class AddKeywordDialog extends TitleAreaDialog {
             errorMessage = Messages.Error_Value_is_required;
         } else if (kind.getRequiredPrefix() != null && !currentKey.startsWith(kind.getRequiredPrefix())) {
             errorMessage = kind.getPrefixErrorMessage();
+        } else if (!KeywordEntry.isValidValue(currentKey, currentValue)) {
+            errorMessage = Messages.Error_The_value_may_differ_from_the_key_only_in_casing;
         }
 
         setErrorMessage(errorMessage);

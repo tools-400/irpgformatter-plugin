@@ -93,6 +93,24 @@ public class FormatKeywordRuleTest {
         assertEquals("myIdentifier", rule.format("myIdentifier"));
     }
 
+    /**
+     * A value of the word list, that is not the word in another casing, such as
+     * a typing error, is ignored like a word, that is not in the list.
+     */
+    @Test
+    public void valueWithTypingError_passThrough() {
+        keywords.put("INZ", "Imz");
+        FormatKeywordRule rule = new FormatKeywordRule(keywords, KeywordCasingStyle.UPPER_CAMEL);
+        assertEquals("inz", rule.format("inz"));
+    }
+
+    @Test
+    public void emptyValue_passThrough() {
+        keywords.put("INZ", "");
+        FormatKeywordRule rule = new FormatKeywordRule(keywords, KeywordCasingStyle.UPPER_CAMEL);
+        assertEquals("inz", rule.format("inz"));
+    }
+
     @Test
     public void allStyles_opdesc() {
         assertEquals("OPDESC", new FormatKeywordRule(keywords, KeywordCasingStyle.UPPERCASE).format("opdesc"));

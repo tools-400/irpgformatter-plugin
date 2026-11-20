@@ -51,12 +51,16 @@ public class KeywordEditingSupport extends EditingSupport {
         return "";
     }
 
+    /**
+     * Sets the value, if it is the key in another casing. Otherwise the entry
+     * keeps its value, see {@link KeywordEntry#isValidValue(String, String)}.
+     */
     @Override
     protected void setValue(Object element, Object value) {
         if (element instanceof KeywordEntry && value instanceof String) {
-            String newValue = (String)value;
+            String newValue = ((String)value).trim();
             KeywordEntry entry = (KeywordEntry)element;
-            if (!newValue.equals(entry.getValue())) {
+            if (KeywordEntry.isValidValue(entry.getKey(), newValue) && !newValue.equals(entry.getValue())) {
                 entry.setValue(newValue);
                 viewer.update(element, null);
             }

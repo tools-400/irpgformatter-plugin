@@ -9,6 +9,8 @@
 package de.tools400.lpex.irpgformatter.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -48,5 +50,30 @@ public class KeywordEntryTest {
         KeywordEntry entry = new KeywordEntry("OPDESC", "OpDesc");
         entry.setValue("OPDESC");
         assertEquals("OPDESC=OPDESC", entry.toString());
+    }
+
+    // --- isValidValue: the value is the key in another casing ---
+
+    @Test
+    public void isValidValue_otherCasing_isValid() {
+        assertTrue(KeywordEntry.isValidValue("EXTPROC", "ExtProc"));
+        assertTrue(KeywordEntry.isValidValue("*NOPASS", "*noPass"));
+        assertTrue(KeywordEntry.isValidValue("DCL-DS", "dcl-ds"));
+    }
+
+    @Test
+    public void isValidValue_typingError_isInvalid() {
+        assertFalse(KeywordEntry.isValidValue("INZ", "Imz"));
+    }
+
+    @Test
+    public void isValidValue_empty_isInvalid() {
+        assertFalse(KeywordEntry.isValidValue("INZ", ""));
+        assertFalse(KeywordEntry.isValidValue("INZ", null));
+    }
+
+    @Test
+    public void isValidValue_withBlanks_isInvalid() {
+        assertFalse(KeywordEntry.isValidValue("INZ", " Inz"));
     }
 }

@@ -59,4 +59,18 @@ public class KeywordEntry {
     public String toString() {
         return key + "=" + value;
     }
+
+    /**
+     * Returns <code>true</code>, if the value is the key in another casing, as
+     * the formatter requires it: the value only defines the casing of the word,
+     * see
+     * {@link de.tools400.lpex.irpgformatter.rules.casing.AbstractLookupCasingRule}.
+     *
+     * @param key - the key
+     * @param value - the value or <code>null</code>
+     * @return <code>true</code> for a valid value
+     */
+    public static boolean isValidValue(String key, String value) {
+        return value != null && value.equalsIgnoreCase(key);
+    }
 }

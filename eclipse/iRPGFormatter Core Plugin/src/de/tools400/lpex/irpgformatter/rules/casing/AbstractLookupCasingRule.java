@@ -38,13 +38,15 @@ public abstract class AbstractLookupCasingRule extends AbstractCasingRule implem
 
     /**
      * Returns the canonical spelling of the word in the keyword casing style or
-     * the word unchanged, if it is not in the table.
+     * the word unchanged, if it is not in the table. A canonical spelling, that
+     * is not the word in another casing, such as a typing error in the word
+     * list, is ignored, so that the word is not changed.
      */
     @Override
     public final String format(String value) {
 
         String canonical = formattingMap.get(value.toUpperCase());
-        if (canonical == null) {
+        if (canonical == null || !canonical.equalsIgnoreCase(value)) {
             return value;
         }
 

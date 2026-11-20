@@ -16,7 +16,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import de.tools400.lpex.irpgformatter.formatter.FormatError;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
 import de.tools400.lpex.irpgformatter.input.TextLinesInput;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 
 /**
@@ -1698,6 +1701,29 @@ public class RpgleFormatterTest extends AbstractTestCase {
         assertEquals("  char(10);", result[3]);
         assertEquals("end-pr;", result[4]);
         assertEquals("// @formatter:on", result[5]);
+    }
+
+    // --- format - word lists with invalid values ---
+
+    /**
+     * A value of the word list, that is not the keyword in another casing, e.g.
+     * a typing error or an empty value, must not change the keyword.
+     */
+    @Test
+    public void format_keywordWithInvalidValueInWordList_isKept() throws RpgleFormatterException {
+
+        for (String invalidValue : new String[] { "Imz", "" }) {
+            FormatterConfig config = FormatterConfig.fromPreferences();
+            Map<String, String> keywords = new HashMap<>(config.getKeywords());
+            keywords.put("INZ", invalidValue);
+            config.setKeywords(keywords);
+            RpgleFormatter formatter = new RpgleFormatter(config);
+            formatter.setSourceLength(MAX_LINE_LENGTH);
+
+            String[] result = formatter.format(new TextLinesInput("dcl-s   x   char(10)   inz('a');"), 0).toLines();
+
+            assertArrayEquals(invalidValue, new String[] { "dcl-s x char(10) inz('a');" }, result);
+        }
     }
 
     // --- format - end-proc name removal ---

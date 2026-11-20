@@ -166,6 +166,7 @@ public class Messages extends NLS {
     public static String Error_Could_not_format_member;
     public static String Error_Key_is_required;
     public static String Error_Value_is_required;
+    public static String Error_The_value_may_differ_from_the_key_only_in_casing;
     public static String Error_Keyword_parameters_must_start_with_A;
     public static String Error_Built_in_functions_must_start_with_A;
     public static String Error_An_operation_code_with_key_A_already_exists;
