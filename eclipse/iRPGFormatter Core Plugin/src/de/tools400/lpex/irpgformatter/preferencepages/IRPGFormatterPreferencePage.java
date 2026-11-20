@@ -293,9 +293,17 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private void openWorkspaceSettings() {
 
         int result = PreferencesUtil.createPreferenceDialogOn(getShell(), ID, new String[] { ID }, null).open();
+        if (result != Window.OK || projectSpecificSettingsCheckbox.isDisposed()) {
+            return;
+        }
+
+        // The preview belongs to the workspace: take over its state, that the
+        // dialog may have changed, so that OK does not write back the former
+        // state.
+        loadPreviewSources();
 
         // The page shows the settings of the workspace, that may have changed.
-        if (result == Window.OK && !projectSpecificSettingsCheckbox.isDisposed() && !projectSpecificSettingsCheckbox.getSelection()) {
+        if (!projectSpecificSettingsCheckbox.getSelection()) {
             loadSettings(Preferences.getInstance());
             refreshPreview();
         }
@@ -968,7 +976,15 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             loadSettings(preferences);
         }
 
-        // The preview belongs to the workspace.
+        loadPreviewSources();
+    }
+
+    /**
+     * Loads the sources and the state of the preview. The preview belongs to
+     * the workspace.
+     */
+    private void loadPreviewSources() {
+
         Preferences workspacePreferences = Preferences.getInstance();
         previewPanel.loadSources(workspacePreferences.getDefaultPluginFormatterSource(), workspacePreferences.getCustomFormatterSource(),
             workspacePreferences.isCustomPreviewContent(), workspacePreferences.getFormatterPreviewVerticalRulerColumn());
