@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!--
+     ==========================================================================
+       Tool 'format_rpg' of the MCP server of iAgentBridge
+     ==========================================================================
+   -->
+
+   <extension point="de.tools400.iagentbridge.core.plugin.tools">
+      <tool
+            id="de.tools400.lpex.irpgformatter.iagentbridge.formatRpg"
+            class="de.tools400.lpex.irpgformatter.iagentbridge.FormatRpgTool">
+      </tool>
+   </extension>
+
+</plugin>

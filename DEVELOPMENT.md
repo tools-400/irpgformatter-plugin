@@ -9,13 +9,20 @@ How the plug-in works and how it is built. For its use, see [USAGE.md](USAGE.md)
   * `iRPGFormatter Core Plugin` with `iRPGFormatter Core Feature` is the product.
   * `Lpex Menu Extension Plugin` adds menu entries and actions to the LPEX editors. The core plug-in requires it
     (`de.tools400.lpex.menuextension.plugin`, `[1.1.0,2.0.0)`).
+  * `iRPGFormatter iAgentBridge Plugin` with `iRPGFormatter iAgentBridge Feature` is the optional feature, that adds the
+    tool `format_rpg` to the MCP server of iAgentBridge, see [iAgentBridge](#iagentbridge). It requires the plug-in
+    `de.tools400.iagentbridge.core.plugin` (`[1.0.0.b002,2.0.0)`), whose projects (repository `iagentbridge-plugin`)
+    must be in the workspace, too. Both projects are in `build.projects` of `build.properties` and in `site.xml`.
   * `iRPGFormatter Update Site` builds the update site.
   * `iRPGFormatter JUnit` and `Lpex Menu Extension JUnit` are plain Java projects with the unit tests, see [Tests](#tests).
+    `iRPGFormatter iAgentBridge JUnit` is a fragment of `iRPGFormatter iAgentBridge Plugin`.
 * Java 8 byte code, so that the plug-in runs in RDi 9.6.0.13 and later.
 * Launch configurations for German, English, Italian and Dutch: one project per RDi version,
   `eclipse/iRPGFormatter Launches (RDi 9.6)`, `(RDi 9.8)` and `(RDi 9.9)`, because the selected bundles depend on the
   version. Import only the project of the running RDi version, then *Run Configurations* does not show the
-  configurations of the other versions.
+  configurations of the other versions. They contain iAgentBridge and `iRPGFormatter iAgentBridge Plugin` and set
+  `-Diagentbridge.port=39196`, `39198` or `39199`, so that the server of a test instance does not take the port of the
+  RDi it was started from.
 * Release: `build/iRPGFormatter Build/build/build.xml` (the same script as the other tools-400 plug-ins, settings in
   `build.properties`). The home page is `build/iRPGFormatter Homepage`.
 * Tags: pushing a commit to `main`, that sets a release version (`x.y.z.r`) in `build.version`, tags this commit with
@@ -30,6 +37,7 @@ All classes are below `de.tools400.lpex.irpgformatter` in `iRPGFormatter Core Pl
 | -------------------------- | ------------------------------------------------------------------------------------------------------ |
 | (root)                     | `IRpgleFormatterPlugin` (activator, logging), `Messages`, `Preload` (LPEX menu entry and format on save) |
 | `actions`                  | `FormatLpexSourceAction` (action `iRPGFormatter.Format`, **Source > iFormat**), `FormatOnSaveListener` |
+| `api`                      | Exported API for other plug-ins: `FileFormatter` formats a file like **Source > iFormat**, see [iAgentBridge](#iagentbridge) |
 | `handlers`, `handlers/jobs`, `handlers/resolvers` | **Source > iFormat** in the Remote Systems view and in the Project Explorer: the resolvers expand the selection to sources, a job formats them in the background |
 | `input`                    | Reading and writing a source: LPEX view (whole or selected lines), source member, stream file, local file |
 | `parser`                   | `StatementType`, `StatementIdentifier`, `DirectiveType`, `BlockFinder` (expands a selection to whole blocks) |
@@ -139,6 +147,29 @@ LPEX has no general pre-save hook in RDi 9.8: `LpexAbstractTextEditor.performSav
 
 RDi's `QSYSEditableRemoteSourceFileMember.download()` ends the monitor, that it gets. `AbstractFormatJob` therefore gives
 each source a `SubMonitor` of its own.
+
+### iAgentBridge
+
+The package `de.tools400.lpex.irpgformatter.api` is the only exported package of the core plug-in:
+
+* `FileFormatter.formatWorkspaceFile(IFile)` runs `FormatStreamFileJob`, `formatLocalFile(File)` runs
+  `FormatJavaIoStreamFileJob`, each with one file: the job is scheduled and joined, so the methods block and must not be
+  called in the UI thread. The counts of `IFormatPostRun.postRun()` tell, whether the file was formatted; the problems
+  are read from `FormatterProblems` with the key of the `IProblemSource` of the job. `changed` compares the bytes of the
+  file before and after the job. Like the menu, the job replaces the problems in the view and the markers; unlike the
+  handlers, `FileFormatter` shows no dialog and does not activate the view.
+* `FileFormatter.isLocalCopyOfRemoteFile(IFile)` is `SourcePreferences.isLocalCopyOfRemoteFile()`.
+* `FileFormatResult` (status `FORMATTED`, `SKIPPED`, `FAILED`, `CANCELED`, `changed`, project settings, problems) and
+  `FileFormatProblem` (severity, line, message) have no Eclipse types; `FileFormatResult.create()` derives the status
+  from the counts of the job: a file, that was not formatted and has only information messages, is skipped.
+* The two methods have different names, because a test, that calls an overloaded method, of which one variant takes an
+  Eclipse type, does not compile in the JUnit project in RDi.
+
+`iRPGFormatter iAgentBridge Plugin` contributes `FormatRpgTool` to the extension point
+`de.tools400.iagentbridge.core.plugin.tools` (see `EXTENDING.md` of iAgentBridge). The tool maps each path to a file of
+an open project (`IWorkspaceRoot.findFilesForLocationURI()`) or else to a local file, refuses local copies of Remote
+Systems and files of editors with unsaved changes (checked in the UI thread), refreshes the workspace file and calls
+`FileFormatter`. `FormatRpgReport` builds the JSON of the result without Eclipse types.
 
 ## Rules
 
@@ -258,10 +289,18 @@ correspond to the ILE RPG Reference for IBM i 7.6 as of 2026-10-28.
   because `AcsSqlFormatter` falls back (`LinkageError`).
 * With the bundles of RDi 9.6, run the tests with its Java 8 (`C:\IBM\RDi_096\jdk`). It does not read `@argfiles`, so put
   the classpath into the `Class-Path` of a jar, that contains only a manifest.
+* `FileFormatResultTest` tests the status of `FileFormatResult`. `iRPGFormatter iAgentBridge JUnit` (a fragment, run
+  with *Run As > JUnit Test*) tests the JSON of `format_rpg` in `FormatRpgReportTest`; outside of RDi it needs Gson and
+  the classes of `iAgentBridge Core Plugin` on the classpath.
 * Code coverage: see `eclipse/iRPGFormatter JUnit/CODE_COVERAGE.md`.
 
 ## Verified facts
 
+* RDi 9.6, 2026-11-20: `format_rpg` writes the same bytes as **Source > iFormat**: 32 sources of Peek/400 and XMLGEN in a
+  project with project specific settings (menu in the Project Explorer) and 32 local files outside of the workspace
+  (menu in the Remote Systems view), with the same status and problems. LPEX shows a workspace file, that the tool
+  formatted while it was open without unsaved changes, formatted at once; for a file outside of the workspace, opened
+  with **File > Open File...**, RDi asks, when the editor is activated, whether to replace its content.
 * RDi 9.6, 2026-11-17: the LPEX editor shows the markers of a file in its ruler and goes to them only, if they are created
   or changed, while it is open. A double-click on the marker of the local copy of a member in the Problems view opens the
   member for editing; saving uploads it.

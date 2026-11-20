@@ -112,8 +112,11 @@ public final class SourcePreferences {
     /**
      * Returns <code>true</code>, if the file is the local copy of a remote
      * file, the same test as {@link EditorSources} uses.
+     *
+     * @param file - a file of the workspace
+     * @return <code>true</code> for a local copy of a remote file
      */
-    private static boolean isLocalCopyOfRemoteFile(IFile file) {
+    public static boolean isLocalCopyOfRemoteFile(IFile file) {
 
         SystemIFileProperties properties = new SystemIFileProperties(file);
 

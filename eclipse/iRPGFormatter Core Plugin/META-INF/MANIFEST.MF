@@ -36,3 +36,4 @@ Bundle-ClassPath: lib/,
  .,
  icons/,
  resources/
+Export-Package: de.tools400.lpex.irpgformatter.api

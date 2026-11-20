@@ -51,6 +51,62 @@ unchanged. If there are errors or warnings, the view **iRPGFormatter Problems** 
 selected; the editor keeps the focus. If a declaration block is not closed, the source is not formatted, and the message
 line of the editor shows the number of errors and the line of the first one.
 
+### Formatting by AI Agents (iAgentBridge)
+
+The optional feature **iRPGFormatter iAgentBridge** lets AI agents like Claude Code format sources with iRPGFormatter. It
+adds the tool `format_rpg` to the MCP server of the plug-in iAgentBridge, which runs in RDi. Install iAgentBridge, connect
+the agent to its server as described in its usage, then install the feature and restart RDi. In Claude Code the tool is
+called e.g. `mcp__rdi096__format_rpg`.
+
+`format_rpg` formats files and saves them like **Source > iFormat**, with the same job and the same settings: a file of
+the workspace like the menu in the **Project Explorer**, a file outside of the workspace like the menu on a local file in
+the **Remote Systems** view.
+
+- A file of an open project of the workspace is formatted with the settings of its project, if the project has
+  [project specific settings](#project-specific-settings), otherwise with the settings of the workspace. The file is read
+  from disk first, so changes of the agent are taken into account.
+- A file outside of the workspace is formatted with the settings of the workspace.
+- A file, whose lines stay the same, is not written.
+
+Argument:
+
+| Name    | Content                                                                                                              |
+| ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `files` | absolute paths of the files, e.g. `C:/workspaces/project/qrpglesrc/pgm.rpgle` or `/c/workspaces/project/qrpglesrc/pgm.rpgle` (Git Bash) |
+
+The result is JSON with the location of the workspace (`workspace`) and one entry per file (`results`):
+
+| Field      | Content                                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `file`     | the path, that the agent passed                                                                                 |
+| `project`  | the project of the file; missing for a file outside of the workspace                                            |
+| `settings` | `project` or `workspace`: the settings, that were used                                                          |
+| `status`   | `formatted`, `skipped` (e.g. not in `**FREE` format), `failed` (e.g. a declaration block is not closed) or `canceled` |
+| `changed`  | `true`, if the content of the file changed                                                                      |
+| `problems` | the problems of the file, each with `severity` (`ERROR`, `WARNING`, `INFORMATION`), `line` and `message`, see [Problems](#problems); a problem without line has no `line` |
+| `error`    | the reason, why the file was not formatted at all; the entry has no other fields then                           |
+
+The tool does not format a file and returns an `error` in these cases:
+
+| Message                                                                     | Reason                                                     |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `File not found.`                                                           | the path does not exist                                    |
+| `The file is the local copy of a source member or of a stream file of the IFS, ...` | the file is in `RemoteSystemsTempFiles`; formatting it would not change the remote source |
+| `The file has unsaved changes in an RDi editor.`                            | save or discard the changes in RDi first                   |
+
+The result is a tool error, if a file has an `error` or the status `failed` or `canceled`. A skipped file is no error.
+
+The problems also replace the problems of the file in the view **iRPGFormatter Problems** and its markers, like
+**Source > iFormat**. Unlike the menu, the tool shows no dialog and does not activate the view. If the formatting is
+canceled in the view **Progress**, the following files of the call are not formatted and have the status `canceled`.
+
+An editor, that shows a formatted file without unsaved changes, shows the formatted file at once, if the file belongs to
+the workspace. For a file outside of the workspace, e.g. opened with **File > Open File...**, RDi asks, when the editor
+is activated, whether to replace its content with the changed file; answer **Yes**.
+
+Only stream files with the extension RPGLE or SQLRPGLE in `**FREE` format are formatted; other files are skipped with an
+information message. Source members and stream files in the IFS of the IBM i cannot be formatted with the tool.
+
 ## Preferences
 
 Open **Window > Preferences > iRPGFormatter**. This page leads to the preference page of iRPGFormatter at

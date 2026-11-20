@@ -64,7 +64,7 @@
     <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JRE 1.8.0 IBM J9"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl it -consoleLog -eclipse.keyring @user.home/.eclipse/org.eclipse.equinox.security/secure_storage_rdi096"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dorg.eclipse.swt.graphics.Resource.reportNonDisposed=true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dorg.eclipse.swt.graphics.Resource.reportNonDisposed=true -Diagentbridge.port=39196"/>
     <booleanAttribute key="pde.generated.config" value="false"/>
     <stringAttribute key="pde.version" value="3.3"/>
     <stringAttribute key="product" value="com.ibm.rational.developer.ibmi.product.ide"/>
@@ -2639,14 +2639,18 @@
         <setEntry value="biz.isphere.tn5250j.base@default:default"/>
         <setEntry value="biz.isphere.tn5250j.core@default:default"/>
         <setEntry value="biz.isphere.tn5250j.rse@default:default"/>
+        <setEntry value="de.tools400.iagentbridge.core.plugin@default:default"/>
+        <setEntry value="de.tools400.iagentbridge.junit@default:false"/>
         <setEntry value="de.tools400.ifsprojects.core.plugin@default:default"/>
         <setEntry value="de.tools400.ifsprojects.junit@default:false"/>
         <setEntry value="de.tools400.java.scoped.variables.core@default:default"/>
         <setEntry value="de.tools400.lpex.irpgformatter.core.plugin@default:default"/>
+        <setEntry value="de.tools400.lpex.irpgformatter.iagentbridge.junit@default:false"/>
+        <setEntry value="de.tools400.lpex.irpgformatter.iagentbridge.plugin@default:default"/>
         <setEntry value="de.tools400.lpex.menuextension.plugin@default:default"/>
         <setEntry value="org.eclipse.albireo.core@default:default"/>
     </setAttribute>
-    <stringAttribute key="selected_workspace_plugins" value="biz.isphere.adapter@default:default,biz.isphere.base@default:default,biz.isphere.common.libraries@default:default,biz.isphere.core@default:default,biz.isphere.ide@default:default,biz.isphere.rse@default:default,biz.isphere.standalone@default:default,biz.isphere.tn5250j.base@default:default,biz.isphere.tn5250j.core@default:default,biz.isphere.tn5250j.rse@default:default,de.tools400.ifsprojects.core.plugin@default:default,de.tools400.ifsprojects.junit@default:false,de.tools400.java.scoped.variables.core@default:default,de.tools400.lpex.irpgformatter.core.plugin@default:default,de.tools400.lpex.menuextension.plugin@default:default,org.eclipse.albireo.core@default:default"/>
+    <stringAttribute key="selected_workspace_plugins" value="biz.isphere.adapter@default:default,biz.isphere.base@default:default,biz.isphere.common.libraries@default:default,biz.isphere.core@default:default,biz.isphere.ide@default:default,biz.isphere.rse@default:default,biz.isphere.standalone@default:default,biz.isphere.tn5250j.base@default:default,biz.isphere.tn5250j.core@default:default,biz.isphere.tn5250j.rse@default:default,de.tools400.iagentbridge.core.plugin@default:default,de.tools400.iagentbridge.junit@default:false,de.tools400.ifsprojects.core.plugin@default:default,de.tools400.ifsprojects.junit@default:false,de.tools400.java.scoped.variables.core@default:default,de.tools400.lpex.irpgformatter.core.plugin@default:default,de.tools400.lpex.irpgformatter.iagentbridge.junit@default:false,de.tools400.lpex.irpgformatter.iagentbridge.plugin@default:default,de.tools400.lpex.menuextension.plugin@default:default,org.eclipse.albireo.core@default:default"/>
     <booleanAttribute key="show_selected_only" value="false"/>
     <booleanAttribute key="tracing" value="false"/>
     <booleanAttribute key="useCustomFeatures" value="false"/>

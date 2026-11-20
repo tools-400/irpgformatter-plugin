@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.tools400.lpex.irpgformatter.iagentbridge.feature"
+      label="iRPGFormatter iAgentBridge"
+      version="2.1.0.r"
+      provider-name="Tools/400">
+
+   <description url="https://tools-400.github.io/irpgformatter/">
+      Lets AI agents like Claude Code format RPGLE sources with iRPGFormatter: adds the tool &quot;format_rpg&quot; to the MCP server of iAgentBridge. Requires iAgentBridge.
+   </description>
+
+   <copyright url="https://tools-400.github.io/irpgformatter/">
+      Copyright (c) 2026 Tools/400. All rights reserved.
+   </copyright>
+
+   <license url="http://www.eclipse.org/legal/cpl-v10.html">
+      This program and the accompanying materials are made available
+under the terms of the Common Public License v1.0 which accompanies
+this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html.
+   </license>
+
+   <url>
+      <update label="iRPGFormatter - Remote Update Site" url="https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/"/>
+   </url>
+
+   <requires>
+      <import feature="de.tools400.lpex.irpgformatter.core.feature" version="2.1.0.r" match="perfect"/>
+      <import plugin="de.tools400.iagentbridge.core.plugin" version="1.0.0.b002" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="de.tools400.lpex.irpgformatter.iagentbridge.plugin"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

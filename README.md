@@ -18,6 +18,8 @@ Further information is available on the [iRPGFormatter web site](https://tools-4
 - Optionally formats a source on save.
 - Project specific settings, e.g. for the sources of a Git repository, that the team formats the same way.
 - Lists the problems in the view *iRPGFormatter Problems* and in the ruler of the editor.
+- Lets AI agents like Claude Code format sources with the settings of RDi: the optional feature *iRPGFormatter
+  iAgentBridge* adds the tool `format_rpg` to the MCP server of the plug-in iAgentBridge.
 
 ## Installation
 
@@ -26,6 +28,9 @@ iRPGFormatter requires RDi 9.6.0.13 or later.
 1. Select **Help > Install New Software...** in RDi.
 2. Enter the update site `https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/` and select **iRPGFormatter**.
 3. Finish the wizard and restart RDi.
+
+The optional feature **iRPGFormatter iAgentBridge** requires the plug-in iAgentBridge. Install iAgentBridge first or
+together with it.
 
 iRPGFormatter is available on the [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/), too.
 
