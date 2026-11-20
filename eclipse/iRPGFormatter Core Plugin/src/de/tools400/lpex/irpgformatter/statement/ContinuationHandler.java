@@ -69,6 +69,13 @@ public final class ContinuationHandler {
      * ignored by the compiler. They are collected as single-line statements and
      * marked with {@link CollectedStatement#isAfterEof()}.
      * </p>
+     * <p>
+     * The lines following the first compile time array are data, also if they
+     * look like a statement or a compiler directive, because the directives
+     * must precede the compile time data (ILE RPG Reference 7.3, page 80). They
+     * are collected as single-line statements, that do not change the block
+     * structure.
+     * </p>
      *
      * @param sourceLines the source lines to process
      * @param startLineNumber the line number of the first source line within
@@ -92,6 +99,7 @@ public final class ContinuationHandler {
 
         boolean haveOnlySingleLineStatements = false;
         boolean isAfterEof = false;
+        boolean isCompileTimeData = false;
         for (int i = 0; i < sourceLines.length; i++) {
             String line = sourceLines[i];
 
@@ -107,7 +115,7 @@ public final class ContinuationHandler {
                 statements.add(currentStatement);
                 if (isAfterEof) {
                     currentStatement.setAfterEof();
-                } else {
+                } else if (!isCompileTimeData) {
                     nestStatement(parents, currentStatement, structureErrors);
 
                     if (currentStatement.getType() == StatementType.COMPILER_DIRECTIVE) {
@@ -124,9 +132,10 @@ public final class ContinuationHandler {
                 }
 
                 // all statements following the first compile time array are
-                // single line statements by definition
+                // single line statements of data by definition
                 if (currentStatement.getType() == StatementType.COMPILE_TIME_ARRAY) {
                     haveOnlySingleLineStatements = true;
+                    isCompileTimeData = true;
                 }
 
                 // start a new statement

@@ -24,7 +24,8 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 /**
  * Unit tests for statements, that the formatter left unchanged with an
  * unexpected error: names with national characters, sub-fields, that cannot be
- * aligned, and a data type as the parameter of a keyword.
+ * aligned, a data type as the parameter of a keyword and the data of a compile
+ * time array.
  */
 public class FormatterExceptionsTest extends AbstractTestCase {
 
@@ -122,6 +123,63 @@ public class FormatterExceptionsTest extends AbstractTestCase {
             "end-ds;"
         }, result);
         // @formatter:on
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    // --- The data of a compile time array ---
+
+    /**
+     * Compiler directives must precede the compile time data (ILE RPG Reference
+     * 7.3, page 80): the records behind the first compile time array are data,
+     * also if they look like a declaration.
+     */
+    @Test
+    public void format_declarationInDataOfCompileTimeArray_isData() throws RpgleFormatterException {
+
+        RpgleFormatter formatter = createFormatter(FormatterConfig.fromPreferences(), 100);
+
+        // @formatter:off
+        String[] result = format(formatter,
+            "**FREE",
+            "dcl-s arr char(20) dim(2) ctdata;",
+            "dcl-s   x   int(10);",
+            "**CTDATA arr",
+            "DCL-PROC xyz",
+            "something"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "**free",
+            "dcl-s arr char(20) dim(2) ctdata;",
+            "dcl-s x int(10);",
+            "**ctdata arr",
+            "DCL-PROC xyz",
+            "something"
+        }, result);
+        // @formatter:on
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    @Test
+    public void format_eofInDataOfCompileTimeArray_isData() throws RpgleFormatterException {
+
+        RpgleFormatter formatter = createFormatter(FormatterConfig.fromPreferences(), 100);
+
+        // @formatter:off
+        String[] result = format(formatter,
+            "**FREE",
+            "dcl-s a1 char(5) dim(1) ctdata;",
+            "dcl-s a2 char(5) dim(1) ctdata;",
+            "**CTDATA a1",
+            "/EOF",
+            "**CTDATA a2",
+            "abcde"
+        );
+        // @formatter:on
+
+        assertEquals("**ctdata a2", result[5]);
         assertEquals(0, formatter.getErrorCount());
     }
 
