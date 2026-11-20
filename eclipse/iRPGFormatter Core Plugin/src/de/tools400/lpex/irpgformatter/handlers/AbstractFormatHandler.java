@@ -137,6 +137,9 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
 
         String summary = sourceKind.getSummary(formattedCount, notFormattedCount, statementErrorsCount);
         if (summary == null) {
+            // The view shows the summary of the last batch: without problems
+            // there is none, also not the one of a former batch.
+            FormatterProblems.getInstance().setSummary(null);
             if (!canceled) {
                 displaySuccessDialog(sourceKind.getFinishedMessage(formattedCount));
             }
