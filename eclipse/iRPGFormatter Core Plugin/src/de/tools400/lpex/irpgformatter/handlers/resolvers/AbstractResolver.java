@@ -8,6 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.handlers.resolvers;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
@@ -21,8 +24,25 @@ public abstract class AbstractResolver {
     private final IProgressMonitor monitor;
     private Exception error;
 
+    /**
+     * The keys of the sources, that the resolver found, e.g. their paths.
+     */
+    private final Set<String> sourceKeys = new HashSet<>();
+
     protected AbstractResolver(IProgressMonitor monitor) {
         this.monitor = monitor != null ? monitor : new NullProgressMonitor();
+    }
+
+    /**
+     * Returns <code>true</code>, if the resolver did not find the source
+     * before, so that a source, that the selection contains twice, e.g. a
+     * folder and a file in it, is formatted once.
+     *
+     * @param key - the key of the source, e.g. its path
+     * @return <code>true</code> for a new source
+     */
+    protected boolean isNewSource(String key) {
+        return sourceKeys.add(key);
     }
 
     protected IProgressMonitor getMonitor() {

@@ -93,7 +93,7 @@ public class LocalStreamFileResolver extends AbstractResolver {
     private void addFileIfSupported(IFile file) {
 
         String extension = file.getFileExtension();
-        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
+        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase()) && isNewSource(file.getFullPath().toString())) {
             files.add(file);
         }
     }

@@ -87,7 +87,7 @@ public class JavaIoStreamFileResolver extends AbstractRemoteFileResolver {
     private void addFileIfSupported(File file) {
 
         String extension = FileUtils.getExtension(file.getName());
-        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
+        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase()) && isNewSource(file.getAbsolutePath())) {
             files.add(file);
         }
     }

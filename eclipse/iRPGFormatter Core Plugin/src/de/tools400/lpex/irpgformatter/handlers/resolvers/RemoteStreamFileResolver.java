@@ -89,7 +89,7 @@ public class RemoteStreamFileResolver extends AbstractRemoteFileResolver {
     private void addFileIfSupported(IRemoteFile file) {
 
         String extension = FileUtils.getExtension(file.getName());
-        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase())) {
+        if (extension != null && RpgleFormatter.isSupportedSourceType(extension.toUpperCase()) && isNewSource(file.getAbsolutePathPlusConnection())) {
             files.add(file);
         }
     }

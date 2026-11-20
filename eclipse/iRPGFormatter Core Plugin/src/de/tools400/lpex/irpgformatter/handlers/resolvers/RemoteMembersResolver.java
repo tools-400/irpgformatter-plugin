@@ -167,7 +167,7 @@ public class RemoteMembersResolver extends AbstractResolver {
         String member = getMemberName(element);
         String type = getMemberType(element).toUpperCase();
 
-        if (RpgleFormatter.isSupportedSourceType(type)) {
+        if (RpgleFormatter.isSupportedSourceType(type) && isNewSource(connectionName + ":" + library + "/" + file + "(" + member + ")")) {
             SourceMember sourceMember = new SourceMember(connectionName, profileName, library, file, member, type);
             sourceMembers.add(sourceMember);
         }
