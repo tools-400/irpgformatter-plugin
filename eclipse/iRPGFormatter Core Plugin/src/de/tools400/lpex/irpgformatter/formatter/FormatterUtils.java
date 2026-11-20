@@ -467,6 +467,12 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else if (token.getType() == TokenType.SPECIAL_WORD) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix,
                 new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
+        } else if (token.getType() == TokenType.DATA_TYPE && !token.haveChildren()) {
+            // A name, that is a data type for the tokenizer, such as the
+            // sub-field date in overlay(date): formatted like on one line, see
+            // formatParameter().
+            parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix,
+                new FormatDataTypeRule(config.getDataTypes(), config.getKeywordCasingStyle()));
         } else if (token.getType() == TokenType.OTHER || isLiteralAsAWhole(token)) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix, new NullFormattingRule());
         } else if (token.getType() == TokenType.FUNCTION) {

@@ -23,8 +23,8 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 
 /**
  * Unit tests for statements, that the formatter left unchanged with an
- * unexpected error: names with national characters and sub-fields, that cannot
- * be aligned.
+ * unexpected error: names with national characters, sub-fields, that cannot be
+ * aligned, and a data type as the parameter of a keyword.
  */
 public class FormatterExceptionsTest extends AbstractTestCase {
 
@@ -96,6 +96,32 @@ public class FormatterExceptionsTest extends AbstractTestCase {
         String[] result = format(formatter, "**FREE", "dcl-ds ds2;", "  a char(1);", "  fld   char(10) nullind;", "end-ds;");
 
         assertArrayEquals(new String[] { "**free", "dcl-ds ds2;", "  a   char(1);", "  fld char(10) nullind;", "end-ds;" }, result);
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    // --- A data type as the parameter of a keyword ---
+
+    /**
+     * The name of the sub-field <code>date</code> is a data type for the
+     * tokenizer.
+     */
+    @Test
+    public void format_dataTypeAsParameterBehindEndColumn_isMovedToNextLine() throws RpgleFormatterException {
+
+        RpgleFormatter formatter = createFormatter(FormatterConfig.fromPreferences(), 40);
+
+        String[] result = format(formatter, "**FREE", "dcl-ds ds3;", "  date date;", "  yearOfTheDateFieldXY char(4) overlay(date);", "end-ds;");
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "**free",
+            "dcl-ds ds3;",
+            "  date                 date;",
+            "  yearOfTheDateFieldXY char(4) overlay(",
+            "    date);",
+            "end-ds;"
+        }, result);
+        // @formatter:on
         assertEquals(0, formatter.getErrorCount());
     }
 
