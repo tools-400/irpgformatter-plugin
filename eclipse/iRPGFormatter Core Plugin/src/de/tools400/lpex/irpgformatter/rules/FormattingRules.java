@@ -14,6 +14,7 @@ import de.tools400.lpex.irpgformatter.rules.casing.FormatCompilerDirectiveRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatDataTypeRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatKeywordRule;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatSpecialWordsRule;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatParameterRule;
 
 /**
  * Hybrid utility class containing RPGLE formatting rules.
@@ -90,12 +91,13 @@ public class FormattingRules implements RpgleSourceConstants {
     }
 
     /**
-     * Formats compiler directive according to casing style (keeps parameters
-     * as-is).
+     * Formats compiler directive according to casing style. The parameters of
+     * its keywords are joined like the parameters of a declaration.
      */
     public String formatCompilerDirective(String value) {
 
-        String formatted = applyRules(value, new FormatCompilerDirectiveRule(config.getKeywordCasingStyle()));
+        FormatParameterRule parameterRule = new FormatParameterRule(config);
+        String formatted = applyRules(value, new FormatCompilerDirectiveRule(config.getKeywordCasingStyle(), parameterRule));
 
         return formatted;
     }

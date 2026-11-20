@@ -8,12 +8,19 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.input.TextLinesInput;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
+import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
+import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.rules.casing.FormatCompilerDirectiveRule;
 
 public class FormatCompilerDirectiveRuleTest extends AbstractTestCase {
@@ -170,5 +177,50 @@ public class FormatCompilerDirectiveRuleTest extends AbstractTestCase {
     public void title_textUnchanged() {
         FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
         assertEquals("/TITLE Peek/400: Display (Main)", rule.format("/title Peek/400: Display (Main)"));
+    }
+
+    // --- parameters of /set and /restore, joined like those of ctl-opt ---
+
+    @Test
+    public void set_ccsid_keepsTheColon() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWERCASE);
+        assertEquals("/set ccsid(*CHAR: 37) ccsid(*UCS2: 1200)", rule.format("/SET CCSID(*CHAR : 37) CCSID(*UCS2:1200)"));
+    }
+
+    @Test
+    public void set_ccsidDatfmtTimfmt() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.UPPERCASE);
+        assertEquals("/SET CCSID(*UCS2: 13488) DATFMT(*ISO) TIMFMT(*HMS)", rule.format("/set ccsid(*UCS2 : 13488) datfmt(*ISO) timfmt(*HMS)"));
+    }
+
+    @Test
+    public void set_ccsid_parameterSpacingNone() {
+        Preferences.getInstance().setParameterSpacingStyle(ParameterSpacingStyle.NONE);
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWERCASE);
+        assertEquals("/set ccsid(*CHAR:37)", rule.format("/SET CCSID(*CHAR : 37)"));
+    }
+
+    @Test
+    public void restore_ccsid() {
+        FormatCompilerDirectiveRule rule = new FormatCompilerDirectiveRule(KeywordCasingStyle.LOWERCASE);
+        assertEquals("/restore ccsid(*CHAR) datfmt", rule.format("/RESTORE CCSID(*CHAR) DATFMT"));
+    }
+
+    /**
+     * The formatter joins the parameters with the parameter spacing of its
+     * configuration.
+     */
+    @Test
+    public void set_ccsid_inSource_parameterSpacingBoth() throws RpgleFormatterException {
+
+        FormatterConfig config = FormatterConfig.fromPreferences();
+        config.setParameterSpacingStyle(ParameterSpacingStyle.BOTH);
+        RpgleFormatter formatter = new RpgleFormatter(config);
+        formatter.setSourceLength(100);
+
+        String[] result = formatter.format(new TextLinesInput("/SET CCSID(*CHAR : 37)", "dcl-s text char(10);"), 0).toLines();
+
+        assertEquals(0, formatter.getErrorCount());
+        assertArrayEquals(new String[] { "/set ccsid( *CHAR : 37 )", "dcl-s text char( 10 );" }, result);
     }
 }

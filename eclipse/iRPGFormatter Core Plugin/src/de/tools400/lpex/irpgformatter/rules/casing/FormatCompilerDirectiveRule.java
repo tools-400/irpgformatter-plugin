@@ -14,9 +14,11 @@ import java.util.Set;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.rules.IFormattingRule;
 import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
+import de.tools400.lpex.irpgformatter.rules.statements.FormatParameterRule;
 import de.tools400.lpex.irpgformatter.tokenizer.IToken;
 import de.tools400.lpex.irpgformatter.tokenizer.TokenType;
 import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
@@ -33,6 +35,10 @@ import de.tools400.lpex.irpgformatter.tokenizer.Tokenizer;
  * the compiler takes that text as a comment. The same applies to the text of
  * <code>/title</code>, <code>/eject</code> and <code>/space</code>. Only the
  * blanks between the parts are reduced to one.
+ * <p>
+ * The parameters of the keywords of the other directives, e.g. of
+ * <code>/set ccsid(*char : 37)</code>, are joined like the parameters of a
+ * declaration.
  */
 public class FormatCompilerDirectiveRule extends AbstractCasingRule implements IFormattingRule, RpgleSourceConstants {
 
@@ -48,12 +54,24 @@ public class FormatCompilerDirectiveRule extends AbstractCasingRule implements I
      */
     private static final Set<String> TEXT_DIRECTIVES = new HashSet<String>(Arrays.asList("TITLE", "EJECT", "SPACE"));
 
+    private final FormatParameterRule parameterRule;
+
     public FormatCompilerDirectiveRule() {
         super();
+        this.parameterRule = new FormatParameterRule(FormatterConfig.fromPreferences());
     }
 
     public FormatCompilerDirectiveRule(KeywordCasingStyle keywordCasingStyle) {
+        this(keywordCasingStyle, new FormatParameterRule(FormatterConfig.fromPreferences()));
+    }
+
+    /**
+     * Creates a rule, that joins the parameters of a keyword with the given
+     * rule of the declarations.
+     */
+    public FormatCompilerDirectiveRule(KeywordCasingStyle keywordCasingStyle, FormatParameterRule parameterRule) {
         super(keywordCasingStyle);
+        this.parameterRule = parameterRule;
     }
 
     @Override
@@ -94,10 +112,7 @@ public class FormatCompilerDirectiveRule extends AbstractCasingRule implements I
                         IToken[] children = token.getChildren();
                         buffer.append(OPEN_BRACKET);
                         for (int i = 0; i < children.length; i++) {
-                            buffer.append(children[i].getValue());
-                            if (i < children.length - 1) {
-                                buffer.append(SPACE);
-                            }
+                            buffer.append(parameterRule.format(children[i].getValue(), i, children.length));
                         }
                         buffer.append(CLOSE_BRACKET);
                     }
