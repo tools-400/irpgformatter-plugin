@@ -133,6 +133,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         List<String> results = new LinkedList<>();
 
         String formattedLine = line;
+        boolean isAligned = false;
 
         for (int i = 0; i < tokens.length; i++) {
             IToken token = tokens[i];
@@ -145,8 +146,11 @@ public class FormatterUtils implements RpgleSourceConstants {
             }
             formattedLine = tokenResults[tokenResults.length - 1];
 
-            if (isSubField && (token.getType() == TokenType.NAME || isSpecialWordStarN(token))) {
+            // Only the name of the sub-field is aligned, not a later name,
+            // such as a keyword, that is missing in the word list.
+            if (isSubField && !isAligned && (token.getType() == TokenType.NAME || isSpecialWordStarN(token))) {
                 formattedLine = alignSubField(formattedLine, subFieldAlignCol);
+                isAligned = true;
             }
 
             // Add space if not end-of-line marker.
@@ -207,16 +211,13 @@ public class FormatterUtils implements RpgleSourceConstants {
     /**
      * Aligns the line after the name of a sub-field: pads it to the alignment
      * column, so that the data types of all sub-fields start in the same
-     * column, or trims it, if the alignment column is 0.
+     * column, or trims it, if the alignment column is 0. A line, that is longer
+     * than the alignment column, is not padded: a name, that is too long for
+     * the alignment, see {@link #computeKeywordAlignColumn}, is not aligned.
      */
-    private String alignSubField(String line, int subFieldAlignCol) throws UnexpectedErrorException {
+    private String alignSubField(String line, int subFieldAlignCol) {
 
         if (config.isAlignSubFields()) {
-            if (line.trim().length() > subFieldAlignCol) {
-                throw new UnexpectedErrorException(
-                    "Cannot align sub-field. Current line length " + line.length() + " exceeds alignment column " + subFieldAlignCol + ".",
-                    getLineNumber());
-            }
             return StringUtils.padR(line.trim(), subFieldAlignCol);
         }
 

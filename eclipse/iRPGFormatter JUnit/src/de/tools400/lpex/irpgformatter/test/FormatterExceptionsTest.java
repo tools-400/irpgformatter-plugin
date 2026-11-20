@@ -11,6 +11,9 @@ package de.tools400.lpex.irpgformatter.test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
@@ -20,9 +23,13 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 
 /**
  * Unit tests for statements, that the formatter left unchanged with an
- * unexpected error: names with national characters.
+ * unexpected error: names with national characters and sub-fields, that cannot
+ * be aligned.
  */
 public class FormatterExceptionsTest extends AbstractTestCase {
+
+    /** A name, that is too long for the alignment, if DCL-SUBF precedes it. */
+    private static final String LONG_NAME = "anzahl_der_bestellungen_im_laufenden_geschaeftsjahr_xy";
 
     // --- Names with national characters ---
 
@@ -39,6 +46,56 @@ public class FormatterExceptionsTest extends AbstractTestCase {
         String[] result = format(formatter, "**FREE", "dcl-ds kunde qualified;", "  Ære   packed(5:0);", "  navn char(30);", "end-ds;");
 
         assertArrayEquals(new String[] { "**free", "dcl-ds kunde qualified;", "  Ære  packed(5: 0);", "  navn char(30);", "end-ds;" }, result);
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    // --- Sub-fields, that cannot be aligned ---
+
+    @Test
+    public void format_dclSubfWithNameTooLongForAlignment_isNotAligned() throws RpgleFormatterException {
+
+        RpgleFormatter formatter = createFormatter(FormatterConfig.fromPreferences(), 100);
+
+        // @formatter:off
+        String[] result = format(formatter,
+            "**FREE",
+            "dcl-ds bestellung;",
+            "  kundennr   packed(7:0);",
+            "  datum date;",
+            "  dcl-subf " + LONG_NAME + "   int( 10 );",
+            "end-ds;"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "**free",
+            "dcl-ds bestellung;",
+            "  kundennr packed(7: 0);",
+            "  datum    date;",
+            "  dcl-subf " + LONG_NAME + " int(10);",
+            "end-ds;"
+        }, result);
+        // @formatter:on
+        assertEquals(0, formatter.getErrorCount());
+    }
+
+    /**
+     * A keyword, that is missing in the word list, is a name: only the name of
+     * the sub-field is aligned.
+     */
+    @Test
+    public void format_nameBehindDataTypeOfSubField_isNotAligned() throws RpgleFormatterException {
+
+        FormatterConfig config = FormatterConfig.fromPreferences();
+        Map<String, String> keywords = new HashMap<>(config.getKeywords());
+        keywords.remove("NULLIND");
+        config.setKeywords(keywords);
+        RpgleFormatter formatter = createFormatter(config, 100);
+
+        String[] result = format(formatter, "**FREE", "dcl-ds ds2;", "  a char(1);", "  fld   char(10) nullind;", "end-ds;");
+
+        assertArrayEquals(new String[] { "**free", "dcl-ds ds2;", "  a   char(1);", "  fld char(10) nullind;", "end-ds;" }, result);
         assertEquals(0, formatter.getErrorCount());
     }
 
