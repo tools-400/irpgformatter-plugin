@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: iRPGFormatter iAgentBridge
 Bundle-SymbolicName: de.tools400.lpex.irpgformatter.iagentbridge.plugin;singleton:=true
-Bundle-Version: 2.1.0.r
+Bundle-Version: 2.2.0.r
 Bundle-Vendor: Tools/400
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

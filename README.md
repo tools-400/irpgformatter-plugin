@@ -29,8 +29,9 @@ iRPGFormatter requires RDi 9.6.0.13 or later.
 2. Enter the update site `https://tools-400.github.io/irpgformatter/update-site/eclipse/rdi8.0/` and select **iRPGFormatter**.
 3. Finish the wizard and restart RDi.
 
-The optional feature **iRPGFormatter iAgentBridge** requires the plug-in iAgentBridge. Install iAgentBridge first or
-together with it.
+The optional feature **iRPGFormatter iAgentBridge**, in the category of the same name, requires the plug-in
+iAgentBridge. Install iAgentBridge first, from its update site
+`https://tools-400.github.io/iagentbridge/update-site/eclipse/rdi8.0/`. iRPGFormatter itself does not need it.
 
 iRPGFormatter is available on the [Eclipse Marketplace](https://marketplace.eclipse.org/content/irpgformatter-rdi-96013/), too.
 

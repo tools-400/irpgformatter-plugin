@@ -2,7 +2,7 @@
 <feature
       id="de.tools400.lpex.irpgformatter.iagentbridge.feature"
       label="iRPGFormatter iAgentBridge"
-      version="2.1.0.r"
+      version="2.2.0.r"
       provider-name="Tools/400">
 
    <description url="https://tools-400.github.io/irpgformatter/">
@@ -24,7 +24,7 @@ this distribution, and is available at http://www.eclipse.org/legal/cpl-v10.html
    </url>
 
    <requires>
-      <import feature="de.tools400.lpex.irpgformatter.core.feature" version="2.1.0.r" match="perfect"/>
+      <import feature="de.tools400.lpex.irpgformatter.core.feature" version="2.2.0.r" match="perfect"/>
       <import plugin="de.tools400.iagentbridge.core.plugin" version="1.0.0.b002" match="greaterOrEqual"/>
    </requires>
 

@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.tools400.lpex.irpgformatter.core.feature_2.1.0.r.jar" id="de.tools400.lpex.irpgformatter.core.feature" version="2.1.0.r">
+   <feature url="features/de.tools400.lpex.irpgformatter.core.feature_2.2.0.r.jar" id="de.tools400.lpex.irpgformatter.core.feature" version="2.2.0.r">
       <category name="de.tools400.irpgformatter"/>
    </feature>
-   <feature url="features/de.tools400.lpex.irpgformatter.iagentbridge.feature_2.1.0.r.jar" id="de.tools400.lpex.irpgformatter.iagentbridge.feature" version="2.1.0.r">
-      <category name="de.tools400.irpgformatter"/>
+   <feature url="features/de.tools400.lpex.irpgformatter.iagentbridge.feature_2.2.0.r.jar" id="de.tools400.lpex.irpgformatter.iagentbridge.feature" version="2.2.0.r">
+      <category name="de.tools400.irpgformatter.iagentbridge"/>
    </feature>
    <category-def name="de.tools400.irpgformatter" label="iRPGFormatter">
       <description>
          iRPGFormatter for 9.6.0.13+.
+      </description>
+   </category-def>
+   <category-def name="de.tools400.irpgformatter.iagentbridge" label="iRPGFormatter iAgentBridge (requires iAgentBridge)">
+      <description>
+         Optional: adds the tool format_rpg to the MCP server of iAgentBridge. Install iAgentBridge first, from its update site https://tools-400.github.io/iagentbridge/update-site/eclipse/rdi8.0/.
       </description>
    </category-def>
 </site>
