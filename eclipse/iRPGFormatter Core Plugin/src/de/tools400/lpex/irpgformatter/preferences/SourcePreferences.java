@@ -8,6 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.preferences;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
@@ -32,6 +35,12 @@ import de.tools400.lpex.irpgformatter.problems.EditorSources;
  * </p>
  */
 public final class SourcePreferences {
+
+    /**
+     * The preferences of the projects, see
+     * {@link #getProjectPreferences(IProject)}.
+     */
+    private static final Map<IProject, Preferences> preferencesByProject = new ConcurrentHashMap<>();
 
     private SourcePreferences() {
         // Utility class
@@ -79,12 +88,19 @@ public final class SourcePreferences {
      * its own or not. They are stored in the file
      * <code>.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs</code>
      * of the project.
+     * <p>
+     * The preferences are created once per project: the constructor of
+     * {@link ScopedPreferenceStore} adds a listener to the node of the project,
+     * that is never removed. The store reads the node at every access, so that
+     * it sees every change.
+     * </p>
      *
      * @param project - an open project
      * @return the preferences of the project
      */
     public static Preferences getProjectPreferences(IProject project) {
-        return Preferences.forProject(new ScopedPreferenceStore(new ProjectScope(project), IRpgleFormatterPlugin.PLUGIN_ID));
+        return preferencesByProject.computeIfAbsent(project,
+            key -> Preferences.forProject(new ScopedPreferenceStore(new ProjectScope(key), IRpgleFormatterPlugin.PLUGIN_ID)));
     }
 
     /**
