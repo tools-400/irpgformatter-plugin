@@ -236,17 +236,20 @@ public class PreviewPanel implements IPropertyChangeListener {
     }
 
     /**
-     * Triggers a re-format of the preview with the current settings.
+     * Triggers a re-format of the preview with the current settings, unless the
+     * preview is in edit mode: then it shows the raw source, that the user
+     * edits, and leaving edit mode formats it.
      */
     public void formatPreview() {
-        formatPreviewSource();
+        formatPreviewUnlessEditMode(null);
     }
 
     /**
-     * Triggers a re-format and scrolls to the given comment line.
+     * Triggers a re-format and scrolls to the given comment line, unless the
+     * preview is in edit mode, see {@link #formatPreview()}.
      */
     public void formatPreview(String scrollToComment) {
-        formatPreviewSource(scrollToComment);
+        formatPreviewUnlessEditMode(scrollToComment);
     }
 
     /**
