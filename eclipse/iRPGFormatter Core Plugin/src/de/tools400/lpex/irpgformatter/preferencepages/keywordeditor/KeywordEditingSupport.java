@@ -21,16 +21,19 @@ public class KeywordEditingSupport extends EditingSupport {
 
     private final TableViewer viewer;
     private final TextCellEditor editor;
+    private final Runnable changeListener;
 
     /**
      * Creates editing support for the value column.
      *
      * @param viewer the table viewer
+     * @param changeListener called, when a value was changed
      */
-    public KeywordEditingSupport(TableViewer viewer) {
+    public KeywordEditingSupport(TableViewer viewer, Runnable changeListener) {
         super(viewer);
         this.viewer = viewer;
         this.editor = new TextCellEditor(viewer.getTable());
+        this.changeListener = changeListener;
     }
 
     @Override
@@ -63,6 +66,7 @@ public class KeywordEditingSupport extends EditingSupport {
             if (KeywordEntry.isValidValue(entry.getKey(), newValue) && !newValue.equals(entry.getValue())) {
                 entry.setValue(newValue);
                 viewer.update(element, null);
+                changeListener.run();
             }
         }
     }

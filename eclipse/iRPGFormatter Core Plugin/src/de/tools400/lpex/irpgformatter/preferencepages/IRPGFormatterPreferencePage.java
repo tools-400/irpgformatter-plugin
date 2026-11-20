@@ -919,6 +919,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         TabItem builtInFunctionsTab = new TabItem(tabFolder, SWT.NONE);
         builtInFunctionsTab.setText(Messages.Label_Built_in_Functions);
         builtInFunctionsTab.setControl(builtInFunctionsEditor.getControl());
+
+        // The preview formats with the word lists of the tabs.
+        for (KeywordEditor editor : new KeywordEditor[] { dataTypesEditor, declarationTypesEditor, keywordsEditor, specialWordsEditor,
+            operationCodesEditor, builtInFunctionsEditor }) {
+            editor.setChangeListener(this::refreshPreview);
+        }
     }
 
     private Control createSettingsTab(Composite parent) {

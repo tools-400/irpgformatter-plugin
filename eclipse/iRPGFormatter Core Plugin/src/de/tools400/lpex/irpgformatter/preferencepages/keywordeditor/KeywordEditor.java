@@ -48,6 +48,12 @@ public class KeywordEditor {
     private final String duplicateErrorMessage;
     private final KeywordKind kind;
 
+    /**
+     * Called, when the user adds, changes or removes an entry, or
+     * <code>null</code>.
+     */
+    private Runnable changeListener;
+
     private KeywordEditor(String addDialogTitle, String changeDialogTitle, String duplicateDialogTitle, String duplicateErrorMessage,
         KeywordKind kind) {
         this.addDialogTitle = addDialogTitle;
@@ -137,6 +143,23 @@ public class KeywordEditor {
      */
     public Composite getControl() {
         return control;
+    }
+
+    /**
+     * Sets the listener, that is called, when the user adds, changes or removes
+     * an entry, e.g. to format the preview again. {@link #load(List)} does not
+     * call it.
+     *
+     * @param changeListener the listener or <code>null</code>
+     */
+    public void setChangeListener(Runnable changeListener) {
+        this.changeListener = changeListener;
+    }
+
+    private void notifyChangeListener() {
+        if (changeListener != null) {
+            changeListener.run();
+        }
     }
 
     private void createControl(Composite parent) {
@@ -236,7 +259,7 @@ public class KeywordEditor {
         valueColumn.getColumn().setText(Messages.ColumnLabel_Value_editable);
         valueColumn.getColumn().setWidth(150);
         valueColumn.getColumn().setResizable(true);
-        valueColumn.setEditingSupport(new KeywordEditingSupport(viewer));
+        valueColumn.setEditingSupport(new KeywordEditingSupport(viewer, this::notifyChangeListener));
 
         // Set providers
         viewer.setContentProvider(new KeywordContentProvider());
@@ -280,6 +303,7 @@ public class KeywordEditor {
             entries.add(newEntry);
             entries.sort((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()));
             tableViewer.refresh();
+            notifyChangeListener();
         }
     }
 
@@ -307,6 +331,7 @@ public class KeywordEditor {
                 entries.set(index, new KeywordEntry(newKey, newValue));
                 entries.sort((a, b) -> a.getKey().compareToIgnoreCase(b.getKey()));
                 tableViewer.refresh();
+                notifyChangeListener();
             }
         }
     }
@@ -317,6 +342,7 @@ public class KeywordEditor {
             KeywordEntry entry = (KeywordEntry)selection.getFirstElement();
             entries.remove(entry);
             tableViewer.refresh();
+            notifyChangeListener();
         }
     }
 }
