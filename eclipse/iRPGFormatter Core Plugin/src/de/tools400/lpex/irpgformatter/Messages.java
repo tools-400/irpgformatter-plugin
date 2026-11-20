@@ -233,10 +233,8 @@ public class Messages extends NLS {
     public static String Info_Finished_formatting_stream_files_A;
     public static String Info_Finished_formatting_source_members_A;
     public static String Error_A_formatted_B_errors;
-    public static String Error_Not_all_files_formatted_A;
     public static String Error_A_members_formatted_B_errors;
     public static String Error_File_is_locked_A;
-    public static String Error_Not_all_members_formatted_A;
 
     public static String Error_A_members_formatted_with_statement_errors_B;
     public static String Error_A_files_formatted_with_statement_errors_B;

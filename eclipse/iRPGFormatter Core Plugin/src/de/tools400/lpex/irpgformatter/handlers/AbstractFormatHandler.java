@@ -35,42 +35,9 @@ import de.tools400.lpex.irpgformatter.views.FormatterProblemsView;
 
 public abstract class AbstractFormatHandler extends AbstractHandler implements IFormatPostRun {
 
-    /**
-     * Kind of the formatted sources, with the texts of the result.
-     */
-    protected enum SourceKind {
-        STREAM_FILES (
-            Messages.Info_Finished_formatting_stream_files_A,
-            Messages.Error_A_formatted_B_errors,
-            Messages.Error_Not_all_files_formatted_A,
-            Messages.Error_A_files_formatted_with_statement_errors_B,
-            Messages.Error_A_files_formatted_B_failed_C_with_statement_errors),
-        SOURCE_MEMBERS (
-            Messages.Info_Finished_formatting_source_members_A,
-            Messages.Error_A_members_formatted_B_errors,
-            Messages.Error_Not_all_members_formatted_A,
-            Messages.Error_A_members_formatted_with_statement_errors_B,
-            Messages.Error_A_members_formatted_B_failed_C_with_statement_errors);
+    private final BatchSourceKind sourceKind;
 
-        private final String finished;
-        private final String formattedWithErrors;
-        private final String notAllFormatted;
-        private final String formattedWithStatementErrors;
-        private final String formattedFailedWithStatementErrors;
-
-        private SourceKind(String finished, String formattedWithErrors, String notAllFormatted, String formattedWithStatementErrors,
-            String formattedFailedWithStatementErrors) {
-            this.finished = finished;
-            this.formattedWithErrors = formattedWithErrors;
-            this.notAllFormatted = notAllFormatted;
-            this.formattedWithStatementErrors = formattedWithStatementErrors;
-            this.formattedFailedWithStatementErrors = formattedFailedWithStatementErrors;
-        }
-    }
-
-    private final SourceKind sourceKind;
-
-    protected AbstractFormatHandler(SourceKind sourceKind) {
+    protected AbstractFormatHandler(BatchSourceKind sourceKind) {
         this.sourceKind = sourceKind;
     }
 
@@ -168,30 +135,15 @@ public abstract class AbstractFormatHandler extends AbstractHandler implements I
     @Override
     public void postRun(int formattedCount, int notFormattedCount, int statementErrorsCount, boolean canceled) {
 
-        if (notFormattedCount == 0 && statementErrorsCount == 0) {
+        String summary = sourceKind.getSummary(formattedCount, notFormattedCount, statementErrorsCount);
+        if (summary == null) {
             if (!canceled) {
-                displaySuccessDialog(Messages.bind(sourceKind.finished, formattedCount));
+                displaySuccessDialog(sourceKind.getFinishedMessage(formattedCount));
             }
             return;
         }
 
-        String summary = buildHeader(formattedCount, notFormattedCount, statementErrorsCount);
         displayProblemsView(summary);
-    }
-
-    private String buildHeader(int formatted, int writeErrors, int statementErrorSources) {
-        if (writeErrors > 0 && statementErrorSources == 0) {
-            if (formatted > 0) {
-                return Messages.bind(sourceKind.formattedWithErrors, formatted, writeErrors);
-            }
-            return Messages.bind(sourceKind.notAllFormatted, writeErrors);
-        }
-        if (writeErrors == 0 && statementErrorSources > 0) {
-            return Messages.bind(sourceKind.formattedWithStatementErrors, formatted, statementErrorSources);
-        }
-
-        // both write errors and statement errors present
-        return Messages.bind(sourceKind.formattedFailedWithStatementErrors, new Object[] { formatted, writeErrors, statementErrorSources });
     }
 
     private void displaySuccessDialog(String message) {

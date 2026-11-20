@@ -21,7 +21,7 @@ public class FormatLocalStreamFileHandler extends AbstractFormatHandler {
     private IFile[] files;
 
     public FormatLocalStreamFileHandler() {
-        super(SourceKind.STREAM_FILES);
+        super(BatchSourceKind.STREAM_FILES);
     }
 
     @Override

@@ -22,7 +22,7 @@ public class FormatJavaIoStreamFileHandler extends AbstractFormatHandler {
     private File[] files;
 
     public FormatJavaIoStreamFileHandler() {
-        super(SourceKind.STREAM_FILES);
+        super(BatchSourceKind.STREAM_FILES);
     }
 
     @Override

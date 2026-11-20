@@ -21,7 +21,7 @@ public class FormatRemoteStreamFileHandler extends AbstractFormatHandler {
     private IRemoteFile[] files;
 
     public FormatRemoteStreamFileHandler() {
-        super(SourceKind.STREAM_FILES);
+        super(BatchSourceKind.STREAM_FILES);
     }
 
     @Override

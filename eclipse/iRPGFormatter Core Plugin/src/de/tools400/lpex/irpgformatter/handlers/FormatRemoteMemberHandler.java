@@ -20,7 +20,7 @@ public class FormatRemoteMemberHandler extends AbstractFormatHandler {
     private SourceMember[] members;
 
     public FormatRemoteMemberHandler() {
-        super(SourceKind.SOURCE_MEMBERS);
+        super(BatchSourceKind.SOURCE_MEMBERS);
     }
 
     @Override
