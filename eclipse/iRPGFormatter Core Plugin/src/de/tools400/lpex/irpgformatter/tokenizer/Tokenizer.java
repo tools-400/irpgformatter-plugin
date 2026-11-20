@@ -24,6 +24,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * <li>DCL - DCL-*</li>
  * <li>NAME - myProcName</li>
  * <li>LITERAL - 'my literal', x'C1C2', u'00410042'</li>
+ * <li>DATE_TIME_LITERAL - d'2026-11-20', t'12:00:00'</li>
  * <li>FUNCTION - function(...)</li>
  * <li>SPECIAL_WORD - function(parameter1: parameter2: literal: ...)</li>
  * </ul>
@@ -88,6 +89,8 @@ public class Tokenizer implements RpgleSourceConstants {
                 token = parseSpecialWord(remaining, offset);
             } else if (tokenType == TokenType.LITERAL) {
                 token = parseLiteral(remaining, offset);
+            } else if (tokenType == TokenType.DATE_TIME_LITERAL) {
+                token = parseDateTimeLiteral(remaining, offset);
             } else if (tokenType == TokenType.DATA_TYPE) {
                 token = parseVariable(remaining, offset);
             } else if (tokenType == TokenType.FUNCTION) {
@@ -212,6 +215,21 @@ public class Tokenizer implements RpgleSourceConstants {
 
         int rawLength = skipSpaceAndColon(line.substring(i)) + i;
         IToken token = new LiteralToken(value, line.substring(0, rawLength), offset);
+
+        return token;
+    }
+
+    /**
+     * Parses a date, time or timestamp literal as a whole, so that the colons
+     * of a time literal, e.g. <code>t'12:00:00'</code>, are no separators.
+     */
+    private IToken parseDateTimeLiteral(String line, int offset) {
+
+        int i = findEndOfLiteral(line, 0);
+        String value = line.substring(0, i);
+
+        int rawLength = skipSpaceAndColon(line.substring(i)) + i;
+        IToken token = new DateTimeLiteralToken(value, line.substring(0, rawLength), offset);
 
         return token;
     }
@@ -470,17 +488,25 @@ public class Tokenizer implements RpgleSourceConstants {
         }
     }
 
+    /**
+     * Returns <code>true</code>, if the line starts with a date, time or
+     * timestamp literal: <code>d'</code>, <code>t'</code> or <code>z'</code>,
+     * in upper or lower case.
+     */
     private boolean checkDateTime(String line) {
 
-        if (line.length() == 0) {
+        if (line.length() < 2 || line.charAt(1) != '\'') {
             return false;
         }
 
-        if (line.matches("^(d|t|z')'")) {
+        switch (Character.toUpperCase(line.charAt(0))) {
+        case 'D':
+        case 'T':
+        case 'Z':
             return true;
+        default:
+            return false;
         }
-
-        return false;
     }
 
     private boolean checkEndOfLine(String line) {

@@ -465,7 +465,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else if (token.getType() == TokenType.SPECIAL_WORD) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix,
                 new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
-        } else if (token.getType() == TokenType.OTHER) {
+        } else if (token.getType() == TokenType.OTHER || token.getType() == TokenType.DATE_TIME_LITERAL) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix, new NullFormattingRule());
         } else if (token.getType() == TokenType.FUNCTION) {
             parameterParts = formatFunctionWithParameters(currentLine, token, maxLineLength);
