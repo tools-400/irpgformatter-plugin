@@ -132,12 +132,12 @@ public final class Preferences implements RpgleSourceConstants {
      */
     private final boolean project;
 
-    private Map<String, String> cachedDataTypes;
-    private Map<String, String> cachedDeclarationTypes;
-    private Map<String, String> cachedKeywords;
-    private Map<String, String> cachedKeywordParameters;
-    private Map<String, String> cachedOperationCodes;
-    private Map<String, String> cachedBuiltInFunctions;
+    private final WordListCache cachedDataTypes = new WordListCache(DATA_TYPES);
+    private final WordListCache cachedDeclarationTypes = new WordListCache(DECLARATION_TYPES);
+    private final WordListCache cachedKeywords = new WordListCache(KEYWORDS);
+    private final WordListCache cachedKeywordParameters = new WordListCache(SPECIAL_WORDS);
+    private final WordListCache cachedOperationCodes = new WordListCache(OPERATION_CODES);
+    private final WordListCache cachedBuiltInFunctions = new WordListCache(BUILT_IN_FUNCTIONS);
 
     private Preferences(IPreferenceStore preferenceStore, IPreferenceStore ibmPreferenceStore, boolean project) {
         this.preferenceStore = preferenceStore;
@@ -225,7 +225,6 @@ public final class Preferences implements RpgleSourceConstants {
             preferenceStore.setToDefault(name);
         }
 
-        clearCache();
     }
 
     /**
@@ -240,15 +239,6 @@ public final class Preferences implements RpgleSourceConstants {
         if (preferenceStore instanceof IPersistentPreferenceStore) {
             ((IPersistentPreferenceStore)preferenceStore).save();
         }
-    }
-
-    private void clearCache() {
-        cachedDataTypes = null;
-        cachedDeclarationTypes = null;
-        cachedKeywords = null;
-        cachedKeywordParameters = null;
-        cachedOperationCodes = null;
-        cachedBuiltInFunctions = null;
     }
 
     public String getStartColumnAsText() {
@@ -590,18 +580,13 @@ public final class Preferences implements RpgleSourceConstants {
         if (project) {
             return getInstance().getOperationCodes();
         }
-        if (cachedOperationCodes == null) {
-            String value = preferenceStore.getString(OPERATION_CODES);
-            cachedOperationCodes = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedOperationCodes;
+        return cachedOperationCodes.get(preferenceStore);
     }
 
     public void setOperationCodes(Map<String, String> operationCodes) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(operationCodes);
         preferenceStore.setValue(OPERATION_CODES, value);
-        clearCache();
     }
 
     public Map<String, String> getDefaultOperationCodes() {
@@ -616,18 +601,13 @@ public final class Preferences implements RpgleSourceConstants {
         if (project) {
             return getInstance().getBuiltInFunctions();
         }
-        if (cachedBuiltInFunctions == null) {
-            String value = preferenceStore.getString(BUILT_IN_FUNCTIONS);
-            cachedBuiltInFunctions = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedBuiltInFunctions;
+        return cachedBuiltInFunctions.get(preferenceStore);
     }
 
     public void setBuiltInFunctions(Map<String, String> builtInFunctions) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(builtInFunctions);
         preferenceStore.setValue(BUILT_IN_FUNCTIONS, value);
-        clearCache();
     }
 
     public Map<String, String> getDefaultBuiltInFunctions() {
@@ -747,72 +727,52 @@ public final class Preferences implements RpgleSourceConstants {
         if (project) {
             return getInstance().getDataTypes();
         }
-        if (cachedDataTypes == null) {
-            String value = preferenceStore.getString(DATA_TYPES);
-            cachedDataTypes = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedDataTypes;
+        return cachedDataTypes.get(preferenceStore);
     }
 
     public Map<String, String> getDeclarationTypes() {
         if (project) {
             return getInstance().getDeclarationTypes();
         }
-        if (cachedDeclarationTypes == null) {
-            String value = preferenceStore.getString(DECLARATION_TYPES);
-            cachedDeclarationTypes = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedDeclarationTypes;
+        return cachedDeclarationTypes.get(preferenceStore);
     }
 
     public void setDataTypes(Map<String, String> dataTypes) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(dataTypes);
         preferenceStore.setValue(DATA_TYPES, value);
-        clearCache();
     }
 
     public void setDeclarationTypes(Map<String, String> declarationTypes) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(declarationTypes);
         preferenceStore.setValue(DECLARATION_TYPES, value);
-        clearCache();
     }
 
     public Map<String, String> getKeywords() {
         if (project) {
             return getInstance().getKeywords();
         }
-        if (cachedKeywords == null) {
-            String value = preferenceStore.getString(KEYWORDS);
-            cachedKeywords = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedKeywords;
+        return cachedKeywords.get(preferenceStore);
     }
 
     public void setKeywords(Map<String, String> keywords) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(keywords);
         preferenceStore.setValue(KEYWORDS, value);
-        clearCache();
     }
 
     public Map<String, String> getSpecialWords() {
         if (project) {
             return getInstance().getSpecialWords();
         }
-        if (cachedKeywordParameters == null) {
-            String value = preferenceStore.getString(SPECIAL_WORDS);
-            cachedKeywordParameters = KeywordUtils.stringToKeywords(value);
-        }
-        return cachedKeywordParameters;
+        return cachedKeywordParameters.get(preferenceStore);
     }
 
     public void setSpecialWords(Map<String, String> keywordParameters) {
         checkWordListsOfWorkspace();
         String value = KeywordUtils.keywordsToString(keywordParameters);
         preferenceStore.setValue(SPECIAL_WORDS, value);
-        clearCache();
     }
 
     public void initializeDefaultPreferences() {

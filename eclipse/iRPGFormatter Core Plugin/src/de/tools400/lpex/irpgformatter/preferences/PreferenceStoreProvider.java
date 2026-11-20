@@ -120,6 +120,17 @@ public final class PreferenceStoreProvider {
     }
 
     /**
+     * Sets a value of the test preference store past the setters of the
+     * preferences, like the import of an <code>.epf</code> file does, see
+     * {@link #setTestValue(String, boolean)}.
+     *
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static void setTestValue(String name, String value) {
+        getTestPreferenceStore().setValue(name, value);
+    }
+
+    /**
      * Removes a value of the test preference store, like the Eclipse preference
      * store does, when a value is set to its default value.
      *

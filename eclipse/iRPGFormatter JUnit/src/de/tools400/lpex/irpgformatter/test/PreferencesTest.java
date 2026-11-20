@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
 
 public class PreferencesTest extends AbstractTestCase {
 
@@ -344,6 +346,39 @@ public class PreferencesTest extends AbstractTestCase {
         Map<String, String> specialWords = Preferences.getInstance().getSpecialWords();
         assertNotNull(specialWords);
         assertFalse(specialWords.isEmpty());
+    }
+
+    // --- Word lists changed past the setters, e.g. by an .epf import ---
+
+    @Test
+    public void wordLists_changedInPreferenceStore_areReadAgain() {
+
+        Preferences preferences = Preferences.getInstance();
+
+        assertReadAgain("dataTypes", "CHAR", () -> preferences.getDataTypes());
+        assertReadAgain("declarationTypes", "DCL-S", () -> preferences.getDeclarationTypes());
+        assertReadAgain("keywords", "INZ", () -> preferences.getKeywords());
+        assertReadAgain("keywordParameters", "*NOPASS", () -> preferences.getSpecialWords());
+        assertReadAgain("operationCodes", "IF", () -> preferences.getOperationCodes());
+        assertReadAgain("builtInFunctions", "%SUBST", () -> preferences.getBuiltInFunctions());
+    }
+
+    /**
+     * Reads a word list, so that the preferences cache it, changes the value of
+     * the word in the preference store and checks, that the word list returns
+     * the new value.
+     */
+    private void assertReadAgain(String name, String word, Supplier<Map<String, String>> wordList) {
+
+        Map<String, String> before = wordList.get();
+        assertNotNull(name, before.get(word));
+
+        String changed = word.equals(before.get(word)) ? word.toLowerCase() : word;
+        Map<String, String> imported = new LinkedHashMap<>(before);
+        imported.put(word, changed);
+        PreferenceStoreProvider.setTestValue(name, KeywordUtils.keywordsToString(imported));
+
+        assertEquals(name, changed, wordList.get().get(word));
     }
 
     // --- Parameter spacing styles array ---
