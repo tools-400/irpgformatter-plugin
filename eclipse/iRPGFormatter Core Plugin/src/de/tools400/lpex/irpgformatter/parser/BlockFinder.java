@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 import com.ibm.lpex.core.LpexView;
 
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
+import de.tools400.lpex.irpgformatter.statement.ContinuationHandler;
 import de.tools400.lpex.irpgformatter.utils.LpexViewUtils;
 
 /**
@@ -282,8 +284,9 @@ public final class BlockFinder {
      * a block. Parses the source from the beginning to find all blocks.
      * <p>
      * If the selection starts or ends inside a block, the selection is expanded
-     * to include the entire block. If the selection is not inside any block,
-     * the original selection is returned unchanged.
+     * to include the entire block. If the selection ends inside a statement, it
+     * is expanded to the end of the statement. Otherwise the original selection
+     * is returned unchanged.
      * </p>
      *
      * @param view the LPEX view containing the source
@@ -293,9 +296,22 @@ public final class BlockFinder {
      * @throws RpgleFormatterException
      */
     public static int[] expandSelectionToCompleteBlocks(LpexView view, int selectionStart, int selectionEnd) throws RpgleFormatterException {
+        return expandSelection(readSourceLines(view), selectionStart, selectionEnd);
+    }
 
-        // Read all source lines from the view
-        String[] lines = readSourceLines(view);
+    /**
+     * Expands a selection of the given source lines, see
+     * {@link #expandSelectionToCompleteBlocks(LpexView, int, int)}. It has a
+     * name of its own, so that callers without LPEX, e.g. the unit tests, need
+     * not resolve the overload with {@link LpexView}.
+     *
+     * @param lines the lines of the source
+     * @param selectionStart the first selected line (1-based)
+     * @param selectionEnd the last selected line (1-based)
+     * @return an int array [startLine, endLine] with 1-based line numbers
+     * @throws RpgleFormatterException
+     */
+    public static int[] expandSelection(String[] lines, int selectionStart, int selectionEnd) throws RpgleFormatterException {
 
         // Convert to 0-based indices
         int startIdx = selectionStart - 1;
@@ -334,8 +350,33 @@ public final class BlockFinder {
             }
         }
 
+        expandedEnd = findEndOfStatement(lines, expandedEnd);
+
         // Convert back to 1-based line numbers
         return new int[] { expandedStart + 1, expandedEnd + 1 };
+    }
+
+    /**
+     * Returns the index of the last line of the statement, that contains the
+     * line with the given index. A statement, that is not complete at the end
+     * of the source, ends with the last line.
+     *
+     * @return the index of the last line of the statement or the given index,
+     *         if the statements of the source cannot be collected
+     */
+    private static int findEndOfStatement(String[] lines, int lineIndex) {
+
+        try {
+            for (CollectedStatement statement : ContinuationHandler.collectStatements(lines, 1)) {
+                if (statement.getStartLineNumber() - 1 <= lineIndex && lineIndex <= statement.getEndLineNumber() - 1) {
+                    return statement.getEndLineNumber() - 1;
+                }
+            }
+        } catch (RpgleFormatterException e) {
+            // E.g. a block, that is not closed: the formatter reports it.
+        }
+
+        return lineIndex;
     }
 
     /**

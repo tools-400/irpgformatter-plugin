@@ -201,6 +201,7 @@ public class Messages extends NLS {
     public static String Error_Connection_A_not_found;
     public static String Error_Source_not_formatted_N_errors_first_on_line_A;
     public static String Warning_Warning_on_line_A_Branches_of_IF_group_of_line_B_end_in_different_blocks;
+    public static String Warning_Warning_on_line_A_Statement_not_complete_not_formatted;
 
     public static String Label_Export;
     public static String Label_Import;

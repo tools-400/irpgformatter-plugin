@@ -56,6 +56,11 @@ public class RemoveEmptyCommentLinesRule implements IStatementListRule {
 
         
         for (int i = 0; i < statements.length; i++) {
+            // The last statement of the source may be incomplete: it stays
+            // unchanged.
+            if (!statements[i].isComplete()) {
+                continue;
+            }
             StatementType type = statements[i].getType();
             if(type==StatementType.COMPILE_TIME_ARRAY) {
                 break;

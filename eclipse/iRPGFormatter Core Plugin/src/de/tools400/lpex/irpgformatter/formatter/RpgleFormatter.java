@@ -205,6 +205,11 @@ public class RpgleFormatter implements ILineNumberProvider {
         for (int stmtIdx = 0; stmtIdx < statements.length; stmtIdx++) {
             currentStatement = statements[stmtIdx];
 
+            if (!currentStatement.isComplete()) {
+                addIncompleteStatement(currentStatement, startLineNumber, results);
+                continue;
+            }
+
             // Format only compile time array statements after the first compile
             // time array has been processed
             StatementType type = currentStatement.getType();
@@ -340,6 +345,22 @@ public class RpgleFormatter implements ILineNumberProvider {
         }
 
         return null;
+    }
+
+    /**
+     * Keeps a statement unchanged, that is not complete, e.g. the last
+     * statement of a source without its semicolon, and reports it as a warning.
+     */
+    private void addIncompleteStatement(CollectedStatement statement, int startLineNumber, List<FormattedStatement> results) {
+
+        if (statement.getStartLineNumber() < startLineNumber) {
+            results.add(asUnformatted(statement, startLineNumber));
+        } else {
+            results.add(asUnformatted(statement));
+        }
+
+        warnings.add(new FormatError(statement.getStartLineNumber(), statement.getEndLineNumber(), null,
+            Messages.bind(Messages.Warning_Warning_on_line_A_Statement_not_complete_not_formatted, statement.getStartLineNumber()), null));
     }
 
     private FormattedStatement asUnformatted(CollectedStatement stmt) {
