@@ -31,7 +31,7 @@ public class RpgleLpexOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException {
         FormattedStatement[] statements = result.getStatements();
 
         // Process from bottom to top so that line insertions/deletions
@@ -68,8 +68,6 @@ public class RpgleLpexOutput implements IRpgleOutput {
                 }
             }
         }
-
-        return true;
     }
 
     private boolean linesAreEqual(int startLine, int count, String[] newLines) {

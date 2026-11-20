@@ -40,7 +40,7 @@ public class RpgleJavaIoFileOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
         try {
 
@@ -49,8 +49,6 @@ public class RpgleJavaIoFileOutput implements IRpgleOutput {
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(file, false), charset)) {
                 writer.write(content);
             }
-
-            return true;
 
         } catch (Exception e) {
             throw new RpgleFormatterException(

@@ -22,5 +22,5 @@ public interface IRpgleOutput {
      * @param result the formatted result containing statement-level mapping
      * @throws RpgleFormatterException if writing fails
      */
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException;
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException;
 }

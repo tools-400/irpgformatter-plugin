@@ -38,7 +38,7 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
         try {
 
@@ -46,8 +46,6 @@ public class RpgleStreamFileOutput implements IRpgleOutput {
             String content = FileUtils.joinLines(result.toLines(), getLineSeparator(charset));
             InputStream stream = new ByteArrayInputStream(content.getBytes(charset));
             file.setContents(stream, true, true, null);
-
-            return true;
 
         } catch (Exception e) {
             throw new RpgleFormatterException(

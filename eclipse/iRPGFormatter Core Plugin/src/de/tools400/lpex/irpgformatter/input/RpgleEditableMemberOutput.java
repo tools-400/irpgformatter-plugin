@@ -49,9 +49,8 @@ public class RpgleEditableMemberOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException {
         updateLocalFile(result);
-        return true;
     }
 
     /**

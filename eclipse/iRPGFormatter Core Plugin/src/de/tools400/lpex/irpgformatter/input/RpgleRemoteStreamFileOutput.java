@@ -34,7 +34,7 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
     }
 
     @Override
-    public boolean writeSourceLines(FormattedResult result) throws RpgleFormatterException {
+    public void writeSourceLines(FormattedResult result) throws RpgleFormatterException {
 
         IFSFile file = new IFSFile(system, path);
 
@@ -44,8 +44,6 @@ public class RpgleRemoteStreamFileOutput implements IRpgleOutput {
                 writer.write(line);
                 writer.write("\n");
             }
-
-            return true;
 
         } catch (Exception e) {
             throw new RpgleFormatterException(Messages.bind(Messages.Error_Failed_writing_file_A_B, path, ExceptionUtils.getLocalizedMessage(e)), e);

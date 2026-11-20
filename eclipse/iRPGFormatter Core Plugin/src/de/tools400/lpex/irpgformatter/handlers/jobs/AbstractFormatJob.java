@@ -202,10 +202,7 @@ public abstract class AbstractFormatJob<T> extends Job {
         if (result.isChanged()) {
             monitor.subTask(Messages.SubTask_Writing);
             IRpgleOutput output = input.getOutput();
-            if (!output.writeSourceLines(result)) {
-                reportNotFormatted(problemSource, ProblemFactory.fromMessage(problemSource, Messages.Error_Could_not_format_member));
-                return;
-            }
+            output.writeSourceLines(result);
         }
 
         formattedCount++;

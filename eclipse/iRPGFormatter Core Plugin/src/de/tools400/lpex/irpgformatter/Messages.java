@@ -163,7 +163,6 @@ public class Messages extends NLS {
     public static String Error_Unexpected_error_A;
     public static String Error_Unsupported_source_type_A;
     public static String Error_Not_free_format;
-    public static String Error_Could_not_format_member;
     public static String Error_Key_is_required;
     public static String Error_Value_is_required;
     public static String Error_The_value_may_differ_from_the_key_only_in_casing;
