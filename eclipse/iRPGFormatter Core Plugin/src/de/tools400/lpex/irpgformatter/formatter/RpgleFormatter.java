@@ -485,7 +485,7 @@ public class RpgleFormatter implements ILineNumberProvider {
             return formatCompilerDirective(statement, indent);
         case COMPILE_TIME_ARRAY:
             // apply casing only
-            return formatCompileTimeArray(statement, indent);
+            return formatCompileTimeArray(statement);
         case CTL_OPT:
             return formatCtlOpt(statement, indent);
         case DCL_C:
@@ -624,17 +624,16 @@ public class RpgleFormatter implements ILineNumberProvider {
     }
 
     /**
-     * Formats a compile time array.
+     * Formats the record, that starts a compile time array. It always starts in
+     * position 1, whatever the indentation (ILE RPG Reference 7.3, pages 191
+     * and 260).
      */
-    private List<String> formatCompileTimeArray(CollectedStatement statement, int indent) {
+    private List<String> formatCompileTimeArray(CollectedStatement statement) {
 
         List<String> result = new ArrayList<>();
 
         String formatted = formatterUtils.getFormattingRules().formatCompileTimeArray(statement.getStatement());
-        if (config.isUnindentCompilerDirectives()) {
-            indent = 0;
-        }
-        result.add(StringUtils.spaces(indent) + formatted);
+        result.add(formatted);
 
         return result;
     }

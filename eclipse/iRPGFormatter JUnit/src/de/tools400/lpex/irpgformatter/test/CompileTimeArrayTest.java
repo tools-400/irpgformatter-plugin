@@ -8,14 +8,18 @@
 
 package de.tools400.lpex.irpgformatter.test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.tools400.lpex.irpgformatter.formatter.RpgleFormatter;
 import de.tools400.lpex.irpgformatter.formatter.RpgleFormatterException;
+import de.tools400.lpex.irpgformatter.input.TextLinesInput;
 import de.tools400.lpex.irpgformatter.parser.StatementIdentifier;
 import de.tools400.lpex.irpgformatter.parser.StatementType;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.statement.CollectedStatement;
 
 /**
@@ -186,5 +190,44 @@ public class CompileTimeArrayTest extends AbstractTestCase {
         CollectedStatement stmt = new CollectedStatement();
         stmt.add("**ctdata arrname");
         stmt.add("DATA01");
+    }
+
+    // ----------------------------------------------------------------------
+    // RpgleFormatter
+    //
+    // The record, that starts the compile-time data, must start in position 1
+    // (ILE RPG Reference 7.3, pages 191 and 260), whatever the indentation.
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void format_ctdata_unindentCompilerDirectivesOff_staysInColumn1() throws RpgleFormatterException {
+        assertFormatted(false, "**CTDATA arr", "**ctdata arr");
+    }
+
+    @Test
+    public void format_markerOnly_unindentCompilerDirectivesOff_staysInColumn1() throws RpgleFormatterException {
+        assertFormatted(false, "**", "**");
+    }
+
+    @Test
+    public void format_ctdata_unindentCompilerDirectivesOn_staysInColumn1() throws RpgleFormatterException {
+        assertFormatted(true, "**CTDATA arr", "**ctdata arr");
+    }
+
+    /**
+     * Formats a declaration, the given record and two data lines with a start
+     * column of 3.
+     */
+    private void assertFormatted(boolean isUnindentCompilerDirectives, String record, String expected) throws RpgleFormatterException {
+
+        FormatterConfig config = FormatterConfig.fromPreferences();
+        config.setUnindentCompilerDirectives(isUnindentCompilerDirectives);
+        RpgleFormatter formatter = new RpgleFormatter(config);
+        formatter.setSourceLength(100);
+
+        String[] result = formatter.format(new TextLinesInput("dcl-s arr char(3) dim(2) ctdata;", record, "AAA", "BBB"), 2).toLines();
+
+        assertEquals(0, formatter.getErrorCount());
+        assertArrayEquals(new String[] { "  dcl-s arr char(3) dim(2) ctdata;", expected, "AAA", "BBB" }, result);
     }
 }
