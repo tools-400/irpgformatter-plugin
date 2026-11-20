@@ -214,6 +214,7 @@ public class Messages extends NLS {
     public static String Error_Export_failed_A;
     public static String Error_Import_failed_A;
     public static String Error_Invalid_profile_format_A;
+    public static String Error_The_file_contains_no_iRPGFormatter_profile;
     public static String Info_Profile_does_not_contain_all_settings;
 
     public static String Job_Formatting_stream_files;

@@ -34,6 +34,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.helpers.DefaultHandler;
 
+import de.tools400.lpex.irpgformatter.Messages;
+
 /**
  * Handles import and export of iRPGFormatter preference profiles as XML files.
  * <p>
@@ -251,7 +253,7 @@ public final class PreferencesProfileManager {
         // Find <profile kind="iRPGFormatterProfile">
         Element profileElement = findProfileElement(doc);
         if (profileElement == null) {
-            throw new IllegalArgumentException("No iRPGFormatterProfile found in file.");
+            throw new IllegalArgumentException(Messages.Error_The_file_contains_no_iRPGFormatter_profile);
         }
 
         return profileElement;

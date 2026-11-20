@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXParseException;
 
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.ConditionParentheses;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
@@ -310,7 +311,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
             importProfile(file);
             fail("IllegalArgumentException expected");
         } catch (IllegalArgumentException e) {
-            assertEquals("No iRPGFormatterProfile found in file.", e.getMessage());
+            // The preference page shows the message to the user.
+            assertEquals(Messages.Error_The_file_contains_no_iRPGFormatter_profile, e.getMessage());
         }
     }
 
