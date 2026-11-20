@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2026 Thomas Raddatz
- * All rights reserved. This program and the accompanying materials 
+ * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Common Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/cpl-v10.html
@@ -17,12 +17,14 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 /**
  * A simple map-based implementation of IPreferenceStore for testing purposes.
  * This allows preferences to be stored and retrieved without requiring the
- * Eclipse runtime.
+ * Eclipse runtime. Like the preferences of Eclipse, it keeps every value as a
+ * string, so that e.g. {@link #getString(String)} returns a boolean value as
+ * <code>true</code> or <code>false</code>.
  */
 public class MapPreferenceStore implements IPreferenceStore {
 
-    private final Map<String, Object> values = new HashMap<>();
-    private final Map<String, Object> defaults = new HashMap<>();
+    private final Map<String, String> values = new HashMap<>();
+    private final Map<String, String> defaults = new HashMap<>();
 
     @Override
     public void addPropertyChangeListener(IPropertyChangeListener listener) {
@@ -46,114 +48,62 @@ public class MapPreferenceStore implements IPreferenceStore {
 
     @Override
     public boolean getBoolean(String name) {
-        Object value = values.get(name);
-        if (value instanceof Boolean) {
-            return (Boolean)value;
-        }
-        Object defaultValue = defaults.get(name);
-        if (defaultValue instanceof Boolean) {
-            return (Boolean)defaultValue;
-        }
-        return BOOLEAN_DEFAULT_DEFAULT;
+        return toBoolean(getValue(name));
     }
 
     @Override
     public boolean getDefaultBoolean(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof Boolean) {
-            return (Boolean)value;
-        }
-        return BOOLEAN_DEFAULT_DEFAULT;
+        return toBoolean(defaults.get(name));
     }
 
     @Override
     public double getDefaultDouble(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof Double) {
-            return (Double)value;
-        }
-        return DOUBLE_DEFAULT_DEFAULT;
+        return toDouble(defaults.get(name));
     }
 
     @Override
     public float getDefaultFloat(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof Float) {
-            return (Float)value;
-        }
-        return FLOAT_DEFAULT_DEFAULT;
+        return toFloat(defaults.get(name));
     }
 
     @Override
     public int getDefaultInt(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof Integer) {
-            return (Integer)value;
-        }
-        return INT_DEFAULT_DEFAULT;
+        return toInt(defaults.get(name));
     }
 
     @Override
     public long getDefaultLong(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof Long) {
-            return (Long)value;
-        }
-        return LONG_DEFAULT_DEFAULT;
+        return toLong(defaults.get(name));
     }
 
     @Override
     public String getDefaultString(String name) {
-        Object value = defaults.get(name);
-        if (value instanceof String) {
-            return (String)value;
-        }
-        return STRING_DEFAULT_DEFAULT;
+        return toString(defaults.get(name));
     }
 
     @Override
     public double getDouble(String name) {
-        Object value = values.get(name);
-        if (value instanceof Double) {
-            return (Double)value;
-        }
-        return getDefaultDouble(name);
+        return toDouble(getValue(name));
     }
 
     @Override
     public float getFloat(String name) {
-        Object value = values.get(name);
-        if (value instanceof Float) {
-            return (Float)value;
-        }
-        return getDefaultFloat(name);
+        return toFloat(getValue(name));
     }
 
     @Override
     public int getInt(String name) {
-        Object value = values.get(name);
-        if (value instanceof Integer) {
-            return (Integer)value;
-        }
-        return getDefaultInt(name);
+        return toInt(getValue(name));
     }
 
     @Override
     public long getLong(String name) {
-        Object value = values.get(name);
-        if (value instanceof Long) {
-            return (Long)value;
-        }
-        return getDefaultLong(name);
+        return toLong(getValue(name));
     }
 
     @Override
     public String getString(String name) {
-        Object value = values.get(name);
-        if (value instanceof String) {
-            return (String)value;
-        }
-        return getDefaultString(name);
+        return toString(getValue(name));
     }
 
     @Override
@@ -173,27 +123,27 @@ public class MapPreferenceStore implements IPreferenceStore {
 
     @Override
     public void setDefault(String name, boolean value) {
-        defaults.put(name, value);
+        defaults.put(name, String.valueOf(value));
     }
 
     @Override
     public void setDefault(String name, double value) {
-        defaults.put(name, value);
+        defaults.put(name, String.valueOf(value));
     }
 
     @Override
     public void setDefault(String name, float value) {
-        defaults.put(name, value);
+        defaults.put(name, String.valueOf(value));
     }
 
     @Override
     public void setDefault(String name, int value) {
-        defaults.put(name, value);
+        defaults.put(name, String.valueOf(value));
     }
 
     @Override
     public void setDefault(String name, long value) {
-        defaults.put(name, value);
+        defaults.put(name, String.valueOf(value));
     }
 
     @Override
@@ -208,31 +158,86 @@ public class MapPreferenceStore implements IPreferenceStore {
 
     @Override
     public void setValue(String name, boolean value) {
-        values.put(name, value);
+        values.put(name, String.valueOf(value));
     }
 
     @Override
     public void setValue(String name, double value) {
-        values.put(name, value);
+        values.put(name, String.valueOf(value));
     }
 
     @Override
     public void setValue(String name, float value) {
-        values.put(name, value);
+        values.put(name, String.valueOf(value));
     }
 
     @Override
     public void setValue(String name, int value) {
-        values.put(name, value);
+        values.put(name, String.valueOf(value));
     }
 
     @Override
     public void setValue(String name, long value) {
-        values.put(name, value);
+        values.put(name, String.valueOf(value));
     }
 
     @Override
     public void setValue(String name, String value) {
         values.put(name, value);
+    }
+
+    /**
+     * Returns the value or, if there is none, the default value or
+     * <code>null</code>.
+     */
+    private String getValue(String name) {
+        String value = values.get(name);
+        if (value != null) {
+            return value;
+        }
+        return defaults.get(name);
+    }
+
+    private static boolean toBoolean(String value) {
+        if (value == null) {
+            return BOOLEAN_DEFAULT_DEFAULT;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private static double toDouble(String value) {
+        try {
+            return value == null ? DOUBLE_DEFAULT_DEFAULT : Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return DOUBLE_DEFAULT_DEFAULT;
+        }
+    }
+
+    private static float toFloat(String value) {
+        try {
+            return value == null ? FLOAT_DEFAULT_DEFAULT : Float.parseFloat(value);
+        } catch (NumberFormatException e) {
+            return FLOAT_DEFAULT_DEFAULT;
+        }
+    }
+
+    private static int toInt(String value) {
+        try {
+            return value == null ? INT_DEFAULT_DEFAULT : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return INT_DEFAULT_DEFAULT;
+        }
+    }
+
+    private static long toLong(String value) {
+        try {
+            return value == null ? LONG_DEFAULT_DEFAULT : Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return LONG_DEFAULT_DEFAULT;
+        }
+    }
+
+    private static String toString(String value) {
+        return value == null ? STRING_DEFAULT_DEFAULT : value;
     }
 }

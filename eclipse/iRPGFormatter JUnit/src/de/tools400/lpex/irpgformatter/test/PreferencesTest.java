@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import org.junit.Test;
 
 import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
+import de.tools400.lpex.irpgformatter.preferences.ConditionParentheses;
 import de.tools400.lpex.irpgformatter.preferences.KeywordCasingStyle;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
@@ -379,6 +380,29 @@ public class PreferencesTest extends AbstractTestCase {
         PreferenceStoreProvider.setTestValue(name, KeywordUtils.keywordsToString(imported));
 
         assertEquals(name, changed, wordList.get().get(word));
+    }
+
+    // --- Settings of a project restored, e.g. when saving them failed ---
+
+    @Test
+    public void projectSettingValues_restoreTheFormerSettings() {
+
+        Preferences project = PreferenceStoreProvider.createTestProjectPreferences();
+        project.setAlignSubFields(false);
+        project.setMaxNameLength(50);
+        project.setConditionParentheses(ConditionParentheses.WITH_PARENTHESES);
+        Map<String, String> former = project.getProjectSettingValues();
+
+        project.setProjectSpecificSettings();
+        project.setAlignSubFields(true);
+        project.setMaxNameLength(70);
+        project.setConditionParentheses(ConditionParentheses.OFF);
+        project.setProjectSettingValues(former);
+
+        assertFalse(project.isProjectSpecificSettings());
+        assertFalse(project.isAlignSubFields());
+        assertEquals(50, project.getMaxNameLength());
+        assertEquals(ConditionParentheses.WITH_PARENTHESES, project.getConditionParentheses());
     }
 
     // --- Parameter spacing styles array ---

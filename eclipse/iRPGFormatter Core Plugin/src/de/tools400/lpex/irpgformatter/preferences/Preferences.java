@@ -9,6 +9,7 @@
 package de.tools400.lpex.irpgformatter.preferences;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -224,7 +225,42 @@ public final class Preferences implements RpgleSourceConstants {
         for (String name : PROJECT_SETTINGS) {
             preferenceStore.setToDefault(name);
         }
+    }
 
+    /**
+     * Returns the values of the settings of the project, so that
+     * {@link #setProjectSettingValues(Map)} can restore them, e.g. when the
+     * file of the project could not be saved. A setting, that has its default
+     * value, has the value <code>null</code>.
+     *
+     * @return the values by the names of the settings
+     */
+    public Map<String, String> getProjectSettingValues() {
+
+        Map<String, String> values = new HashMap<>();
+        for (String name : PROJECT_SETTINGS) {
+            values.put(name, preferenceStore.isDefault(name) ? null : preferenceStore.getString(name));
+        }
+
+        return values;
+    }
+
+    /**
+     * Restores the settings of the project, that
+     * {@link #getProjectSettingValues()} returned.
+     *
+     * @param values - the values by the names of the settings
+     */
+    public void setProjectSettingValues(Map<String, String> values) {
+
+        for (String name : PROJECT_SETTINGS) {
+            String value = values.get(name);
+            if (value == null) {
+                preferenceStore.setToDefault(name);
+            } else {
+                preferenceStore.setValue(name, value);
+            }
+        }
     }
 
     /**

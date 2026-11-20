@@ -10,6 +10,7 @@ package de.tools400.lpex.irpgformatter.preferencepages;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
@@ -1044,6 +1045,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             return true;
         }
 
+        // The settings are written into the node of the project, that the
+        // formatter reads, before the node is saved: if saving fails, the
+        // former settings are restored, so that Cancel does not leave the
+        // settings of the page active.
+        Map<String, String> formerSettings = preferences.getProjectSettingValues();
+
         if (projectSpecificSettingsCheckbox.getSelection()) {
             preferences.setProjectSpecificSettings();
             storeSettings();
@@ -1054,6 +1061,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         try {
             preferences.save();
         } catch (IOException e) {
+            preferences.setProjectSettingValues(formerSettings);
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Project_settings_not_saved_A, ExceptionUtils.getLocalizedMessage(e)));
             return false;
