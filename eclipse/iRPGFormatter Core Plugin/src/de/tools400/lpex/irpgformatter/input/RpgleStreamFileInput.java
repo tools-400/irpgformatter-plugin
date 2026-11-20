@@ -10,6 +10,7 @@ package de.tools400.lpex.irpgformatter.input;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 
 import org.eclipse.core.resources.IFile;
 
@@ -29,8 +30,10 @@ public class RpgleStreamFileInput extends AbstractStreamFileInput {
     @Override
     protected Reader openReader() throws Exception {
 
-        // The charset first, so that no stream is left open, if it fails.
-        String charset = file.getCharset();
+        // The charset first, so that no stream is left open, if it is not
+        // known: with the name of the charset, the reader would fail after
+        // the stream was opened.
+        Charset charset = Charset.forName(file.getCharset());
 
         return new InputStreamReader(file.getContents(), charset);
     }
