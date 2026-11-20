@@ -294,6 +294,131 @@ public class BreakNameOrLiteralTest extends AbstractTestCase {
         }
     }
 
+    // --- character literals: the value stays the same ---
+
+    /**
+     * The blanks in front of a word of the next line would be lost, because the
+     * compiler continues a literal behind "+" with the first non-blank
+     * character (ILE RPG Reference 7.3, page 311): the part ends in front of
+     * the word instead.
+     */
+    @Test
+    public void breakLiteral_blanksInFrontOfNextLine_areKept() throws RpgleFormatterException {
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "dcl-c HEADER 'Customer   Name     +",
+            "  City      Street     Zip';" },
+            breakLiteral("dcl-c HEADER ", "'Customer   Name     City      Street     Zip'", 40, "", ";"));
+        // @formatter:on
+    }
+
+    /**
+     * No word fits into the line: the literal is split in front of a character,
+     * not in front of the blanks.
+     */
+    @Test
+    public void breakLiteral_noWordFits_blanksAreKept() throws RpgleFormatterException {
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "'" + letters(17) + "+",
+            "  r  cdefghij'" },
+            breakLiteral("", "'" + letters(18) + "  cdefghij'", 20, "", ""));
+        // @formatter:on
+    }
+
+    /**
+     * A line, that ends with a quote and "+", ends the literal and concatenates
+     * it with the next one (ILE RPG Reference 7.3, page 306): an escaped quote
+     * is never split.
+     */
+    @Test
+    public void breakLiteral_escapedQuote_isNotSplit() throws RpgleFormatterException {
+
+        // @formatter:off
+        assertArrayEquals(new String[] {
+            "'" + letters(18) + "+",
+            "  ''zz end'" },
+            breakLiteral("", "'" + letters(18) + "''zz end'", 21, "", ""));
+        // @formatter:on
+    }
+
+    /**
+     * For literals with blanks and escaped quotes and for all line lengths: the
+     * parts, joined like the compiler does, give the literal, and the literal
+     * is still open in front of each "+".
+     */
+    @Test
+    public void breakLiteral_joinedPartsGiveTheLiteral() throws RpgleFormatterException {
+
+        String[] words = { "ab", "c", "defghijklm", "no'pq", "r", "stuvw''xyz", "''", "1234567" };
+        String[] blanks = { " ", "  ", "   " };
+
+        for (int first = 0; first < words.length; first++) {
+            StringBuilder buffer = new StringBuilder("'");
+            for (int i = 0; i < 12; i++) {
+                String word = words[(first + i) % words.length].replace("'", "''");
+                buffer.append(word).append(blanks[(first + i) % blanks.length]);
+            }
+            String literal = buffer.append("end'").toString();
+            for (int maxLineLength = 20; maxLineLength <= 70; maxLineLength++) {
+                for (String suffix : new String[] { "", ";" }) {
+                    String[] parts = breakLiteral("", literal, maxLineLength, "", suffix);
+                    assertEquals(literal + " / " + maxLineLength, literal, joinLikeCompiler(parts, suffix));
+                }
+            }
+        }
+    }
+
+    /**
+     * Joins the parts of a literal like the compiler: a "+" at the end of a
+     * part continues the literal with the first non-blank character of the next
+     * part. Fails, if the literal is closed in front of a "+".
+     */
+    private String joinLikeCompiler(String[] parts, String suffix) {
+
+        StringBuilder literal = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            String part = StringUtils.trimL(parts[i]);
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (i < parts.length - 1) {
+                assertTrue(part, part.endsWith("+"));
+                literal.append(part.substring(0, part.length() - 1));
+                assertTrue("closed in front of +: " + literal, isOpen(literal.toString()));
+            } else {
+                literal.append(part.substring(0, part.length() - suffix.length()));
+            }
+        }
+
+        return literal.toString();
+    }
+
+    /**
+     * Returns <code>true</code>, if the literal is open at the end of the text.
+     * Two quotes inside the literal are an escaped quote.
+     */
+    private boolean isOpen(String text) {
+
+        boolean isOpen = false;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) != '\'') {
+                continue;
+            }
+            if (!isOpen) {
+                isOpen = true;
+            } else if (i + 1 < text.length() && text.charAt(i + 1) == '\'') {
+                i++;
+            } else {
+                isOpen = false;
+            }
+        }
+
+        return isOpen;
+    }
+
     private void assertLastPart(String[] parts, String continuation, String suffix, String value) {
 
         String lastPart = parts[parts.length - 1];

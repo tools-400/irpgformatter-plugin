@@ -681,23 +681,36 @@ public class FormatterUtils implements RpgleSourceConstants {
         }
     }
 
+    /**
+     * Returns the length of the next part of a character literal. A "+" at the
+     * end of the part continues the literal with the first non-blank character
+     * of the next line (ILE RPG Reference 7.3, page 311) and a quote in front
+     * of the "+" ends the literal (page 306). Therefore the rest of the literal
+     * never starts with a blank and an escaped quote is never split. The part
+     * ends in front of a word, if one starts within the maximum length.
+     *
+     * @return the length of the part or 0, if no part fits
+     */
     private static int findBreakpointInLiteral(String literal, int maxLength) {
 
-        if (literal.length() < maxLength) {
+        if (literal.length() <= maxLength) {
             return literal.length();
         }
 
-        int offset = maxLength - 1;
-
-        String currentChar;
-        for (int i = offset; i >= 0; i--) {
-            currentChar = literal.substring(i, i + 1);
-            if (SPACE.equals(currentChar)) {
-                return i + 1;
+        for (int i = maxLength; i > 0; i--) {
+            if (literal.charAt(i - 1) == ' ' && literal.charAt(i) != ' ') {
+                return i;
             }
         }
 
-        return maxLength;
+        for (int i = maxLength; i > 0; i--) {
+            boolean isEscapedQuote = literal.charAt(i - 1) == '\'' && literal.charAt(i) == '\'';
+            if (literal.charAt(i) != ' ' && !isEscapedQuote) {
+                return i;
+            }
+        }
+
+        return 0;
     }
 
     /**

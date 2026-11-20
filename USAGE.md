@@ -341,6 +341,8 @@ When a single name or literal does not fit on a line:
 
 - **Names** are broken with the ellipsis `...`. With **Break name on case change**, the break is placed at a camelCase boundary.
 - **Literals** are broken with `+` (leading blanks of the next line are skipped) or `-` (leading blanks are kept).
+  Character literals are broken so that no blank is lost: in front of a word, if one fits, and never in front of a blank
+  or between the two quotes of an escaped quote (`''`).
   Hexadecimal literals (`x'...'`) are broken behind a whole byte, UCS-2 literals (`u'...'`) behind a whole character.
   Graphic literals (`g'...'`) are not broken.
 
