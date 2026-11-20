@@ -130,6 +130,18 @@ public final class PreferenceStoreProvider {
     }
 
     /**
+     * Sets a value of the test store of the IBM preferences, for example the
+     * style of <i>Automatic closure of control block</i>. Unlike
+     * {@link #getIbmPreferenceStore()}, the tests can call it without the type
+     * of the store, that belongs to JFace.
+     *
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static void setIbmTestValue(String name, String value) {
+        getTestIbmPreferenceStore().setValue(name, value);
+    }
+
+    /**
      * Creates the preferences of a project for a test. They have a store of
      * their own with the default values of the workspace, like the project
      * scope of Eclipse.
@@ -155,5 +167,14 @@ public final class PreferenceStoreProvider {
         }
 
         return getPreferenceStore();
+    }
+
+    private static IPreferenceStore getTestIbmPreferenceStore() {
+
+        if (!testMode) {
+            throw new IllegalStateException("Test mode is not enabled.");
+        }
+
+        return getIbmPreferenceStore();
     }
 }

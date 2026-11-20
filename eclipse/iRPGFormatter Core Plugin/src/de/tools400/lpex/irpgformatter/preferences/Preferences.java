@@ -404,7 +404,7 @@ public final class Preferences implements RpgleSourceConstants {
         } else if ("EndXx".equals(ibmCasingStyle)) {
             return KeywordCasingStyle.UPPER_CAMEL;
         } else if ("Endxx".equals(ibmCasingStyle)) {
-            return KeywordCasingStyle.UPPER_CAMEL;
+            return KeywordCasingStyle.FIRST_UPPER;
         } else if ("endXx".equals(ibmCasingStyle)) {
             return KeywordCasingStyle.LOWER_CAMEL;
         } else {

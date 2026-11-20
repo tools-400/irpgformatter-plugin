@@ -117,6 +117,44 @@ public class PreferencesTest extends AbstractTestCase {
         assertEquals(35, Preferences.getInstance().getDefaultFormatterPreviewVerticalRulerColumn());
     }
 
+    // --- Keyword casing style of the IBM preferences ---
+
+    @Test
+    public void getKeywordCasingStyle_ENDXX_isUppercase() {
+        assertEquals(KeywordCasingStyle.UPPERCASE, getKeywordCasingStyle("ENDXX"));
+    }
+
+    @Test
+    public void getKeywordCasingStyle_EndXx_isUpperCamel() {
+        assertEquals(KeywordCasingStyle.UPPER_CAMEL, getKeywordCasingStyle("EndXx"));
+    }
+
+    @Test
+    public void getKeywordCasingStyle_Endxx_isFirstUpper() {
+        assertEquals(KeywordCasingStyle.FIRST_UPPER, getKeywordCasingStyle("Endxx"));
+    }
+
+    @Test
+    public void getKeywordCasingStyle_endXx_isLowerCamel() {
+        assertEquals(KeywordCasingStyle.LOWER_CAMEL, getKeywordCasingStyle("endXx"));
+    }
+
+    @Test
+    public void getKeywordCasingStyle_endxx_isLowercase() {
+        assertEquals(KeywordCasingStyle.LOWERCASE, getKeywordCasingStyle("endxx"));
+    }
+
+    @Test
+    public void getKeywordCasingStyle_unknownValue_isLowercase() {
+        assertEquals(KeywordCasingStyle.LOWERCASE, getKeywordCasingStyle("unknown"));
+    }
+
+    private KeywordCasingStyle getKeywordCasingStyle(String ibmValue) {
+        PreferenceStoreProvider.setIbmTestValue("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue",
+            ibmValue);
+        return Preferences.getInstance().getKeywordCasingStyle();
+    }
+
     // --- Getters / Setters ---
 
     @Test
