@@ -14,6 +14,7 @@ public enum TokenType {
     NAME,
     LITERAL,
     DATE_TIME_LITERAL,
+    GRAPHIC_LITERAL,
     FUNCTION,
     KEYWORD,
     DATA_TYPE,

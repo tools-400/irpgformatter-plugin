@@ -194,6 +194,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         case DATA_TYPE:
             return formatDataTypeWithParameters(line, token, maxLength);
         case DATE_TIME_LITERAL:
+        case GRAPHIC_LITERAL:
         case EOL:
         case COMMENT:
         case OTHER:
@@ -465,7 +466,7 @@ public class FormatterUtils implements RpgleSourceConstants {
         } else if (token.getType() == TokenType.SPECIAL_WORD) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix,
                 new FormatSpecialWordsRule(config.getSpecialWords(), config.getKeywordCasingStyle()));
-        } else if (token.getType() == TokenType.OTHER || token.getType() == TokenType.DATE_TIME_LITERAL) {
+        } else if (token.getType() == TokenType.OTHER || isLiteralAsAWhole(token)) {
             parameterParts = notBreakableWithRules(currentLine, token, maxLineLength, prefix, suffix, new NullFormattingRule());
         } else if (token.getType() == TokenType.FUNCTION) {
             parameterParts = formatFunctionWithParameters(currentLine, token, maxLineLength);
@@ -476,6 +477,14 @@ public class FormatterUtils implements RpgleSourceConstants {
         }
 
         return parameterParts;
+    }
+
+    /**
+     * Returns <code>true</code> for a date, time, timestamp or graphic literal,
+     * that is never split.
+     */
+    private static boolean isLiteralAsAWhole(IToken token) {
+        return token.getType() == TokenType.DATE_TIME_LITERAL || token.getType() == TokenType.GRAPHIC_LITERAL;
     }
 
     private String[] notBreakableWithRules(String line, IToken token, int maxLineLength, String prefix, String suffix, IFormattingRule... rules)

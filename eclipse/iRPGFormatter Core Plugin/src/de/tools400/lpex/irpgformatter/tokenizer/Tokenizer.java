@@ -25,6 +25,7 @@ import de.tools400.lpex.irpgformatter.utils.StringUtils;
  * <li>NAME - myProcName</li>
  * <li>LITERAL - 'my literal', x'C1C2', u'00410042'</li>
  * <li>DATE_TIME_LITERAL - d'2026-11-20', t'12:00:00'</li>
+ * <li>GRAPHIC_LITERAL - g'oK1K2i'</li>
  * <li>FUNCTION - function(...)</li>
  * <li>SPECIAL_WORD - function(parameter1: parameter2: literal: ...)</li>
  * </ul>
@@ -89,8 +90,8 @@ public class Tokenizer implements RpgleSourceConstants {
                 token = parseSpecialWord(remaining, offset);
             } else if (tokenType == TokenType.LITERAL) {
                 token = parseLiteral(remaining, offset);
-            } else if (tokenType == TokenType.DATE_TIME_LITERAL) {
-                token = parseDateTimeLiteral(remaining, offset);
+            } else if (tokenType == TokenType.DATE_TIME_LITERAL || tokenType == TokenType.GRAPHIC_LITERAL) {
+                token = parseLiteralAsAWhole(remaining, offset, tokenType);
             } else if (tokenType == TokenType.DATA_TYPE) {
                 token = parseVariable(remaining, offset);
             } else if (tokenType == TokenType.FUNCTION) {
@@ -220,18 +221,22 @@ public class Tokenizer implements RpgleSourceConstants {
     }
 
     /**
-     * Parses a date, time or timestamp literal as a whole, so that the colons
-     * of a time literal, e.g. <code>t'12:00:00'</code>, are no separators.
+     * Parses a date, time, timestamp or graphic literal as a whole, so that its
+     * blanks and colons, e.g. of <code>t'12:00:00'</code>, are no separators.
      */
-    private IToken parseDateTimeLiteral(String line, int offset) {
+    private IToken parseLiteralAsAWhole(String line, int offset, TokenType type) {
 
         int i = findEndOfLiteral(line, 0);
         String value = line.substring(0, i);
 
         int rawLength = skipSpaceAndColon(line.substring(i)) + i;
-        IToken token = new DateTimeLiteralToken(value, line.substring(0, rawLength), offset);
+        String rawValue = line.substring(0, rawLength);
 
-        return token;
+        if (type == TokenType.GRAPHIC_LITERAL) {
+            return new GraphicLiteralToken(value, rawValue, offset);
+        }
+
+        return new DateTimeLiteralToken(value, rawValue, offset);
     }
 
     /**
@@ -417,6 +422,8 @@ public class Tokenizer implements RpgleSourceConstants {
             return TokenType.LITERAL;
         } else if (checkDateTime(line)) {
             return TokenType.DATE_TIME_LITERAL;
+        } else if (checkGraphic(line)) {
+            return TokenType.GRAPHIC_LITERAL;
         } else if (checkSpecialWord(line)) {
             return TokenType.SPECIAL_WORD;
         }
@@ -507,6 +514,14 @@ public class Tokenizer implements RpgleSourceConstants {
         default:
             return false;
         }
+    }
+
+    /**
+     * Returns <code>true</code>, if the line starts with a graphic literal:
+     * <code>g'</code> in upper or lower case.
+     */
+    private boolean checkGraphic(String line) {
+        return line.length() >= 2 && line.charAt(1) == '\'' && Character.toUpperCase(line.charAt(0)) == 'G';
     }
 
     private boolean checkEndOfLine(String line) {
