@@ -140,7 +140,9 @@ public final class LpexViewUtils {
     }
 
     /**
-     * Returns the block selection range as an int array [startLine, endLine].
+     * Returns the block selection range as an int array [startLine, endLine]:
+     * the lines, that contain selected text, see
+     * {@link BlockSelectionUtils#getLastSelectedElement(String, int, int, int)}.
      * The selection is made of elements; a show element belongs to the line in
      * front of it, see {@link #getLineText(LpexView, int)}.
      *
@@ -151,11 +153,8 @@ public final class LpexViewUtils {
             return null;
         }
         int top = view.queryInt("block.TopElement");
-        int bottom = view.queryInt("block.BottomElement");
-        int column = view.queryInt("position");
-        if (column == 1) {
-            bottom--;
-        }
+        int bottom = BlockSelectionUtils.getLastSelectedElement(view.query("block.type"), top, view.queryInt("block.BottomElement"),
+            view.queryInt("block.bottomPosition"));
         return new int[] { Math.max(1, view.lineOfElement(top)), view.lineOfElement(bottom) };
     }
 
