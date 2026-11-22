@@ -32,8 +32,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text
 Bundle-Vendor: Tools/400
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: lib/,
- .,
+Bundle-ClassPath: .,
  icons/,
  resources/
 Export-Package: de.tools400.lpex.irpgformatter.api
