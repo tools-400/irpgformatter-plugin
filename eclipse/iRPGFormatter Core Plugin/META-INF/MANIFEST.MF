@@ -31,6 +31,7 @@ Require-Bundle: org.eclipse.ui,
  com.ibm.etools.iseries.rse.ui,
  org.eclipse.jface.text
 Bundle-Vendor: Tools/400
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  icons/,
