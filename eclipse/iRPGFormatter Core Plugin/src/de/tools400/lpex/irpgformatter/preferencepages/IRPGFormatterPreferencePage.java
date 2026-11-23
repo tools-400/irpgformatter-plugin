@@ -682,6 +682,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             ProfileData data = collectProfileDataFromUI();
             PreferencesProfileManager.exportProfile(filePath, data);
         } catch (Exception e) {
+            // An unchecked exception is a bug: log its stack trace.
+            if (e instanceof RuntimeException) {
+                IRpgleFormatterPlugin.logError("Unexpected error while exporting a profile.", e);
+            }
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Export_failed_A, ExceptionUtils.getLocalizedMessage(e)));
         }
@@ -710,6 +714,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Invalid_profile_format_A, ExceptionUtils.getLocalizedMessage(e)));
         } catch (Exception e) {
+            // An unchecked exception is a bug: log its stack trace.
+            if (e instanceof RuntimeException) {
+                IRpgleFormatterPlugin.logError("Unexpected error while importing a profile.", e);
+            }
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Import_failed_A, ExceptionUtils.getLocalizedMessage(e)));
         }

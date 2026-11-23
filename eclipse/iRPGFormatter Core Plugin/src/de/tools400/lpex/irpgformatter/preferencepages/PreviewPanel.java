@@ -540,6 +540,11 @@ public class PreviewPanel implements IPropertyChangeListener {
             previousFormattedResult = newResult;
 
         } catch (Exception e) {
+            // An unchecked exception is a bug, not an error of the preview
+            // source: log its stack trace.
+            if (e instanceof RuntimeException) {
+                IRpgleFormatterPlugin.logError("Unexpected error while formatting the preview.", e);
+            }
             errorHandler.accept(ExceptionUtils.getLocalizedMessage(e));
         }
     }
