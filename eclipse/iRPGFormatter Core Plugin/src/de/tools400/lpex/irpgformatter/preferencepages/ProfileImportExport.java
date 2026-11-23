@@ -45,8 +45,6 @@ public class ProfileImportExport {
     private final Supplier<ProfileData> collectProfileData;
     private final Consumer<ProfileData> applyProfileData;
 
-    private Shell shell;
-
     /**
      * Creates the import and export of profiles.
      *
@@ -63,8 +61,6 @@ public class ProfileImportExport {
      */
     public void createButtons(Composite parent) {
 
-        shell = parent.getShell();
-
         Composite buttonComposite = new Composite(parent, SWT.NONE);
         buttonComposite.setLayout(new GridLayout(2, false));
         buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -73,7 +69,7 @@ public class ProfileImportExport {
         exportButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                handleExport();
+                handleExport(exportButton.getShell());
             }
         });
 
@@ -81,12 +77,12 @@ public class ProfileImportExport {
         importButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                handleImport();
+                handleImport(importButton.getShell());
             }
         });
     }
 
-    private void handleExport() {
+    private void handleExport(Shell shell) {
 
         FileDialog dialog = new FileDialog(shell, SWT.SAVE);
         dialog.setText(Messages.Title_Export_Profile);
@@ -110,7 +106,7 @@ public class ProfileImportExport {
         }
     }
 
-    private void handleImport() {
+    private void handleImport(Shell shell) {
 
         FileDialog dialog = new FileDialog(shell, SWT.OPEN);
         dialog.setText(Messages.Title_Import_Profile);
