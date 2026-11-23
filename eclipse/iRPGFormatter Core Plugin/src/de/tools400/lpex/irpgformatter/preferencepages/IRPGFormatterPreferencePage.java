@@ -157,7 +157,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }, error -> setErrorMessage(error), Preferences.getInstance());
 
         // Populate settings panel (needs previewPanel for addPreviewTrigger)
-        settingsBlock = new FormatterSettingsBlock(previewPanel, preferences, hasWordLists(), this::refreshPreview);
+        settingsBlock = new FormatterSettingsBlock(previewPanel, hasWordLists(), this::refreshPreview);
         createTabs(settingsContainer);
 
         // Load current values

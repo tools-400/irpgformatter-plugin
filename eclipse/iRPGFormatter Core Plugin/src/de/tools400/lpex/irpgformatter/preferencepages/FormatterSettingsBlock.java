@@ -40,7 +40,6 @@ import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
 public class FormatterSettingsBlock {
 
     private final PreviewPanel previewPanel;
-    private final Preferences preferences;
     private final boolean hasWordLists;
     private final Runnable refreshPreview;
 
@@ -76,15 +75,13 @@ public class FormatterSettingsBlock {
      * Creates the settings of the formatter.
      *
      * @param previewPanel - the preview, that the controls update
-     * @param preferences - the preferences, that the page edits
      * @param hasWordLists - <code>true</code>, if the page has the tabs of the
      *        word lists; a project has none
      * @param refreshPreview - formats the preview again, unless it is in edit
      *        mode
      */
-    public FormatterSettingsBlock(PreviewPanel previewPanel, Preferences preferences, boolean hasWordLists, Runnable refreshPreview) {
+    public FormatterSettingsBlock(PreviewPanel previewPanel, boolean hasWordLists, Runnable refreshPreview) {
         this.previewPanel = previewPanel;
-        this.preferences = preferences;
         this.hasWordLists = hasWordLists;
         this.refreshPreview = refreshPreview;
     }
@@ -116,7 +113,7 @@ public class FormatterSettingsBlock {
             Messages.Tooltip_Put_delimiter_before_parameter, PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
         parameterSpacingStyleCombo = createSettingCombo(group, Messages.Label_Parameter_spacing_style, Messages.Tooltip_Parameter_spacing_style,
-            preferences.getParameterSpacingStyles(), PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
+            Preferences.getInstance().getParameterSpacingStyles(), PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
         alignSubFieldsCheckbox = createSettingCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields,
             PreviewComments.ALIGN_SUB_FIELDS);
@@ -153,7 +150,7 @@ public class FormatterSettingsBlock {
         formatDeclarationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_declarations, Messages.Tooltip_Format_declarations, null);
 
         formatCalculationsCombo = createSettingCombo(group, Messages.Label_Format_calculations, Messages.Tooltip_Format_calculations,
-            preferences.getCalculationFormatters(), PreviewComments.FORMAT_CALCULATIONS);
+            Preferences.getInstance().getCalculationFormatters(), PreviewComments.FORMAT_CALCULATIONS);
     }
 
     private void createSaveActionsGroup(Composite parent) {
@@ -176,7 +173,7 @@ public class FormatterSettingsBlock {
             Messages.Tooltip_Remove_empty_lines_before_dcl_pi, PreviewComments.REMOVE_EMPTY_LINES_BEFORE_DCL_PI);
 
         conditionParenthesesCombo = createSettingCombo(group, Messages.Label_Condition_parentheses, Messages.Tooltip_Condition_parentheses,
-            preferences.getConditionParenthesesStyles(), PreviewComments.CONDITION_PARENTHESES);
+            Preferences.getInstance().getConditionParenthesesStyles(), PreviewComments.CONDITION_PARENTHESES);
 
         formatOperationCodesAndBuiltInFunctionsCheckbox = createSettingCheckbox(group, Messages.Label_Format_operation_codes_and_built_in_functions,
             Messages.Tooltip_Format_operation_codes_and_built_in_functions, PreviewComments.FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS);
