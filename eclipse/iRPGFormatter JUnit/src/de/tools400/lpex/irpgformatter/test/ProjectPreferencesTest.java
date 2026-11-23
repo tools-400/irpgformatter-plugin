@@ -12,8 +12,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +41,17 @@ import de.tools400.lpex.irpgformatter.preferences.Preferences;
  * the preferences, it is created with.
  */
 public class ProjectPreferencesTest extends AbstractTestCase {
+
+    /**
+     * The setters of the settings, that only the workspace has: a project uses
+     * the preview and the IBM settings of the workspace. Every other setter
+     * must write a setting of <code>PROJECT_SETTINGS</code> of
+     * {@link Preferences}, see
+     * {@link #removeProjectSpecificSettings_removesEverySetting()}. The setters
+     * of the word lists refuse a project themselves.
+     */
+    private static final Set<String> SETTERS_OF_WORKSPACE = new HashSet<>(Arrays.asList("setMaxLineLength", "setDefaultFormatterSource",
+        "setCustomFormatterSource", "setCustomPreviewContent", "setFormatterPreviewVerticalRulerColumn"));
 
     private Preferences workspace;
     private Preferences project;
@@ -80,6 +100,40 @@ public class ProjectPreferencesTest extends AbstractTestCase {
         assertEquals(project.getDefaultUseConstKeyword(), project.isUseConstKeyword());
         assertEquals(project.getDefaultMaxNameLength(), project.getMaxNameLength());
         assertEquals(project.getDefaultCalculationFormatter(), project.getCalculationFormatter());
+    }
+
+    /**
+     * Calls every setter of the preferences of a project: after
+     * <code>removeProjectSpecificSettings()</code> every getter returns the
+     * value of a project without settings again. A setting, that is missing in
+     * <code>PROJECT_SETTINGS</code> of {@link Preferences}, would stay in the
+     * file of the project.
+     */
+    @Test
+    public void removeProjectSpecificSettings_removesEverySetting() throws Exception {
+
+        Map<String, Object> withoutSettings = getValues(PreferenceStoreProvider.createTestProjectPreferences());
+
+        int count = 0;
+        for (Method setter : Preferences.class.getMethods()) {
+            if (!isSetter(setter) || SETTERS_OF_WORKSPACE.contains(setter.getName())) {
+                continue;
+            }
+
+            Preferences preferences = PreferenceStoreProvider.createTestProjectPreferences();
+            preferences.setProjectSpecificSettings();
+            if (!setOtherValue(preferences, setter)) {
+                // A word list: a project has none of its own.
+                continue;
+            }
+
+            preferences.removeProjectSpecificSettings();
+
+            assertEquals(setter.getName(), Collections.emptyMap(), getDifferences(withoutSettings, getValues(preferences)));
+            count++;
+        }
+
+        assertTrue("Only " + count + " setters tested", count >= 20);
     }
 
     // --- Independent values ---
@@ -225,5 +279,93 @@ public class ProjectPreferencesTest extends AbstractTestCase {
         keywords.put(key, value);
 
         return keywords;
+    }
+
+    /**
+     * Returns <code>true</code> for a setter of a single setting, e.g.
+     * <code>setMaxNameLength(int)</code>.
+     */
+    private static boolean isSetter(Method method) {
+        return method.getName().startsWith("set") && method.getParameterTypes().length == 1 && !Modifier.isStatic(method.getModifiers())
+            && method.getReturnType() == void.class && !method.getName().equals("setProjectSettingValues");
+    }
+
+    /**
+     * Calls the setter with a value, that changes a getter of the preferences.
+     *
+     * @return <code>false</code>, if the setter refuses the preferences of a
+     *         project
+     */
+    private static boolean setOtherValue(Preferences preferences, Method setter) throws Exception {
+
+        Map<String, Object> before = getValues(preferences);
+        for (Object value : getCandidates(setter.getParameterTypes()[0])) {
+            try {
+                setter.invoke(preferences, value);
+            } catch (InvocationTargetException e) {
+                if (e.getCause() instanceof IllegalStateException) {
+                    return false;
+                }
+                throw e;
+            }
+            if (!before.equals(getValues(preferences))) {
+                return true;
+            }
+        }
+
+        throw new AssertionError(setter.getName() + " changes no value of the project");
+    }
+
+    private static Object[] getCandidates(Class<?> type) {
+
+        if (type == boolean.class) {
+            return new Object[] { true, false };
+        } else if (type == int.class) {
+            return new Object[] { 77, 78 };
+        } else if (type == String.class) {
+            return new Object[] { "test", "other" };
+        } else if (type.isEnum()) {
+            return type.getEnumConstants();
+        } else if (type == Map.class) {
+            return new Object[] { Collections.emptyMap() };
+        }
+
+        throw new AssertionError("Unexpected parameter type: " + type.getName());
+    }
+
+    /**
+     * Returns the values of all getters of the preferences by the names of the
+     * getters. An array is returned as its text, because the getters return a
+     * new array every time.
+     */
+    private static Map<String, Object> getValues(Preferences preferences) throws Exception {
+
+        Map<String, Object> values = new TreeMap<>();
+        for (Method getter : Preferences.class.getMethods()) {
+            String name = getter.getName();
+            if ((name.startsWith("get") || name.startsWith("is")) && !name.startsWith("getDefault") && !name.equals("getClass")
+                && getter.getParameterTypes().length == 0 && !Modifier.isStatic(getter.getModifiers())) {
+                Object value = getter.invoke(preferences);
+                values.put(name, value instanceof Object[] ? Arrays.deepToString((Object[])value) : value);
+            }
+        }
+
+        return values;
+    }
+
+    /**
+     * Returns the getters, whose values differ, with the expected and the
+     * actual value.
+     */
+    private static Map<String, String> getDifferences(Map<String, Object> expected, Map<String, Object> actual) {
+
+        Map<String, String> differences = new TreeMap<>();
+        for (String name : expected.keySet()) {
+            if (!Objects.equals(expected.get(name), actual.get(name))) {
+                differences.put(name, expected.get(name) + " -> " + actual.get(name));
+            }
+        }
+
+        return differences;
     }
 }
