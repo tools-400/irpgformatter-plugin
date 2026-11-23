@@ -253,6 +253,35 @@ public class Messages extends NLS {
     public static String Label_Workspace_settings_of_project;
     public static String Error_Project_settings_not_saved_A;
 
+    public static String Label_IBM_Settings_SQL_Indent;
+    public static String Tooltip_IBM_Settings_SQL_Indent;
+    public static String Label_IBM_Settings_SQL_Break_on_comma;
+    public static String Tooltip_IBM_Settings_SQL_Break_on_comma;
+    public static String Label_IBM_Settings_SQL_Break_on_and_or;
+    public static String Tooltip_IBM_Settings_SQL_Break_on_and_or;
+    public static String Label_IBM_Settings_SQL_Keyword_casing;
+    public static String Tooltip_IBM_Settings_SQL_Keyword_casing;
+    public static String Label_IBM_Settings_SQL_Identifier_casing;
+    public static String Tooltip_IBM_Settings_SQL_Identifier_casing;
+    public static String Label_SQL_break_style_After;
+    public static String Label_SQL_break_style_Before;
+    public static String Label_SQL_break_style_End_of_line;
+    public static String Label_SQL_casing_style_Uppercase;
+    public static String Label_SQL_casing_style_Lowercase;
+    public static String Label_SQL_casing_style_Initial_character;
+    public static String Label_SQL_casing_style_Ignore;
+    public static String Label_Take_over_RDi_settings;
+    public static String Tooltip_Take_over_RDi_settings;
+    public static String Label_Apply_to_RDi;
+    public static String Tooltip_Apply_to_RDi;
+    public static String Label_IBM_settings_not_stored_in_project;
+    public static String Label_IBM_settings_differ_from_RDi_A;
+    public static String Label_IBM_settings_are_applied_to_RDi;
+    public static String Question_Apply_IBM_settings_of_profile_to_RDi_A;
+    public static String Error_IBM_settings_not_saved_A;
+    public static String Error_Invalid_value_A_of_IBM_setting_B;
+    public static String Label_IBM_setting_of_SQL_A;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

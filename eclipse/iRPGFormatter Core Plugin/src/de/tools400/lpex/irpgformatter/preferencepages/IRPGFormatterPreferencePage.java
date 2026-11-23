@@ -37,7 +37,9 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import de.tools400.lpex.irpgformatter.IRpgleFormatterPlugin;
 import de.tools400.lpex.irpgformatter.Messages;
+import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
+import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
 import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
@@ -48,7 +50,8 @@ import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
  * The page is also the property page of a project. There it edits the settings
  * of the project, if the project specific settings are enabled. Otherwise it
  * shows the settings of the workspace, which apply to the project. The settings
- * of the preview and the IBM settings always are those of the workspace.
+ * of the preview and the word lists always are those of the workspace. The IBM
+ * settings of the workspace are those of RDi.
  * </p>
  * <p>
  * The controls of the settings and their mappings are in
@@ -151,10 +154,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         settingsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         // Create preview panel second (right column in grid)
-        previewPanel = new PreviewPanel(container, () -> {
-            if (settingsBlock == null || !settingsBlock.isInitialized()) return null;
-            return settingsBlock.createConfig();
-        }, error -> setErrorMessage(error), Preferences.getInstance());
+        previewPanel = new PreviewPanel(container, this::createPreviewConfig, error -> setErrorMessage(error), Preferences.getInstance());
 
         // Populate settings panel (needs previewPanel for addPreviewTrigger)
         settingsBlock = new FormatterSettingsBlock(previewPanel, hasWordLists(), this::refreshPreview);
@@ -194,6 +194,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             @Override
             public void widgetSelected(SelectionEvent e) {
                 updateProjectSpecificSettings();
+                if (projectSpecificSettingsCheckbox.getSelection()) {
+                    // The settings of RDi are the start of the IBM settings of
+                    // the project. After the controls are enabled again, so
+                    // that the group enables its toggle button itself.
+                    ibmSettingsGroup.takeOverRdiSettings();
+                }
             }
         });
 
@@ -236,6 +242,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             }
         } else if (settingsEnableState == null) {
             settingsBlock.load(Preferences.getInstance());
+            ibmSettingsGroup.showRdiSettings();
             settingsEnableState = ControlEnableState.disable(settingsContainer);
             refreshPreview();
         }
@@ -265,6 +272,23 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         if (!previewPanel.isEditMode()) {
             previewPanel.formatPreview();
         }
+    }
+
+    /**
+     * Returns the configuration of the preview with the settings and the IBM
+     * settings of the page, or <code>null</code>, while the controls are
+     * created.
+     */
+    private FormatterConfig createPreviewConfig() {
+
+        if (settingsBlock == null || !settingsBlock.isInitialized() || ibmSettingsGroup == null) {
+            return null;
+        }
+
+        FormatterConfig config = settingsBlock.createConfig();
+        ibmSettingsGroup.applyTo(config);
+
+        return config;
     }
 
     @Override
@@ -303,14 +327,14 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         container.setLayout(new GridLayout(1, false));
 
         // IBM settings group
-        ibmSettingsGroup = new IbmSettingsGroup(preferences);
+        ibmSettingsGroup = new IbmSettingsGroup(isPropertyPage(), this::refreshPreview);
         ibmSettingsGroup.create(container);
 
         // General, experimental and save actions groups
         settingsBlock.createSettingGroups(container);
 
         // Import / Export buttons
-        new ProfileImportExport(settingsBlock::collectProfileData, settingsBlock::applyProfileData).createButtons(container);
+        new ProfileImportExport(this::collectProfileData, this::applyProfileData).createButtons(container);
 
         scrolled.setContent(container);
         scrolled.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -318,14 +342,36 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return scrolled;
     }
 
-    private void loadPreferences() {
+    /**
+     * Returns the settings and the IBM settings of the page and the custom
+     * source of the preview as a profile.
+     */
+    private ProfileData collectProfileData() {
 
-        ibmSettingsGroup.load();
+        ProfileData data = settingsBlock.collectProfileData();
+        ibmSettingsGroup.collectProfileData(data);
+
+        return data;
+    }
+
+    /**
+     * Shows the settings of a profile. The IBM settings come first, because the
+     * settings block formats the preview again.
+     */
+    private void applyProfileData(ProfileData data) {
+
+        ibmSettingsGroup.applyProfileData(data);
+        settingsBlock.applyProfileData(data);
+    }
+
+    private void loadPreferences() {
 
         if (isPropertyPage() && !preferences.isProjectSpecificSettings()) {
             settingsBlock.load(Preferences.getInstance());
+            ibmSettingsGroup.showRdiSettings();
         } else {
             settingsBlock.load(preferences);
+            ibmSettingsGroup.load(preferences);
         }
 
         loadPreviewSources();
@@ -344,10 +390,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     /**
      * Stores the settings of the page. The property page of a project either
-     * stores the settings of the project or removes them.
+     * stores the settings of the project or removes them. The IBM settings of
+     * the page are written into the settings of RDi, if the user wants it.
      *
-     * @return <code>false</code>, if the settings of the project could not be
-     *         saved
+     * @return <code>false</code>, if the settings of the project or of RDi
+     *         could not be saved
      */
     private boolean storePreferences() {
 
@@ -356,8 +403,27 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         if (!isPropertyPage()) {
             settingsBlock.store(preferences);
-            return true;
+        } else if (!storeProjectPreferences()) {
+            return false;
         }
+
+        if (!storeIbmSettingsOfRdi()) {
+            return false;
+        }
+
+        // The page shows the stored IBM settings, e.g. after Apply.
+        ibmSettingsGroup.load(preferences);
+
+        return true;
+    }
+
+    /**
+     * Stores or removes the settings of the project.
+     *
+     * @return <code>false</code>, if the settings of the project could not be
+     *         saved
+     */
+    private boolean storeProjectPreferences() {
 
         // The settings are written into the node of the project, that the
         // formatter reads, before the node is saved: if saving fails, the
@@ -368,6 +434,11 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         if (projectSpecificSettingsCheckbox.getSelection()) {
             preferences.setProjectSpecificSettings();
             settingsBlock.store(preferences);
+            // A project of a former version without IBM settings gets them
+            // only, if the user takes them over.
+            if (ibmSettingsGroup.getValues() != null) {
+                preferences.setIbmSettingValues(ibmSettingsGroup.getValues());
+            }
         } else {
             preferences.removeProjectSpecificSettings();
         }
@@ -378,6 +449,36 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             preferences.setProjectSettingValues(formerSettings);
             MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
                 Messages.bind(Messages.Error_Project_settings_not_saved_A, ExceptionUtils.getLocalizedMessage(e)));
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Writes the IBM settings of the page into the settings of RDi, if the user
+     * wants it.
+     *
+     * @return <code>false</code>, if the settings of RDi could not be saved
+     */
+    private boolean storeIbmSettingsOfRdi() {
+
+        if (!ibmSettingsGroup.isApplyToRdi()) {
+            return true;
+        }
+
+        Preferences workspacePreferences = Preferences.getInstance();
+        Map<String, String> formerIbmSettings = workspacePreferences.getIbmSettingValues();
+        workspacePreferences.setIbmSettingValues(ibmSettingsGroup.getValues());
+
+        try {
+            workspacePreferences.save();
+        } catch (IOException e) {
+            // RDi uses its settings at once: restore the former ones, like the
+            // settings of a project.
+            workspacePreferences.setIbmSettingValues(formerIbmSettings);
+            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
+                Messages.bind(Messages.Error_IBM_settings_not_saved_A, ExceptionUtils.getLocalizedMessage(e)));
             return false;
         }
 
@@ -397,6 +498,10 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         settingsBlock.loadDefaults(preferences);
+
+        // The IBM settings belong to RDi: a profile, that was imported, is no
+        // longer written into them.
+        ibmSettingsGroup.showRdiSettings();
 
         previewPanel.resetToDefaults(preferences.getDefaultPluginFormatterSource(), preferences.getDefaultCustomFormatterSource(),
             preferences.getDefaultFormatterPreviewVerticalRulerColumn());

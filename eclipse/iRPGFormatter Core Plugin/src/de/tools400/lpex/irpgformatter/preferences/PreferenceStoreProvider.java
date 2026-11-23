@@ -8,6 +8,9 @@
 
 package de.tools400.lpex.irpgformatter.preferences;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ibm.etools.iseries.edit.IBMiEditPlugin;
@@ -160,12 +163,29 @@ public final class PreferenceStoreProvider {
      * @throws IllegalStateException if test mode is not enabled
      */
     public static Preferences createTestProjectPreferences() {
+        return createTestProjectPreferences(Collections.emptyMap());
+    }
+
+    /**
+     * Creates the preferences of a project for a test, whose file contains the
+     * given values, e.g. the file of a former version without the IBM settings.
+     * The values are taken as they are, like Eclipse reads the file.
+     *
+     * @param fileValues - the values of the file by the names of the settings
+     * @throws IllegalStateException if test mode is not enabled
+     */
+    public static Preferences createTestProjectPreferences(Map<String, String> fileValues) {
 
         if (!testMode) {
             throw new IllegalStateException("Test mode is not enabled.");
         }
 
-        Preferences preferences = Preferences.forProject(new MapPreferenceStore());
+        MapPreferenceStore store = new MapPreferenceStore();
+        for (Map.Entry<String, String> value : fileValues.entrySet()) {
+            store.putValue(value.getKey(), value.getValue());
+        }
+
+        Preferences preferences = Preferences.forProject(store);
         preferences.initializeDefaultPreferences();
 
         return preferences;

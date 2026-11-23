@@ -550,12 +550,13 @@ public class PreviewPanel implements IPropertyChangeListener {
     }
 
     /**
-     * Formats the raw source with the line width of the preview and shows the
-     * first error or clears the error message.
+     * Formats the raw source with the line width of the preview and the start
+     * column of the configuration, e.g. of the project, and shows the first
+     * error or clears the error message.
      */
     private FormattedResult formatSource(String rawSource, FormatterConfig config) throws RpgleFormatterException {
 
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+        int defaultIndent = config.getStartColumn() - 1;
 
         RpgleFormatter previewFormatter = new RpgleFormatter(config);
         previewFormatter.setSourceLength(previewVerticalRulerSpinner.getSelection());

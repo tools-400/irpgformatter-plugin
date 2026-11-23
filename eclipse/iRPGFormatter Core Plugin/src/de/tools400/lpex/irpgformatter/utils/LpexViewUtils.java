@@ -120,14 +120,18 @@ public final class LpexViewUtils {
     }
 
     /**
-     * Returns the physical record length for source members, or
-     * <code>Integer.MAX_VALUE</code> for stream files (where LPEX reports
-     * "default" instead of a number).
+     * Returns the physical record length for source members, or the end column
+     * of the given preferences for stream files (where LPEX reports "default"
+     * instead of a number), which is <code>Integer.MAX_VALUE</code> for
+     * <code>*MAX</code>.
+     *
+     * @param view - the view of the source
+     * @param preferences - the preferences of the source, e.g. of its project
      */
-    public static int getMaxLineLength(LpexView view) {
+    public static int getMaxLineLength(LpexView view, Preferences preferences) {
         String raw = view.query("save.textLimit");
         if (raw == null || "default".equals(raw)) {
-            return Preferences.getInstance().getEndColumn();
+            return preferences.getEndColumn();
         }
         return Integer.parseInt(raw);
     }

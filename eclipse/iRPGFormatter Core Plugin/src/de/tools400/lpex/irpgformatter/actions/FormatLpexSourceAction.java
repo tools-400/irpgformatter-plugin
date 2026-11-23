@@ -112,7 +112,7 @@ public class FormatLpexSourceAction implements LpexAction {
         boolean executeIrpgFormatter = preferences.isFormatDeclarations() || calculationFormatter == CalculationFormatter.IRPG_FORMATTER;
 
         RpgleFormatter formatter = new RpgleFormatter(FormatterConfig.fromPreferences(preferences));
-        formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view));
+        formatter.setSourceLength(LpexViewUtils.getMaxLineLength(view, preferences));
 
         int endLine = -1;
         saveCursorPosition(view);
@@ -122,7 +122,7 @@ public class FormatLpexSourceAction implements LpexAction {
         }
 
         if (executeIrpgFormatter) {
-            FormattedResult result = format(formatter, view, input, startLine);
+            FormattedResult result = format(formatter, preferences, view, input, startLine);
 
             // Write formatted source back to view. Statements that failed to
             // format are written as their original source lines, so the
@@ -183,10 +183,14 @@ public class FormatLpexSourceAction implements LpexAction {
      * like the whole source. If these lines cannot be collected into
      * statements, the selection is formatted alone, starting with the current
      * indent of its first line.
+     *
+     * @param preferences - the preferences of the source, whose start column is
+     *        the indent of the first level
      */
-    private FormattedResult format(RpgleFormatter formatter, LpexView view, RpgleLpexInput input, int startLine) throws RpgleFormatterException {
+    private FormattedResult format(RpgleFormatter formatter, Preferences preferences, LpexView view, RpgleLpexInput input, int startLine)
+        throws RpgleFormatterException {
 
-        int defaultIndent = Preferences.getInstance().getStartColumn() - 1;
+        int defaultIndent = preferences.getStartColumn() - 1;
 
         try {
             return formatter.format(input, defaultIndent, input.getPrecedingSourceLines());

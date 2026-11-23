@@ -77,8 +77,20 @@ public final class WidgetFactory {
      * dialog.
      */
     public static Button createStandardButton(Composite parent, String label, String tooltipText) {
+        return createStandardButton(parent, SWT.PUSH, label, tooltipText);
+    }
 
-        Button button = new Button(parent, SWT.PUSH);
+    /**
+     * Creates a toggle button, that is at least as wide as the buttons of a
+     * dialog.
+     */
+    public static Button createStandardToggleButton(Composite parent, String label, String tooltipText) {
+        return createStandardButton(parent, SWT.TOGGLE, label, tooltipText);
+    }
+
+    private static Button createStandardButton(Composite parent, int style, String label, String tooltipText) {
+
+        Button button = new Button(parent, style);
         button.setText(label);
         button.setToolTipText(tooltipText);
 

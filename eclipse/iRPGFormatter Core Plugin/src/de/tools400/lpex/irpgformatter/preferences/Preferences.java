@@ -9,14 +9,20 @@
 package de.tools400.lpex.irpgformatter.preferences;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 
+import de.tools400.lpex.irpgformatter.Messages;
 import de.tools400.lpex.irpgformatter.menu.MenuExtension;
 import de.tools400.lpex.irpgformatter.rules.RpgleSourceConstants;
 import de.tools400.lpex.irpgformatter.utils.KeywordUtils;
@@ -116,16 +122,72 @@ public final class Preferences implements RpgleSourceConstants {
     private static final CalculationFormatter DEFAULT_CALCULATION_FORMATTER = CalculationFormatter.IRPG_FORMATTER;
     private static final boolean DEFAULT_FORMAT_ON_SAVE = false;
 
-    /**
-     * The settings of the formatter, that a project can have of its own. The
-     * word lists, the settings of the preview and the shortcut stay those of
-     * the workspace.
+    /*
+     * The settings of IBM, that iRPGFormatter uses. Their names are the keys of
+     * the preferences of IBM, also in the file of a project and in a profile.
+     * They are persisted: never rename them.
      */
-    private static final String[] PROJECT_SETTINGS = { PROJECT_SPECIFIC_SETTINGS, PARAMETER_SPACING_STYLE, USE_CONST_KEYWORD,
-        DELIMITER_BEFORE_PARAMETER, ALIGN_SUB_FIELDS, BREAK_BETWEEN_CASE_CHANGE, BREAK_BEFORE_KEYWORD, SORT_CONST_VALUE_TO_END, REPLACE_PI_NAME,
-        REMOVE_END_PROC_NAME, UNINDENT_COMPILER_DIRECTIVES, REMOVE_EMPTY_COMMENT_LINES, REMOVE_EMPTY_LINES_BEFORE_DCL_PI, CONDITION_PARENTHESES,
-        FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS, FORMAT_SPECIAL_WORDS_OF_CALCULATIONS, MAX_NAME_LENGTH, MIN_NAME_LENGTH, EXECUTE_IBM_FORMATTER,
-        FORMAT_DECLARATIONS, CALCULATION_FORMATTER, FORMAT_ON_SAVE };
+    public static final String IBM_START_COLUMN = "RPGLE.FORMATTING.start";
+    public static final String IBM_END_COLUMN = "RPGLE.FORMATTING.end";
+    public static final String IBM_INDENT = "RPGLE.FORMATTING.length";
+    public static final String IBM_SELECT_INDENT = "RPGLE.FORMATTING.select";
+    public static final String IBM_PRESERVE_RELATIVE_INDENT = "RPGLE.FORMATTING.multiple";
+    public static final String IBM_SQL_FORMATTING = "SQLRPGLE.FORMATTING.base";
+    public static final String IBM_SQL_INDENT = "SQLRPGLE.INDENT.S1_Blanks";
+    public static final String IBM_SQL_BREAK_ON_COMMA = "SQLRPGLE.FORMATTING.onComma";
+    public static final String IBM_SQL_BREAK_ON_AND_OR = "SQLRPGLE.FORMATTING.onAndOr";
+    public static final String IBM_SQL_UPPERCASING = "SQLRPGLE.UPPERCASING.base";
+    public static final String IBM_SQL_CASING_STYLE = "SQLRPGLE.UPPERCASING.base.value";
+    public static final String IBM_SQL_KEYWORD_CASING = "SQLRPGLE.UPPERCASING.keywords";
+    public static final String IBM_SQL_IDENTIFIER_CASING = "SQLRPGLE.UPPERCASING.identifiers";
+    public static final String IBM_KEYWORD_CASING_STYLE = "com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue";
+
+    /** Value of {@link #IBM_END_COLUMN} without an end column */
+    private static final String IBM_END_COLUMN_MAX = "*MAX";
+
+    /** The values of {@link #IBM_KEYWORD_CASING_STYLE}, that RDi writes */
+    private static final List<String> IBM_KEYWORD_CASING_STYLES = Collections
+        .unmodifiableList(Arrays.asList("ENDXX", "EndXx", "Endxx", "endXx", "endxx"));
+
+    /**
+     * The settings of IBM, that iRPGFormatter uses, in the order of the group
+     * <i>IBM Settings</i> of the preference page.
+     */
+    private static final List<String> IBM_SETTINGS = Collections.unmodifiableList(Arrays.asList(IBM_START_COLUMN, IBM_END_COLUMN, IBM_INDENT,
+        IBM_SELECT_INDENT, IBM_PRESERVE_RELATIVE_INDENT, IBM_SQL_FORMATTING, IBM_SQL_INDENT, IBM_SQL_BREAK_ON_COMMA, IBM_SQL_BREAK_ON_AND_OR,
+        IBM_SQL_UPPERCASING, IBM_SQL_CASING_STYLE, IBM_SQL_KEYWORD_CASING, IBM_SQL_IDENTIFIER_CASING, IBM_KEYWORD_CASING_STYLE));
+
+    /**
+     * The settings, that a project can have of its own: the settings of the
+     * formatter and the IBM settings. The word lists, the settings of the
+     * preview and the shortcut stay those of the workspace.
+     */
+    private static final List<String> PROJECT_SETTINGS;
+
+    static {
+        List<String> projectSettings = new ArrayList<>(Arrays.asList(PROJECT_SPECIFIC_SETTINGS, PARAMETER_SPACING_STYLE, USE_CONST_KEYWORD,
+            DELIMITER_BEFORE_PARAMETER, ALIGN_SUB_FIELDS, BREAK_BETWEEN_CASE_CHANGE, BREAK_BEFORE_KEYWORD, SORT_CONST_VALUE_TO_END, REPLACE_PI_NAME,
+            REMOVE_END_PROC_NAME, UNINDENT_COMPILER_DIRECTIVES, REMOVE_EMPTY_COMMENT_LINES, REMOVE_EMPTY_LINES_BEFORE_DCL_PI, CONDITION_PARENTHESES,
+            FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS, FORMAT_SPECIAL_WORDS_OF_CALCULATIONS, MAX_NAME_LENGTH, MIN_NAME_LENGTH,
+            EXECUTE_IBM_FORMATTER, FORMAT_DECLARATIONS, CALCULATION_FORMATTER, FORMAT_ON_SAVE));
+        projectSettings.addAll(IBM_SETTINGS);
+        PROJECT_SETTINGS = Collections.unmodifiableList(projectSettings);
+    }
+
+    /**
+     * The IBM settings, whose values are numbers. The other IBM settings are
+     * the end column, the booleans and the style of the keyword casing.
+     */
+    private static final List<String> IBM_NUMBER_SETTINGS = Collections
+        .unmodifiableList(Arrays.asList(IBM_START_COLUMN, IBM_INDENT, IBM_SELECT_INDENT, IBM_SQL_INDENT, IBM_SQL_BREAK_ON_COMMA,
+            IBM_SQL_BREAK_ON_AND_OR, IBM_SQL_CASING_STYLE, IBM_SQL_KEYWORD_CASING, IBM_SQL_IDENTIFIER_CASING));
+
+    /**
+     * The IBM settings, whose values are <code>true</code> or
+     * <code>false</code>
+     */
+    private static final List<String> IBM_BOOLEAN_SETTINGS = Collections
+        .unmodifiableList(Arrays.asList(IBM_PRESERVE_RELATIVE_INDENT, IBM_SQL_FORMATTING, IBM_SQL_UPPERCASING));
 
     /**
      * <code>true</code> for the preferences of a project. They return the word
@@ -159,13 +221,15 @@ public final class Preferences implements RpgleSourceConstants {
     /**
      * Returns the preferences of a project, that are kept in the given
      * preference store of the project. Their default values are those of the
-     * workspace. The settings of IBM and the word lists have no project
-     * specific values: they are always those of the workspace.
+     * workspace. The word lists have no project specific values: they are
+     * always those of the workspace.
      * <p>
      * The preferences of a project apply only, if
      * {@link #isProjectSpecificSettings()} returns <code>true</code>. Then all
      * settings of the formatter come from the project, a setting, that the
-     * project does not contain, has the default value.
+     * project does not contain, has the default value. An IBM setting, that the
+     * project does not contain, e.g. in the file of a former version, has the
+     * value of RDi.
      * </p>
      *
      * @param projectPreferenceStore - the preference store of the project
@@ -173,6 +237,24 @@ public final class Preferences implements RpgleSourceConstants {
      */
     public static Preferences forProject(IPreferenceStore projectPreferenceStore) {
         return new Preferences(projectPreferenceStore, PreferenceStoreProvider.getIbmPreferenceStore(), true);
+    }
+
+    /**
+     * Returns preferences, whose IBM settings have the given values, e.g. the
+     * values of the preference page, that are not saved yet. Only the getters
+     * of the IBM settings return meaningful values, the other settings have no
+     * values. An IBM setting, that is missing in the map, has the value of RDi.
+     *
+     * @param ibmSettingValues - the values by the names of the IBM settings,
+     *        see {@link #getIbmSettingValues()}
+     * @return the preferences with the IBM settings
+     */
+    public static Preferences forIbmSettingValues(Map<String, String> ibmSettingValues) {
+
+        Preferences preferences = new Preferences(new MapPreferenceStore(), PreferenceStoreProvider.getIbmPreferenceStore(), true);
+        preferences.setIbmSettingValues(ibmSettingValues);
+
+        return preferences;
     }
 
     /**
@@ -265,16 +347,200 @@ public final class Preferences implements RpgleSourceConstants {
 
     /**
      * Writes the preferences into their file, e.g. the file of the project in
-     * its folder <code>.settings</code>. The preferences of the workspace are
-     * saved by Eclipse.
+     * its folder <code>.settings</code>. The workspace also writes the IBM
+     * settings of RDi, that {@link #setIbmSettingValues(Map)} changed.
      *
      * @throws IOException - the file could not be written
      */
     public void save() throws IOException {
 
-        if (preferenceStore instanceof IPersistentPreferenceStore) {
-            ((IPersistentPreferenceStore)preferenceStore).save();
+        save(preferenceStore);
+
+        if (!project) {
+            save(ibmPreferenceStore);
         }
+    }
+
+    private static void save(IPreferenceStore store) throws IOException {
+
+        if (store instanceof IPersistentPreferenceStore) {
+            ((IPersistentPreferenceStore)store).save();
+        }
+    }
+
+    /**
+     * Returns the names of the IBM settings, that iRPGFormatter uses, in the
+     * order of the group <i>IBM Settings</i> of the preference page. The names
+     * are the keys of the preferences of IBM.
+     */
+    public static List<String> getIbmSettingNames() {
+        return IBM_SETTINGS;
+    }
+
+    /**
+     * Checks the value of an IBM setting, e.g. of a profile, that is imported.
+     * The value is written into the settings of RDi as it is, so that it must
+     * be a value, that RDi writes itself.
+     *
+     * @param name - the name of the IBM setting
+     * @param value - the value as text
+     * @throws IllegalArgumentException - the value is invalid; the message
+     *         names the value and the setting
+     */
+    public static void checkIbmSettingValue(String name, String value) {
+
+        if (!isValidIbmSettingValue(name, value)) {
+            throw new IllegalArgumentException(Messages.bind(Messages.Error_Invalid_value_A_of_IBM_setting_B, value, name));
+        }
+    }
+
+    private static boolean isValidIbmSettingValue(String name, String value) {
+
+        if (IBM_NUMBER_SETTINGS.contains(name)) {
+            return isNumber(value);
+        } else if (IBM_END_COLUMN.equals(name)) {
+            return IBM_END_COLUMN_MAX.equals(value) || isNumber(value);
+        } else if (IBM_BOOLEAN_SETTINGS.contains(name)) {
+            return Boolean.TRUE.toString().equals(value) || Boolean.FALSE.toString().equals(value);
+        } else if (IBM_KEYWORD_CASING_STYLE.equals(name)) {
+            return IBM_KEYWORD_CASING_STYLES.contains(value);
+        }
+
+        return true;
+    }
+
+    private static boolean isNumber(String value) {
+
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns <code>true</code>, if the project has IBM settings of its own.
+     * The file of a project of a former version has none, and the workspace
+     * never has: then the IBM settings of RDi apply.
+     */
+    public boolean hasIbmSettings() {
+
+        for (String name : IBM_SETTINGS) {
+            if (isIbmSettingOfProject(name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns the values of the IBM settings: those of the project or of RDi.
+     *
+     * @return the values as text by the names of the IBM settings, in the order
+     *         of {@link #getIbmSettingNames()}
+     */
+    public Map<String, String> getIbmSettingValues() {
+
+        Map<String, String> values = new LinkedHashMap<>();
+        for (String name : IBM_SETTINGS) {
+            values.put(name, getIbmStore(name).getString(name));
+        }
+
+        return values;
+    }
+
+    /**
+     * Returns the names of the IBM settings, whose values differ from those of
+     * the given preferences, e.g. of RDi. The values are compared, as the
+     * formatter applies them: the end column as a number, the casing of SQL as
+     * the casing of the keywords and of the identifiers, which is ignored
+     * without automatic uppercasing. The setting
+     * <code>SQLRPGLE.UPPERCASING.base.value</code> is part of the casing and
+     * never returned.
+     *
+     * @param other - the preferences to compare with
+     * @return the names in the order of {@link #getIbmSettingNames()}
+     */
+    public List<String> getIbmSettingDifferences(Preferences other) {
+
+        Map<String, Object> values = getAppliedIbmSettings();
+        Map<String, Object> otherValues = other.getAppliedIbmSettings();
+
+        List<String> names = new ArrayList<>();
+        for (Map.Entry<String, Object> value : values.entrySet()) {
+            if (!Objects.equals(value.getValue(), otherValues.get(value.getKey()))) {
+                names.add(value.getKey());
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * Returns the IBM settings, as the formatter applies them, by their names.
+     */
+    private Map<String, Object> getAppliedIbmSettings() {
+
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put(IBM_START_COLUMN, getStartColumn());
+        values.put(IBM_END_COLUMN, getEndColumn());
+        values.put(IBM_INDENT, getIndent());
+        values.put(IBM_SELECT_INDENT, getSelectIndent());
+        values.put(IBM_PRESERVE_RELATIVE_INDENT, isPreserveRelativeIndentOfContinuedLines());
+        values.put(IBM_SQL_FORMATTING, isFormatEmbeddedSql());
+        values.put(IBM_SQL_INDENT, getSqlIndent());
+        values.put(IBM_SQL_BREAK_ON_COMMA, getSqlBreakOnComma());
+        values.put(IBM_SQL_BREAK_ON_AND_OR, getSqlBreakOnAndOr());
+        values.put(IBM_SQL_UPPERCASING, isSqlUppercasing());
+        values.put(IBM_SQL_KEYWORD_CASING, getSqlKeywordCasingStyle());
+        values.put(IBM_SQL_IDENTIFIER_CASING, getSqlIdentifierCasingStyle());
+        values.put(IBM_KEYWORD_CASING_STYLE, getKeywordCasingStyle());
+
+        return values;
+    }
+
+    /**
+     * Sets the IBM settings. A project stores them in its file, the workspace
+     * writes them into the settings of RDi. An IBM setting, that is missing in
+     * the map, keeps its value.
+     * <p>
+     * The values are stored as text. Eclipse removes a number or a boolean,
+     * that equals its default value, and a project has no default values of the
+     * IBM settings: e.g. an indent of 0 would be lost and the value of RDi
+     * would apply.
+     * </p>
+     *
+     * @param values - the values as text by the names of the IBM settings, see
+     *        {@link #getIbmSettingValues()}
+     */
+    public void setIbmSettingValues(Map<String, String> values) {
+
+        IPreferenceStore store = project ? preferenceStore : ibmPreferenceStore;
+        for (String name : IBM_SETTINGS) {
+            String value = values.get(name);
+            if (value != null) {
+                store.setValue(name, value);
+            }
+        }
+    }
+
+    /**
+     * Returns the store of an IBM setting: the store of the project, if the
+     * project has a value of its own, otherwise the store of RDi.
+     */
+    private IPreferenceStore getIbmStore(String name) {
+
+        if (isIbmSettingOfProject(name)) {
+            return preferenceStore;
+        }
+
+        return ibmPreferenceStore;
+    }
+
+    private boolean isIbmSettingOfProject(String name) {
+        return project && !preferenceStore.isDefault(name);
     }
 
     public String getStartColumnAsText() {
@@ -286,16 +552,17 @@ public final class Preferences implements RpgleSourceConstants {
 
     public int getStartColumn() {
 
-        int startColumn = ibmPreferenceStore.getInt("RPGLE.FORMATTING.start");
+        int startColumn = getIbmStore(IBM_START_COLUMN).getInt(IBM_START_COLUMN);
 
         return startColumn;
     }
 
     public String getEndColumnAsText() {
 
-        String endColumnStr = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
-        if (!"*MAX".equals(endColumnStr)) {
-            endColumnStr = Integer.toString(ibmPreferenceStore.getInt("RPGLE.FORMATTING.end"));
+        IPreferenceStore store = getIbmStore(IBM_END_COLUMN);
+        String endColumnStr = store.getString(IBM_END_COLUMN);
+        if (!IBM_END_COLUMN_MAX.equals(endColumnStr)) {
+            endColumnStr = Integer.toString(store.getInt(IBM_END_COLUMN));
         }
 
         return endColumnStr;
@@ -303,24 +570,21 @@ public final class Preferences implements RpgleSourceConstants {
 
     public int getEndColumn() {
 
-        String strLength = ibmPreferenceStore.getString("RPGLE.FORMATTING.end");
-        if ("*MAX".equals(strLength)) {
+        IPreferenceStore store = getIbmStore(IBM_END_COLUMN);
+        String strLength = store.getString(IBM_END_COLUMN);
+        if (IBM_END_COLUMN_MAX.equals(strLength)) {
             return Integer.MAX_VALUE;
         }
 
         if (StringUtils.isNullOrEmpty(strLength)) {
-            return ibmPreferenceStore.getInt("RPGLE.FORMATTING.end");
+            return store.getInt(IBM_END_COLUMN);
         }
 
         return Integer.parseInt(strLength);
     }
 
-    public void setMaxLineLength(int width) {
-        ibmPreferenceStore.setValue("RPGLE.FORMATTING.end", width);
-    }
-
     public int getIndent() {
-        return ibmPreferenceStore.getInt("RPGLE.FORMATTING.length");
+        return getIbmStore(IBM_INDENT).getInt(IBM_INDENT);
     }
 
     /**
@@ -328,7 +592,7 @@ public final class Preferences implements RpgleSourceConstants {
      * IBM preference "Indent WHEN/OTHER within SELECT statement".
      */
     public int getSelectIndent() {
-        return ibmPreferenceStore.getInt("RPGLE.FORMATTING.select");
+        return getIbmStore(IBM_SELECT_INDENT).getInt(IBM_SELECT_INDENT);
     }
 
     /**
@@ -337,7 +601,7 @@ public final class Preferences implements RpgleSourceConstants {
      * indentation of continued lines". Otherwise continued lines are lined up.
      */
     public boolean isPreserveRelativeIndentOfContinuedLines() {
-        return ibmPreferenceStore.getBoolean("RPGLE.FORMATTING.multiple");
+        return getIbmStore(IBM_PRESERVE_RELATIVE_INDENT).getBoolean(IBM_PRESERVE_RELATIVE_INDENT);
     }
 
     /**
@@ -346,7 +610,7 @@ public final class Preferences implements RpgleSourceConstants {
      * their casing is changed.
      */
     public boolean isFormatEmbeddedSql() {
-        return ibmPreferenceStore.getBoolean("SQLRPGLE.FORMATTING.base");
+        return getIbmStore(IBM_SQL_FORMATTING).getBoolean(IBM_SQL_FORMATTING);
     }
 
     /**
@@ -355,7 +619,7 @@ public final class Preferences implements RpgleSourceConstants {
      * formatting.
      */
     public boolean isSqlUppercasing() {
-        return ibmPreferenceStore.getBoolean("SQLRPGLE.UPPERCASING.base");
+        return getIbmStore(IBM_SQL_UPPERCASING).getBoolean(IBM_SQL_UPPERCASING);
     }
 
     /**
@@ -363,7 +627,7 @@ public final class Preferences implements RpgleSourceConstants {
      * statement, see IBM preference "Indent" of the ILE RPG SQL formatting.
      */
     public int getSqlIndent() {
-        return ibmPreferenceStore.getInt("SQLRPGLE.INDENT.S1_Blanks");
+        return getIbmStore(IBM_SQL_INDENT).getInt(IBM_SQL_INDENT);
     }
 
     /**
@@ -371,7 +635,7 @@ public final class Preferences implements RpgleSourceConstants {
      * IBM preference "New line: On comma" of the ILE RPG SQL formatting.
      */
     public SqlBreakStyle getSqlBreakOnComma() {
-        return SqlBreakStyle.fromIbmValue(ibmPreferenceStore.getInt("SQLRPGLE.FORMATTING.onComma"));
+        return SqlBreakStyle.fromIbmValue(getIbmStore(IBM_SQL_BREAK_ON_COMMA).getInt(IBM_SQL_BREAK_ON_COMMA));
     }
 
     /**
@@ -379,7 +643,7 @@ public final class Preferences implements RpgleSourceConstants {
      * preference "On AND/OR keywords" of the ILE RPG SQL formatting.
      */
     public SqlBreakStyle getSqlBreakOnAndOr() {
-        return SqlBreakStyle.fromIbmValue(ibmPreferenceStore.getInt("SQLRPGLE.FORMATTING.onAndOr"));
+        return SqlBreakStyle.fromIbmValue(getIbmStore(IBM_SQL_BREAK_ON_AND_OR).getInt(IBM_SQL_BREAK_ON_AND_OR));
     }
 
     /**
@@ -387,7 +651,7 @@ public final class Preferences implements RpgleSourceConstants {
      * preference "Automatic uppercasing" of the ILE RPG SQL formatting.
      */
     public SqlCasingStyle getSqlKeywordCasingStyle() {
-        return getSqlCasingStyle("SQLRPGLE.UPPERCASING.keywords");
+        return getSqlCasingStyle(IBM_SQL_KEYWORD_CASING);
     }
 
     /**
@@ -395,7 +659,7 @@ public final class Preferences implements RpgleSourceConstants {
      * IBM preference "Automatic uppercasing" of the ILE RPG SQL formatting.
      */
     public SqlCasingStyle getSqlIdentifierCasingStyle() {
-        return getSqlCasingStyle("SQLRPGLE.UPPERCASING.identifiers");
+        return getSqlCasingStyle(IBM_SQL_IDENTIFIER_CASING);
     }
 
     /**
@@ -405,17 +669,17 @@ public final class Preferences implements RpgleSourceConstants {
      */
     private SqlCasingStyle getSqlCasingStyle(String customKey) {
 
-        if (!ibmPreferenceStore.getBoolean("SQLRPGLE.UPPERCASING.base")) {
+        if (!isSqlUppercasing()) {
             return SqlCasingStyle.IGNORE;
         }
 
-        switch (ibmPreferenceStore.getInt("SQLRPGLE.UPPERCASING.base.value")) {
+        switch (getIbmStore(IBM_SQL_CASING_STYLE).getInt(IBM_SQL_CASING_STYLE)) {
         case 0:
             return SqlCasingStyle.UPPER;
         case 1:
             return SqlCasingStyle.LOWER;
         case 2:
-            return SqlCasingStyle.fromIbmValue(ibmPreferenceStore.getInt(customKey));
+            return SqlCasingStyle.fromIbmValue(getIbmStore(customKey).getInt(customKey));
         default:
             return SqlCasingStyle.IGNORE;
         }
@@ -423,8 +687,7 @@ public final class Preferences implements RpgleSourceConstants {
 
     public KeywordCasingStyle getKeywordCasingStyle() {
 
-        String ibmCasingStyle = ibmPreferenceStore
-            .getString("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue");
+        String ibmCasingStyle = getIbmStore(IBM_KEYWORD_CASING_STYLE).getString(IBM_KEYWORD_CASING_STYLE);
         if ("ENDXX".equals(ibmCasingStyle)) {
             return KeywordCasingStyle.UPPERCASE;
         } else if ("EndXx".equals(ibmCasingStyle)) {
@@ -847,23 +1110,22 @@ public final class Preferences implements RpgleSourceConstants {
         preferenceStore.setDefault(FORMATTER_PREVIEW_VERTICAL_RULER_COLUMN, getDefaultFormatterPreviewVerticalRulerColumn());
 
         if (PreferenceStoreProvider.isTestMode()) {
-            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.length", 2);
-            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.start", 1);
-            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.end", "*MAX");
-            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.select", 0);
-            ibmPreferenceStore.setDefault("RPGLE.FORMATTING.multiple", true);
+            ibmPreferenceStore.setDefault(IBM_INDENT, 2);
+            ibmPreferenceStore.setDefault(IBM_START_COLUMN, 1);
+            ibmPreferenceStore.setDefault(IBM_END_COLUMN, IBM_END_COLUMN_MAX);
+            ibmPreferenceStore.setDefault(IBM_SELECT_INDENT, 0);
+            ibmPreferenceStore.setDefault(IBM_PRESERVE_RELATIVE_INDENT, true);
 
-            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.base", false);
-            ibmPreferenceStore.setDefault("SQLRPGLE.INDENT.S1_Blanks", 2);
-            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.onComma", 0);
-            ibmPreferenceStore.setDefault("SQLRPGLE.FORMATTING.onAndOr", 0);
-            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.base", false);
-            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.base.value", 0);
-            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.keywords", 0);
-            ibmPreferenceStore.setDefault("SQLRPGLE.UPPERCASING.identifiers", 0);
+            ibmPreferenceStore.setDefault(IBM_SQL_FORMATTING, false);
+            ibmPreferenceStore.setDefault(IBM_SQL_INDENT, 2);
+            ibmPreferenceStore.setDefault(IBM_SQL_BREAK_ON_COMMA, 0);
+            ibmPreferenceStore.setDefault(IBM_SQL_BREAK_ON_AND_OR, 0);
+            ibmPreferenceStore.setDefault(IBM_SQL_UPPERCASING, false);
+            ibmPreferenceStore.setDefault(IBM_SQL_CASING_STYLE, 0);
+            ibmPreferenceStore.setDefault(IBM_SQL_KEYWORD_CASING, 0);
+            ibmPreferenceStore.setDefault(IBM_SQL_IDENTIFIER_CASING, 0);
 
-            ibmPreferenceStore.setDefault("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue",
-                "endxx");
+            ibmPreferenceStore.setDefault(IBM_KEYWORD_CASING_STYLE, "endxx");
         }
     }
 

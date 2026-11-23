@@ -117,7 +117,8 @@ The preview at the bottom of the page shows the effect of the settings immediate
 ### IBM Settings
 
 iRPGFormatter uses some settings of RDi. They are shown read-only. The links of the group open the RDi preference pages at
-**Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG**, where the settings are changed.
+**Remote Systems > Remote Systems LPEX Editor > IBM i Parsers > ILE RPG**, where the settings are changed. The page of a
+project shows the IBM settings of the project, see [Project Specific Settings](#project-specific-settings).
 
 | Setting                                              | RDi preference page      | Description                                                                                          |
 | ---------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
@@ -127,7 +128,12 @@ iRPGFormatter uses some settings of RDi. They are shown read-only. The links of 
 | **Indent WHEN/OTHER within SELECT statement**        | Formatter                | The extra blanks of WHEN and OTHER within a SELECT group                                             |
 | **Preserve relative indentation of continued lines** | Formatter                | Keep the indentation of continued lines relative to the first line instead of lining them up         |
 | **Formatting**                                       | Free-form SQL Formatting | Format embedded SQL statements, see [Embedded SQL](#embedded-sql)                                    |
+| **Indent**                                           | Free-form SQL Formatting | The number of blanks of each indent level of an embedded SQL statement                               |
+| **New line on comma**                                | Free-form SQL Formatting | The line break at the commas of an embedded SQL statement                                            |
+| **New line on AND/OR keywords**                      | Free-form SQL Formatting | The line break at AND and OR of an embedded SQL statement                                            |
 | **Automatic uppercasing**                            | Free-form SQL Formatting | Change the casing of embedded SQL statements                                                         |
+| **Keywords and built-in functions**                  | Free-form SQL Formatting | The casing of the SQL keywords and built-in functions, if **Automatic uppercasing** is on            |
+| **Identifiers**                                      | Free-form SQL Formatting | The casing of the SQL identifiers, if **Automatic uppercasing** is on                                |
 | **Keyword casing style**                             | Key Behavior             | The style of **Automatic closure of control block**, used for keywords, special words and data types |
 
 ### General Settings
@@ -211,11 +217,14 @@ The tabs next to **Settings** contain the spelling of the words, that are format
 
 The settings can be exported to and imported from XML files, e.g. to share a profile in a team.
 
-- **Export...** saves all settings of iRPGFormatter and the custom preview source to an XML file. The IBM settings are not
-  part of the profile, because they belong to RDi.
+- **Export...** saves all settings of iRPGFormatter, the IBM settings and the custom preview source to an XML file. The IBM
+  settings have the names of the RDi preferences, e.g. `RPGLE.FORMATTING.length` for **Indentation**.
 - **Import...** loads a profile and shows its settings on the page. They are saved, when you click **Apply** or
   **Apply and Close**. Settings, that are missing in the profile, e.g. in a profile of a former version, keep their current
   values; a message tells so.
+- The IBM settings belong to RDi. If the IBM settings of a profile differ from those of RDi, **Import...** on the
+  preference page asks, whether they are written into the settings of RDi, when you click **Apply** or **Apply and Close**.
+  Then they apply to the LPEX editor and the IBM formatter, too. A profile without IBM settings leaves them unchanged.
 
 ### Project Specific Settings
 
@@ -224,13 +233,24 @@ the same way. Right-click the project in the **Project Explorer**, select **Prop
 **Enable project specific settings**.
 
 - The page has the same settings as the preference page, but no word lists. Without project specific settings it shows the
-  settings of the workspace, which then apply to the project.
+  settings of the workspace and the IBM settings of RDi, which then apply to the project.
 - The settings of the project apply to its files, when they are formatted in the editor, on save or from the
   **Project Explorer**. **Format on save** is a setting of the project, too.
 - The settings are stored in the file `.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs` of the project. Commit it,
   so that the team gets the settings.
-- The IBM settings, the word lists and the preview always are those of the workspace. **Import...** on the page of a project
-  takes over the settings of a profile, but not its word lists; **Export...** saves the word lists of the workspace.
+- The [IBM settings](#ibm-settings) are settings of the project, too, so that the sources are formatted the same way,
+  whatever the settings of RDi are. When you enable the project specific settings, the project takes over the current IBM
+  settings of RDi. To change them, change them in RDi and click **Take Over RDi Settings**. Below the IBM settings the page
+  warns, which of them differ from RDi.
+- The IBM formatter (**Format calculations** set to **IBM formatter**) and the LPEX editor itself, e.g. with
+  **Automatic closure of control block**, always use the IBM settings of RDi. When **Apply to RDi** is pressed, the IBM
+  settings of the project are written into the settings of RDi, when you click **Apply** or **Apply and Close**. Click it
+  again to release it.
+- If the file of the project has no IBM settings, e.g. because its settings were created with an earlier version, the page
+  shows **Not stored in the project** and the IBM settings of RDi apply. Saving the page does not add them,
+  **Take Over RDi Settings** does.
+- The word lists and the preview always are those of the workspace. **Import...** on the page of a project takes over the
+  settings and the IBM settings of a profile, but not its word lists; **Export...** saves the word lists of the workspace.
 - **Restore Defaults** and unchecking **Enable project specific settings** remove the settings of the project, so that the
   settings of the workspace apply again. **Configure Workspace Settings...** opens the preference page.
 - Source members and stream files of the IFS, that are opened or formatted from **Remote Systems**, and local files outside

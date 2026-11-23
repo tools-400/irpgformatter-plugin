@@ -61,6 +61,14 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         "removeEmptyCommentLines", "removeEmptyLinesBeforeDclPi", "conditionParentheses", "formatOperationCodesAndBuiltInFunctions",
         "formatSpecialWordsOfCalculations", "dataTypes", "declarationTypes", "keywords", "specialWords", "operationCodes", "builtInFunctions");
 
+    /*
+     * IBM settings by their keys in the preferences of IBM.
+     */
+    private static final String IBM_START_COLUMN = "RPGLE.FORMATTING.start";
+    private static final String IBM_END_COLUMN = "RPGLE.FORMATTING.end";
+    private static final String IBM_INDENT = "RPGLE.FORMATTING.length";
+    private static final String IBM_KEYWORD_CASING_STYLE = "com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol.autoclosecontrolvalue";
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -81,9 +89,112 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
     public void exportProfile_writesSettingsInOrder() throws Exception {
 
         List<String> expected = new ArrayList<>(REQUIRED_SETTING_IDS);
+        expected.addAll(Arrays.asList(IBM_START_COLUMN, IBM_END_COLUMN, IBM_INDENT, IBM_KEYWORD_CASING_STYLE));
         expected.add("customPreviewSource");
 
         assertEquals(expected, getSettingIds(export(createData())));
+    }
+
+    /**
+     * The IBM settings have the keys of the preferences of IBM and their values
+     * as text, like the file of a project.
+     */
+    @Test
+    public void exportProfile_writesIbmSettings() throws Exception {
+
+        Map<String, Element> settings = getSettings(export(createData()));
+
+        assertEquals("8", settings.get(IBM_START_COLUMN).getAttribute("value"));
+        assertEquals("*MAX", settings.get(IBM_END_COLUMN).getAttribute("value"));
+        assertEquals("4", settings.get(IBM_INDENT).getAttribute("value"));
+        assertEquals("EndXx", settings.get(IBM_KEYWORD_CASING_STYLE).getAttribute("value"));
+    }
+
+    @Test
+    public void exportProfile_withoutIbmSettings_writesNoIbmSettings() throws Exception {
+
+        ProfileData data = createData();
+        data.setIbmSettings(null);
+
+        List<String> expected = new ArrayList<>(REQUIRED_SETTING_IDS);
+        expected.add("customPreviewSource");
+
+        assertEquals(expected, getSettingIds(export(data)));
+    }
+
+    /**
+     * After an import the IBM settings of the data are those of the profile
+     * only, so that the preference page knows, which IBM settings the profile
+     * contains. A profile of a former version has none.
+     */
+    @Test
+    public void importProfile_withoutIbmSettings_returnsNoIbmSettings() throws Exception {
+
+        ProfileData data = createData();
+
+        assertTrue(importProfile(writeProfileWithout(null), data));
+        assertTrue(data.getIbmSettings().isEmpty());
+    }
+
+    @Test
+    public void importProfile_returnsOnlyIbmSettingsOfProfile() throws Exception {
+
+        ProfileData data = createData();
+
+        importProfile(writeProfile("<setting id=\"" + IBM_INDENT + "\" value=\"3\"/>"), data);
+
+        assertEquals("{" + IBM_INDENT + "=3}", data.getIbmSettings().toString());
+    }
+
+    /**
+     * The IBM settings are not required: a profile without them is complete,
+     * like a profile of a former version.
+     */
+    @Test
+    public void importProfile_withSomeIbmSettings_isComplete() throws Exception {
+        assertTrue(importProfile(writeProfileWithout(null, "<setting id=\"" + IBM_INDENT + "\" value=\"3\"/>"), new ProfileData()));
+    }
+
+    @Test
+    public void importProfile_acceptsEndColumnMax() throws Exception {
+
+        ProfileData imported = importProfile(writeProfile("<setting id=\"" + IBM_END_COLUMN + "\" value=\"*MAX\"/>"));
+
+        assertEquals("*MAX", imported.getIbmSettings().get(IBM_END_COLUMN));
+    }
+
+    /**
+     * The preference page shows the message, which names the setting and the
+     * value.
+     */
+    @Test
+    public void importProfile_invalidNumberOfIbmSettingFails() throws Exception {
+        assertImportFails(IBM_INDENT, "abc");
+    }
+
+    @Test
+    public void importProfile_invalidEndColumnFails() throws Exception {
+        assertImportFails(IBM_END_COLUMN, "MAX");
+    }
+
+    /**
+     * An IBM setting is written into the settings of RDi as it is: a boolean
+     * must be <code>true</code> or <code>false</code>.
+     */
+    @Test
+    public void importProfile_invalidBooleanOfIbmSettingFails() throws Exception {
+        assertImportFails("RPGLE.FORMATTING.multiple", "yes");
+    }
+
+    private void assertImportFails(String id, String value) throws Exception {
+
+        try {
+            importProfile(writeProfile("<setting id=\"" + id + "\" value=\"" + value + "\"/>"));
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains(id));
+            assertTrue(e.getMessage(), e.getMessage().contains(value));
+        }
     }
 
     @Test
@@ -142,6 +253,10 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         assertTrue(imported.getSpecialWords().isEmpty());
     }
 
+    /**
+     * The IBM settings are those of the profile only, see
+     * {@link #importProfile_returnsOnlyIbmSettingsOfProfile()}.
+     */
     @Test
     public void importProfile_missingSettingsKeepCurrentValues() throws Exception {
 
@@ -150,6 +265,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
 
         ProfileData expected = createData();
         expected.setUseConstKeyword(false);
+        expected.setIbmSettings(new LinkedHashMap<>());
         assertEquals(dump(expected), dump(data));
     }
 
@@ -275,6 +391,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         expected.setKeywords(createMap("LIKEDS", "LikeDS"));
         expected.setOperationCodes(null);
         expected.setBuiltInFunctions(null);
+        expected.setIbmSettings(new LinkedHashMap<>());
         expected.setCustomPreviewSource(null);
         assertEquals(dump(expected), dump(data));
     }
@@ -392,6 +509,7 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
         data.setSpecialWords(createMap("*OMIT", "*Omit"));
         data.setOperationCodes(createMap("SETLL", "SetLL"));
         data.setBuiltInFunctions(createMap("%SUBDT", "%SubDt"));
+        data.setIbmSettings(createMap(IBM_START_COLUMN, "8", IBM_END_COLUMN, "*MAX", IBM_INDENT, "4", IBM_KEYWORD_CASING_STYLE, "EndXx"));
         data.setCustomPreviewSource("**free\ndcl-s x char(10);");
         return data;
     }
@@ -414,7 +532,8 @@ public class PreferencesProfileManagerTest extends AbstractTestCase {
             + data.isFormatOnSave() + "|" + data.isRemoveEmptyCommentLines() + "|" + data.isRemoveEmptyLinesBeforeDclPi() + "|"
             + data.getConditionParentheses() + "|" + data.isFormatOperationCodesAndBuiltInFunctions() + "|"
             + data.isFormatSpecialWordsOfCalculations() + "|" + data.getDataTypes() + "|" + data.getDeclarationTypes() + "|" + data.getKeywords()
-            + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|" + data.getBuiltInFunctions() + "|" + data.getCustomPreviewSource();
+            + "|" + data.getSpecialWords() + "|" + data.getOperationCodes() + "|" + data.getBuiltInFunctions() + "|" + data.getIbmSettings() + "|"
+            + data.getCustomPreviewSource();
     }
 
     private File export(ProfileData data) throws Exception {

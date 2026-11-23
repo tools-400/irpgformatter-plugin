@@ -227,6 +227,11 @@ iRPGFormatter reads these preferences of RDi (plug-in `com.ibm.etools.iseries.ed
 
 The order of `SqlBreakStyle` and `SqlCasingStyle` matches the values of the IBM preferences.
 
+The keys are also the names of the IBM settings in the file of a project and the IDs of the IBM settings in a profile
+(`Preferences.getIbmSettingNames()`), with the values as text as RDi stores them, e.g. `*MAX` or `EndXx`. A profile, that
+is imported, gets only the IBM settings of the file (`ProfileData.getIbmSettings()`), so that the page knows, whether it
+contains any; they do not count for the check, whether the profile is complete.
+
 ### Own settings
 
 * The keys of the preferences, the IDs of the profile settings and the IDs in `plugin.xml` are persisted. Never rename them.
@@ -241,12 +246,19 @@ The order of `SqlBreakStyle` and `SqlCasingStyle` matches the values of the IBM 
 ### Project specific settings
 
 * `Preferences` has one instance per preference store: `getInstance()` for the workspace and `forProject()` for the
-  `ProjectScope` of a project (file `.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs`). The IBM settings always
-  come from the workspace.
+  `ProjectScope` of a project (file `.settings/de.tools400.lpex.irpgformatter.core.plugin.prefs`).
+* A project stores the IBM settings, too (`setIbmSettingValues()`), always as text: `ScopedPreferenceStore` removes a
+  number or a boolean, that equals its default value, and the project has no default values of the IBM settings, so that
+  e.g. an indent of 0 would be lost. The getters read an IBM setting from the project, if the project contains it,
+  otherwise from RDi (`getIbmStore()`): the file of a former version has none (`hasIbmSettings()`). `setIbmSettingValues()`
+  of the workspace writes into the settings of RDi. `forIbmSettingValues()` returns preferences with the IBM settings of
+  the page, that are not saved yet, for the preview (`FormatterConfig.setIbmSettings()`).
+* The IBM formatter and the LPEX editor always use the settings of RDi; only iRPGFormatter uses the IBM settings of a
+  project.
 * A project has no word lists of its own: the getters of the lists return those of the workspace, the setters throw an
-  `IllegalStateException`. Different lists per project would only be half a feature, because the keyword casing style is
-  an IBM setting of the workspace; `StatementIdentifier` and `FormatCompilerDirectiveRule` tokenize with the lists of the
-  workspace; and a changed list is stored as one line, that does not get the new entries of later versions.
+  `IllegalStateException`. Different lists per project would only be half a feature: `StatementIdentifier` and
+  `FormatCompilerDirectiveRule` tokenize with the lists of the workspace, and a changed list is stored as one line, that
+  does not get the new entries of later versions.
 * The key `projectSpecificSettings` switches the settings of a project on. Then all settings come from the project, a key,
   that the project does not contain, has the default value. Keys are never mixed with the workspace: `ScopedPreferenceStore`
   removes a value, that equals the default value, so that a search in the workspace would return the value of the
@@ -257,6 +269,16 @@ The order of `SqlBreakStyle` and `SqlCasingStyle` matches the values of the IBM 
 * The property page is `IRPGFormatterPreferencePage` as `IWorkbenchPropertyPage`, without the tabs of the word lists
   (`hasWordLists()`). Without project specific settings it shows the settings of the workspace and disables them with
   `ControlEnableState`. The state of the preview is always stored in the workspace.
+* `IbmSettingsGroup` keeps the IBM settings of the page (`getValues()`, `null` = the settings of RDi) and whether they are
+  written into RDi (`isApplyToRdi()`, the toggle button **Apply to RDi**, disabled while `getValues()` is `null`).
+  Enabling the settings of the project and **Take Over RDi Settings** copy the settings of RDi. A project without IBM
+  settings gets them only this way or by an import, never by saving the page. The page takes over the settings of RDi
+  after `ControlEnableState.restore()`, which would otherwise reset the toggle button to its former state.
+* The status line compares the IBM settings by their names, as the formatter applies them
+  (`Preferences.getIbmSettingDifferences()`). The rows of the settings are in a composite with two columns of equal
+  width; the status line and the buttons are below it in one column of the group: a long link, that spans columns of
+  equal width, makes `GridLayout` widen them beyond the group, and a control, that fills both columns, would hide the
+  border of the group.
 
 ### Word lists
 

@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.preferences;
 
+import de.tools400.lpex.irpgformatter.Messages;
+
 /**
  * Line breaks at the commas and at AND/OR of an embedded SQL statement, see IBM
  * preferences "New line: On comma" and "On AND/OR keywords" of the ILE RPG SQL
@@ -37,5 +39,22 @@ public enum SqlBreakStyle {
         }
 
         return NONE;
+    }
+
+    /**
+     * Returns the display name of the style, like the IBM preference page.
+     *
+     * @return the display name
+     */
+    public String getDisplayName() {
+
+        switch (this) {
+        case AFTER:
+            return Messages.Label_SQL_break_style_After;
+        case BEFORE:
+            return Messages.Label_SQL_break_style_Before;
+        default:
+            return Messages.Label_SQL_break_style_End_of_line;
+        }
     }
 }

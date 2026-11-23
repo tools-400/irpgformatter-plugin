@@ -19,7 +19,10 @@ import org.eclipse.jface.util.IPropertyChangeListener;
  * This allows preferences to be stored and retrieved without requiring the
  * Eclipse runtime. Like the preferences of Eclipse, it keeps every value as a
  * string, so that e.g. {@link #getString(String)} returns a boolean value as
- * <code>true</code> or <code>false</code>.
+ * <code>true</code> or <code>false</code>. Like the
+ * <code>ScopedPreferenceStore</code> of Eclipse, the setters remove a value,
+ * that equals the default value, so that the getters return the default value
+ * again.
  */
 public class MapPreferenceStore implements IPreferenceStore {
 
@@ -158,32 +161,45 @@ public class MapPreferenceStore implements IPreferenceStore {
 
     @Override
     public void setValue(String name, boolean value) {
-        values.put(name, String.valueOf(value));
+        setValue(name, String.valueOf(value), String.valueOf(getDefaultBoolean(name)));
     }
 
     @Override
     public void setValue(String name, double value) {
-        values.put(name, String.valueOf(value));
+        setValue(name, String.valueOf(value), String.valueOf(getDefaultDouble(name)));
     }
 
     @Override
     public void setValue(String name, float value) {
-        values.put(name, String.valueOf(value));
+        setValue(name, String.valueOf(value), String.valueOf(getDefaultFloat(name)));
     }
 
     @Override
     public void setValue(String name, int value) {
-        values.put(name, String.valueOf(value));
+        setValue(name, String.valueOf(value), String.valueOf(getDefaultInt(name)));
     }
 
     @Override
     public void setValue(String name, long value) {
-        values.put(name, String.valueOf(value));
+        setValue(name, String.valueOf(value), String.valueOf(getDefaultLong(name)));
     }
 
     @Override
     public void setValue(String name, String value) {
-        values.put(name, value);
+        setValue(name, value, getDefaultString(name));
+    }
+
+    /**
+     * Sets the value or removes it, if it equals the default value. A setting
+     * without a default value has the default value of its type, e.g. 0 or
+     * <code>false</code>.
+     */
+    private void setValue(String name, String value, String defaultValue) {
+        if (value.equals(defaultValue)) {
+            values.remove(name);
+        } else {
+            values.put(name, value);
+        }
     }
 
     /**

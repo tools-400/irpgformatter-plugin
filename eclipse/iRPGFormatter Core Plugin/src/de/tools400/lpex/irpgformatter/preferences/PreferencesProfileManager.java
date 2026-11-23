@@ -160,6 +160,16 @@ public final class PreferencesProfileManager {
             addMapSetting(doc, profile, setting.getId(), setting.get(data));
         }
 
+        // IBM settings with the keys of the preferences of IBM
+        if (data.getIbmSettings() != null) {
+            for (String name : Preferences.getIbmSettingNames()) {
+                String value = data.getIbmSettings().get(name);
+                if (value != null) {
+                    addScalarSetting(doc, profile, name, value);
+                }
+            }
+        }
+
         // Text content settings (CDATA for multi-line content)
         if (data.getCustomPreviewSource() != null && !data.getCustomPreviewSource().isEmpty()) {
             addTextSetting(doc, profile, SETTING_CUSTOM_PREVIEW_SOURCE, data.getCustomPreviewSource());
@@ -190,6 +200,11 @@ public final class PreferencesProfileManager {
      * Settings, that are missing in the file, keep their values in the profile
      * data, so partial profiles are supported. The custom preview source is not
      * required, because it is only exported, if there is one.
+     * <p>
+     * The IBM settings of the profile data are those of the file only, so that
+     * the caller knows, which IBM settings the profile contains. They are not
+     * required, because a profile of a former version has none.
+     * </p>
      *
      * @param filePath the source file path
      * @param data the profile data, that receives the settings of the file
@@ -200,6 +215,8 @@ public final class PreferencesProfileManager {
     public static boolean importProfile(String filePath, ProfileData data) throws Exception {
 
         Element profileElement = readProfileElement(filePath);
+
+        data.setIbmSettings(new LinkedHashMap<>());
 
         Set<String> ids = new HashSet<>();
 
@@ -282,6 +299,13 @@ public final class PreferencesProfileManager {
         Setting<Map<String, String>> mapSetting = findSetting(MAP_SETTINGS, id);
         if (mapSetting != null) {
             mapSetting.set(data, readMapEntries(setting));
+            return;
+        }
+
+        if (Preferences.getIbmSettingNames().contains(id)) {
+            String value = setting.getAttribute(ATTR_VALUE);
+            Preferences.checkIbmSettingValue(id, value);
+            data.getIbmSettings().put(id, value);
             return;
         }
 
@@ -423,7 +447,21 @@ public final class PreferencesProfileManager {
         private Map<String, String> specialWords;
         private Map<String, String> operationCodes;
         private Map<String, String> builtInFunctions;
+        private Map<String, String> ibmSettings;
         private String customPreviewSource;
+
+        /**
+         * Returns the IBM settings by their names, the keys of the preferences
+         * of IBM. After an import they are those of the profile only, so that
+         * the caller knows, which IBM settings the profile contains.
+         */
+        public Map<String, String> getIbmSettings() {
+            return ibmSettings;
+        }
+
+        public void setIbmSettings(Map<String, String> ibmSettings) {
+            this.ibmSettings = ibmSettings;
+        }
 
         public String getParameterSpacingStyle() {
             return parameterSpacingStyle;

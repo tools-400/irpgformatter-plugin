@@ -8,6 +8,8 @@
 
 package de.tools400.lpex.irpgformatter.preferences;
 
+import de.tools400.lpex.irpgformatter.Messages;
+
 /**
  * Casing of the keywords and of the identifiers of an embedded SQL statement,
  * see IBM preference "Automatic uppercasing" of the ILE RPG SQL formatting. The
@@ -44,6 +46,25 @@ public enum SqlCasingStyle {
         }
 
         return IGNORE;
+    }
+
+    /**
+     * Returns the display name of the style, like the IBM preference page.
+     *
+     * @return the display name
+     */
+    public String getDisplayName() {
+
+        switch (this) {
+        case UPPER:
+            return Messages.Label_SQL_casing_style_Uppercase;
+        case LOWER:
+            return Messages.Label_SQL_casing_style_Lowercase;
+        case INITIAL:
+            return Messages.Label_SQL_casing_style_Initial_character;
+        default:
+            return Messages.Label_SQL_casing_style_Ignore;
+        }
     }
 
     /**

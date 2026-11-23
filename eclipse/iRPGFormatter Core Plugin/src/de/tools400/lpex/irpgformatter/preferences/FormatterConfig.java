@@ -23,6 +23,7 @@ public class FormatterConfig {
 
     private boolean formatDeclarations;
     private CalculationFormatter calculationFormatter;
+    private int startColumn;
     private int indent;
     private int selectIndent;
     private boolean preserveRelativeIndentOfContinuedLines;
@@ -67,6 +68,37 @@ public class FormatterConfig {
 
     public CalculationFormatter getCalculationFormatter() {
         return calculationFormatter;
+    }
+
+    /**
+     * Returns the start column of the IBM settings: the leftmost column of the
+     * formatted source.
+     */
+    public int getStartColumn() {
+        return startColumn;
+    }
+
+    /**
+     * Sets the values of the IBM settings, e.g. those of the preference page,
+     * that are not saved yet. The other settings keep their values.
+     *
+     * @param prefs - the preferences with the IBM settings, e.g. of
+     *        {@link Preferences#forIbmSettingValues(Map)}
+     */
+    public void setIbmSettings(Preferences prefs) {
+
+        startColumn = prefs.getStartColumn();
+        maxLineWidth = prefs.getEndColumn();
+        indent = prefs.getIndent();
+        selectIndent = prefs.getSelectIndent();
+        preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();
+        formatEmbeddedSql = prefs.isFormatEmbeddedSql();
+        sqlIndent = prefs.getSqlIndent();
+        sqlBreakOnComma = prefs.getSqlBreakOnComma();
+        sqlBreakOnAndOr = prefs.getSqlBreakOnAndOr();
+        sqlKeywordCasingStyle = prefs.getSqlKeywordCasingStyle();
+        sqlIdentifierCasingStyle = prefs.getSqlIdentifierCasingStyle();
+        keywordCasingStyle = prefs.getKeywordCasingStyle();
     }
 
     public int getIndent() {
@@ -370,16 +402,7 @@ public class FormatterConfig {
         FormatterConfig config = new FormatterConfig();
         config.formatDeclarations = prefs.isFormatDeclarations();
         config.calculationFormatter = prefs.getCalculationFormatter();
-        config.indent = prefs.getIndent();
-        config.selectIndent = prefs.getSelectIndent();
-        config.preserveRelativeIndentOfContinuedLines = prefs.isPreserveRelativeIndentOfContinuedLines();
-        config.formatEmbeddedSql = prefs.isFormatEmbeddedSql();
-        config.sqlIndent = prefs.getSqlIndent();
-        config.sqlBreakOnComma = prefs.getSqlBreakOnComma();
-        config.sqlBreakOnAndOr = prefs.getSqlBreakOnAndOr();
-        config.sqlKeywordCasingStyle = prefs.getSqlKeywordCasingStyle();
-        config.sqlIdentifierCasingStyle = prefs.getSqlIdentifierCasingStyle();
-        config.maxLineWidth = prefs.getEndColumn();
+        config.setIbmSettings(prefs);
         config.maxNameLength = prefs.getMaxNameLength();
         config.minLiteralLength = prefs.getMinNameLength();
         config.alignSubFields = prefs.isAlignSubFields();
@@ -396,7 +419,6 @@ public class FormatterConfig {
         config.conditionParentheses = prefs.getConditionParentheses();
         config.formatOperationCodesAndBuiltInFunctions = prefs.isFormatOperationCodesAndBuiltInFunctions();
         config.formatSpecialWordsOfCalculations = prefs.isFormatSpecialWordsOfCalculations();
-        config.keywordCasingStyle = prefs.getKeywordCasingStyle();
         config.parameterSpacingStyle = prefs.getParameterSpacingStyle();
         config.keywords = Collections.unmodifiableMap(prefs.getKeywords());
         config.dataTypes = Collections.unmodifiableMap(prefs.getDataTypes());
