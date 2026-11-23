@@ -15,6 +15,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Spinner;
@@ -139,5 +140,19 @@ public final class WidgetFactory {
         gridData.grabExcessHorizontalSpace = true;
         gridData.horizontalSpan = gridLayout.numColumns;
         separator.setLayoutData(gridData);
+    }
+
+    /**
+     * Creates a group with the given label and two columns of equal width, that
+     * fills the width of its parent.
+     */
+    public static Group createGroup(Composite parent, String label) {
+
+        Group group = new Group(parent, SWT.NONE);
+        group.setText(label);
+        group.setLayout(new GridLayout(2, true));
+        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        return group;
     }
 }

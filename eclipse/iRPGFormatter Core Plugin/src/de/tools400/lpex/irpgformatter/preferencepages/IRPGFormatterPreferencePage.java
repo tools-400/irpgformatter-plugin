@@ -16,8 +16,6 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.dialogs.ControlEnableState;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -35,7 +33,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbenchPropertyPage;
@@ -48,7 +45,6 @@ import de.tools400.lpex.irpgformatter.preferences.CalculationFormatter;
 import de.tools400.lpex.irpgformatter.preferences.ConditionParentheses;
 import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
-import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
@@ -65,7 +61,7 @@ import de.tools400.lpex.irpgformatter.utils.WidgetFactory;
  * of the preview and the IBM settings always are those of the workspace.
  * </p>
  */
-public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IWorkbenchPropertyPage, IPropertyChangeListener {
+public class IRPGFormatterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage, IWorkbenchPropertyPage {
 
     /** ID of the preference page, see plugin.xml */
     public static final String ID = "de.tools400.lpex.irpgformatter.preferencepages.IRPGFormatterPreferencePage";
@@ -85,15 +81,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private PreviewPanel previewPanel;
 
-    /* IBM preferences */
-    private Text startColumnText;
-    private Text endColumnText;
-    private Text spacesToIndentText;
-    private Text selectIndentText;
-    private Button preserveRelativeIndentCheckbox;
-    private Button sqlFormattingCheckbox;
-    private Button sqlUppercasingCheckbox;
-    private Text casingStyleText;
+    private IbmSettingsGroup ibmSettingsGroup;
 
     /* Local preferences */
     private Button useConstKeywordCheckbox;
@@ -210,7 +198,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         }
 
         // Listen for IBM preference changes
-        registerPropertyChangeListeners();
+        ibmSettingsGroup.registerListener();
 
         // Set focus to 1. line of preview editor
         previewPanel.setFocus();
@@ -391,138 +379,21 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return config;
     }
 
-    private boolean isDisposed() {
-
-        if (startColumnText == null || startColumnText.isDisposed()) {
-            return true;
-        }
-
-        return false;
-    }
-
     @Override
     public void dispose() {
 
         previewPanel.dispose();
 
-        disposePropertyChangeListeners();
+        if (ibmSettingsGroup != null) {
+            ibmSettingsGroup.dispose();
+        }
 
         super.dispose();
     }
 
-    private Group createSubGroup(Composite parent, String label) {
-
-        Group group = new Group(parent, SWT.NONE);
-        group.setText(label);
-        group.setLayout(new GridLayout(2, true));
-        group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        return group;
-    }
-
-    private void createIBMSettingsGroup(Composite parent) {
-
-        Group group = createSubGroup(parent, Messages.Label_IBM_Settings);
-
-        createIBMFormatterSettingsSubGroup(group);
-
-        WidgetFactory.createLineSeparator(group);
-
-        createIBMSqlFormattingSettingsSubGroup(group);
-
-        WidgetFactory.createLineSeparator(group);
-
-        createIBMKeyBehaviorSettingsSubGroup(group);
-    }
-
-    private void createIBMFormatterSettingsSubGroup(Composite parent) {
-
-        // Hint
-        Link ibmFormatterSettingsHelp = new Link(parent, SWT.NONE);
-        ibmFormatterSettingsHelp.setText(Messages.Label_IBM_Formatter_Settings_Help);
-        GridData helpData = new GridData();
-        helpData.horizontalSpan = 2;
-        ibmFormatterSettingsHelp.setLayoutData(helpData);
-        ibmFormatterSettingsHelp.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                PreferencesUtil.createPreferenceDialogOn(getShell(),
-                    "com.ibm.etools.iseries.edit.preferences.formatter.ISeriesFormatterPreferencePageRPGILE", null, null).open();
-            }
-        });
-
-        // Start column
-        startColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Start_column,
-            Messages.Tooltip_IBM_Settings_Start_column);
-        startColumnText.setLayoutData(createTextGridData(60));
-
-        // End column
-        endColumnText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_End_column, Messages.Tooltip_IBM_Settings_End_column);
-        endColumnText.setLayoutData(createTextGridData(60));
-
-        // Indent length
-        spacesToIndentText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Indent, Messages.Tooltip_IBM_Settings_Indent);
-        spacesToIndentText.setLayoutData(createTextGridData(60));
-
-        // Extra indent of WHEN/OTHER
-        selectIndentText = WidgetFactory.createReadOnlyText(parent, Messages.Label_IBM_Settings_Select_indent,
-            Messages.Tooltip_IBM_Settings_Select_indent);
-        selectIndentText.setLayoutData(createTextGridData(60));
-
-        // Preserve relative indentation of continued lines
-        preserveRelativeIndentCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_Preserve_relative_indent,
-            Messages.Tooltip_IBM_Settings_Preserve_relative_indent);
-    }
-
-    private void createIBMSqlFormattingSettingsSubGroup(Composite parent) {
-
-        // Hint
-        Link ibmSqlFormattingSettingsHelp = new Link(parent, SWT.NONE);
-        ibmSqlFormattingSettingsHelp.setText(Messages.Label_IBM_SQL_Formatting_Settings_Help);
-        GridData helpData = new GridData();
-        helpData.horizontalSpan = 2;
-        ibmSqlFormattingSettingsHelp.setLayoutData(helpData);
-        ibmSqlFormattingSettingsHelp.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                PreferencesUtil.createPreferenceDialogOn(getShell(),
-                    "com.ibm.etools.iseries.edit.preferences.sql.ParserPreferencePageSQLRPGLEFormatting", null, null).open();
-            }
-        });
-
-        // Formatting
-        sqlFormattingCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_SQL_Formatting,
-            Messages.Tooltip_IBM_Settings_SQL_Formatting);
-
-        // Automatic uppercasing
-        sqlUppercasingCheckbox = WidgetFactory.createReadOnlyCheckbox(parent, Messages.Label_IBM_Settings_SQL_Uppercasing,
-            Messages.Tooltip_IBM_Settings_SQL_Uppercasing);
-    }
-
-    private void createIBMKeyBehaviorSettingsSubGroup(Composite parent) {
-
-        // Hint
-        Link ibmKeyBehaviorSettingsHelp = new Link(parent, SWT.NONE);
-        ibmKeyBehaviorSettingsHelp.setText(Messages.Label_IBM_Key_Behavior_Settings_Help);
-        GridData helpData = new GridData();
-        helpData.horizontalSpan = 2;
-        ibmKeyBehaviorSettingsHelp.setLayoutData(helpData);
-        ibmKeyBehaviorSettingsHelp.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                PreferencesUtil.createPreferenceDialogOn(getShell(),
-                    "com.ibm.etools.iseries.edit.ui.preferences.ParserPreferencePageRPGILEKeyBehavior.RPGILE", null, null).open();
-            }
-        });
-
-        // Keyword casing style
-        casingStyleText = WidgetFactory.createReadOnlyText(parent, Messages.Label_Keyword_casing_style, Messages.Tooltip_Keyword_casing_style);
-        casingStyleText.setLayoutData(createTextGridData(120));
-    }
-
     private void createGeneralSettingsGroup(Composite parent) {
 
-        Group group = createSubGroup(parent, Messages.Label_General_Settings);
+        Group group = WidgetFactory.createGroup(parent, Messages.Label_General_Settings);
 
         useConstKeywordCheckbox = createSettingCheckbox(group, Messages.Label_Use_const_keyword, Messages.Tooltip_Use_const_keyword,
             PreviewComments.USE_CONST_KEYWORD);
@@ -573,7 +444,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private void createSaveActionsGroup(Composite parent) {
 
-        Group group = createSubGroup(parent, Messages.Label_Save_Actions);
+        Group group = WidgetFactory.createGroup(parent, Messages.Label_Save_Actions);
 
         // Format on save
         formatOnSaveCheckbox = WidgetFactory.createCheckbox(group, Messages.Label_Format_on_save, Messages.Tooltip_Format_on_save);
@@ -582,7 +453,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private void createExperimentalSettingsGroup(Composite parent) {
 
-        Group group = createSubGroup(parent, Messages.Label_Experimental_Settings);
+        Group group = WidgetFactory.createGroup(parent, Messages.Label_Experimental_Settings);
 
         removeEmptyCommentLinesCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_comment_lines,
             Messages.Tooltip_Remove_empty_comment_lines, PreviewComments.REMOVE_EMPTY_COMMENT_LINES);
@@ -817,7 +688,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         container.setLayout(new GridLayout(1, false));
 
         // IBM settings group
-        createIBMSettingsGroup(container);
+        ibmSettingsGroup = new IbmSettingsGroup(preferences);
+        ibmSettingsGroup.create(container);
 
         // General settings group
         createGeneralSettingsGroup(container);
@@ -839,7 +711,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
     private void loadPreferences() {
 
-        loadIbmPreferences();
+        ibmSettingsGroup.load();
 
         if (isPropertyPage() && !preferences.isProjectSpecificSettings()) {
             loadSettings(Preferences.getInstance());
@@ -897,22 +769,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             operationCodesEditor.load(KeywordUtils.mapToEntries(source.getOperationCodes()));
             builtInFunctionsEditor.load(KeywordUtils.mapToEntries(source.getBuiltInFunctions()));
         }
-    }
-
-    private void loadIbmPreferences() {
-
-        if (isDisposed()) {
-            return;
-        }
-
-        startColumnText.setText(preferences.getStartColumnAsText());
-        endColumnText.setText(preferences.getEndColumnAsText());
-        spacesToIndentText.setText(Integer.toString(preferences.getIndent()));
-        selectIndentText.setText(Integer.toString(preferences.getSelectIndent()));
-        preserveRelativeIndentCheckbox.setSelection(preferences.isPreserveRelativeIndentOfContinuedLines());
-        sqlFormattingCheckbox.setSelection(preferences.isFormatEmbeddedSql());
-        sqlUppercasingCheckbox.setSelection(preferences.isSqlUppercasing());
-        casingStyleText.setText(preferences.getKeywordCasingStyle().getDisplayName());
     }
 
     /**
@@ -1070,63 +926,5 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         gridData.widthHint = 30;
 
         return gridData;
-    }
-
-    private GridData createTextGridData(int widthHint) {
-
-        GridData gridData = new GridData();
-        gridData.widthHint = widthHint;
-
-        return gridData;
-    }
-
-    // --------------------------------------------------------------------
-    // Property change listener - IBM Preferences (Formatter/Key Behavior)
-    // --------------------------------------------------------------------
-
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-
-        String property = event.getProperty();
-
-        // The preview panel listens to the same store and formats the preview
-        // itself. The page only shows the new values in its read-only fields.
-
-        // ----------------------------------------------------
-        // Remote Systems -> Remote Systems LPEX Editor ->
-        // IBM i Parsers -> ILE RPG -> Formatter
-        // ----------------------------------------------------
-
-        if (property.startsWith("RPGLE.FORMATTING.")) {
-            loadIbmPreferences();
-        }
-
-        // ----------------------------------------------------
-        // Remote Systems -> Remote Systems LPEX Editor ->
-        // IBM i Parsers -> ILE RPG -> Free-form SQL Formatting
-        // ----------------------------------------------------
-
-        if (property.startsWith("SQLRPGLE.")) {
-            loadIbmPreferences();
-        }
-
-        // ----------------------------------------------------
-        // Remote Systems -> Remote Systems LPEX Editor ->
-        // IBM i Parsers -> ILE RPG -> Key Behavior
-        // ----------------------------------------------------
-
-        if (property.startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
-            loadIbmPreferences();
-        }
-    }
-
-    private void registerPropertyChangeListeners() {
-
-        PreferenceStoreProvider.getIbmPreferenceStore().addPropertyChangeListener(this);
-    }
-
-    private void disposePropertyChangeListeners() {
-
-        PreferenceStoreProvider.getIbmPreferenceStore().removePropertyChangeListener(this);
     }
 }
