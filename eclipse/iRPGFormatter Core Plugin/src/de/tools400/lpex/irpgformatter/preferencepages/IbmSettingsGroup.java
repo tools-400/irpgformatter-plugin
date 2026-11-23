@@ -11,6 +11,8 @@ package de.tools400.lpex.irpgformatter.preferencepages;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -56,7 +58,8 @@ public class IbmSettingsGroup implements IPropertyChangeListener {
     }
 
     /**
-     * Creates the controls of the group.
+     * Creates the controls of the group. The group shows the changes of the IBM
+     * settings, until it is disposed.
      */
     public void create(Composite parent) {
 
@@ -71,6 +74,14 @@ public class IbmSettingsGroup implements IPropertyChangeListener {
         WidgetFactory.createLineSeparator(group);
 
         createKeyBehaviorSubGroup(group);
+
+        PreferenceStoreProvider.getIbmPreferenceStore().addPropertyChangeListener(this);
+        group.addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                PreferenceStoreProvider.getIbmPreferenceStore().removePropertyChangeListener(IbmSettingsGroup.this);
+            }
+        });
     }
 
     private void createFormatterSubGroup(Composite parent) {
@@ -178,20 +189,6 @@ public class IbmSettingsGroup implements IPropertyChangeListener {
         }
 
         return false;
-    }
-
-    /**
-     * Starts listening to the changes of the IBM settings.
-     */
-    public void registerListener() {
-        PreferenceStoreProvider.getIbmPreferenceStore().addPropertyChangeListener(this);
-    }
-
-    /**
-     * Stops listening to the changes of the IBM settings.
-     */
-    public void dispose() {
-        PreferenceStoreProvider.getIbmPreferenceStore().removePropertyChangeListener(this);
     }
 
     @Override

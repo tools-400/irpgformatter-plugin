@@ -167,9 +167,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
             updateProjectSpecificSettings();
         }
 
-        // Listen for IBM preference changes
-        ibmSettingsGroup.registerListener();
-
         // Set focus to 1. line of preview editor
         previewPanel.setFocus();
 
@@ -274,10 +271,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     public void dispose() {
 
         previewPanel.dispose();
-
-        if (ibmSettingsGroup != null) {
-            ibmSettingsGroup.dispose();
-        }
 
         super.dispose();
     }
