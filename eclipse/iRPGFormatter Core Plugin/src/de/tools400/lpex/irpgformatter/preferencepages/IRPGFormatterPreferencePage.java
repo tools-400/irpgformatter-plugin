@@ -8,14 +8,12 @@
 
 package de.tools400.lpex.irpgformatter.preferencepages;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.dialogs.ControlEnableState;
-import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -31,7 +29,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -53,7 +50,6 @@ import de.tools400.lpex.irpgformatter.preferences.FormatterConfig;
 import de.tools400.lpex.irpgformatter.preferences.ParameterSpacingStyle;
 import de.tools400.lpex.irpgformatter.preferences.PreferenceStoreProvider;
 import de.tools400.lpex.irpgformatter.preferences.Preferences;
-import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager;
 import de.tools400.lpex.irpgformatter.preferences.PreferencesProfileManager.ProfileData;
 import de.tools400.lpex.irpgformatter.preferences.SourcePreferences;
 import de.tools400.lpex.irpgformatter.utils.ExceptionUtils;
@@ -637,135 +633,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         return combo;
     }
 
-    private void createImportExportButtons(Composite parent) {
-
-        Composite buttonComposite = new Composite(parent, SWT.NONE);
-        buttonComposite.setLayout(new GridLayout(2, false));
-        buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        Button exportButton = WidgetFactory.createStandardButton(buttonComposite, Messages.Label_Export, Messages.Tooltip_Export);
-        exportButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                handleExport();
-            }
-        });
-
-        Button importButton = WidgetFactory.createStandardButton(buttonComposite, Messages.Label_Import, Messages.Tooltip_Import);
-        importButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                handleImport();
-            }
-        });
-    }
-
-    private static final String DIALOG_SETTINGS_SECTION = "IRPGFormatterPreferencePage";
-    private static final String DIALOG_SETTINGS_PROFILE_PATH = "profileFilePath";
-
-    private void handleExport() {
-
-        FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-        dialog.setText(Messages.Title_Export_Profile);
-        dialog.setFileName("iRPGFormatter.xml");
-        dialog.setOverwrite(true);
-
-        String filePath = selectProfileFile(dialog);
-        if (filePath == null) {
-            return;
-        }
-
-        try {
-            ProfileData data = collectProfileDataFromUI();
-            PreferencesProfileManager.exportProfile(filePath, data);
-        } catch (Exception e) {
-            // An unchecked exception is a bug: log its stack trace.
-            if (e instanceof RuntimeException) {
-                IRpgleFormatterPlugin.logError("Unexpected error while exporting a profile.", e);
-            }
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
-                Messages.bind(Messages.Error_Export_failed_A, ExceptionUtils.getLocalizedMessage(e)));
-        }
-    }
-
-    private void handleImport() {
-
-        FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
-        dialog.setText(Messages.Title_Import_Profile);
-
-        String filePath = selectProfileFile(dialog);
-        if (filePath == null) {
-            return;
-        }
-
-        try {
-            // Settings missing in a partial profile keep the values of the
-            // page.
-            ProfileData data = collectProfileDataFromUI();
-            boolean isComplete = PreferencesProfileManager.importProfile(filePath, data);
-            applyProfileDataToUI(data);
-            if (!isComplete) {
-                MessageDialog.openInformation(getShell(), Messages.I_N_F_O_R_M_A_T_I_O_N, Messages.Info_Profile_does_not_contain_all_settings);
-            }
-        } catch (IllegalArgumentException e) {
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
-                Messages.bind(Messages.Error_Invalid_profile_format_A, ExceptionUtils.getLocalizedMessage(e)));
-        } catch (Exception e) {
-            // An unchecked exception is a bug: log its stack trace.
-            if (e instanceof RuntimeException) {
-                IRpgleFormatterPlugin.logError("Unexpected error while importing a profile.", e);
-            }
-            MessageDialog.openError(getShell(), Messages.E_R_R_O_R,
-                Messages.bind(Messages.Error_Import_failed_A, ExceptionUtils.getLocalizedMessage(e)));
-        }
-    }
-
-    /**
-     * Lets the user select the XML file of a profile. Starts with the file used
-     * last and remembers the selected file.
-     *
-     * @param dialog the dialog with style, title and the settings of the caller
-     * @return the path of the file or <code>null</code>, if the user cancelled
-     */
-    private String selectProfileFile(FileDialog dialog) {
-
-        dialog.setFilterExtensions(new String[] { "*.xml" });
-        dialog.setFilterNames(new String[] { Messages.Label_XML_Files });
-
-        String lastPath = getProfileFilePath();
-        if (lastPath != null) {
-            File lastFile = new File(lastPath);
-            dialog.setFilterPath(lastFile.getParent());
-            dialog.setFileName(lastFile.getName());
-        }
-
-        String filePath = dialog.open();
-        if (filePath != null) {
-            saveProfileFilePath(filePath);
-        }
-
-        return filePath;
-    }
-
-    private String getProfileFilePath() {
-        IDialogSettings settings = getDialogSettingsSection();
-        return settings.get(DIALOG_SETTINGS_PROFILE_PATH);
-    }
-
-    private void saveProfileFilePath(String filePath) {
-        IDialogSettings settings = getDialogSettingsSection();
-        settings.put(DIALOG_SETTINGS_PROFILE_PATH, filePath);
-    }
-
-    private IDialogSettings getDialogSettingsSection() {
-        IDialogSettings root = IRpgleFormatterPlugin.getDefault().getDialogSettings();
-        IDialogSettings section = root.getSection(DIALOG_SETTINGS_SECTION);
-        if (section == null) {
-            section = root.addNewSection(DIALOG_SETTINGS_SECTION);
-        }
-        return section;
-    }
-
     private ProfileData collectProfileDataFromUI() {
 
         ProfileData data = new ProfileData();
@@ -962,7 +829,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         createSaveActionsGroup(container);
 
         // Import / Export buttons
-        createImportExportButtons(container);
+        new ProfileImportExport(this::collectProfileDataFromUI, this::applyProfileDataToUI).createButtons(container);
 
         scrolled.setContent(container);
         scrolled.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
