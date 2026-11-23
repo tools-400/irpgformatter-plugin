@@ -534,15 +534,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         putDelimiterBeforeParameterCheckbox = createSettingCheckbox(group, Messages.Label_Put_delimiter_before_parameter,
             Messages.Tooltip_Put_delimiter_before_parameter, PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
-        // Parameter spacing style
-        Label parameterSpacingLabel = new Label(group, SWT.NONE);
-        parameterSpacingLabel.setText(Messages.Label_Parameter_spacing_style);
-
-        parameterSpacingStyleCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
-        parameterSpacingStyleCombo.setItems(preferences.getParameterSpacingStyles());
-        parameterSpacingStyleCombo.setLayoutData(createStyleData());
-        parameterSpacingStyleCombo.setToolTipText(Messages.Tooltip_Parameter_spacing_style);
-        previewPanel.addPreviewTrigger(parameterSpacingStyleCombo, PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
+        parameterSpacingStyleCombo = createSettingCombo(group, Messages.Label_Parameter_spacing_style, Messages.Tooltip_Parameter_spacing_style,
+            preferences.getParameterSpacingStyles(), PreviewComments.PUT_DELIMITER_BEFORE_PARAMETER);
 
         alignSubFieldsCheckbox = createSettingCheckbox(group, Messages.Label_Align_Sub_Fields, Messages.Tooltip_Align_Sub_Fields,
             PreviewComments.ALIGN_SUB_FIELDS);
@@ -578,16 +571,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Format declarations
         formatDeclarationsCheckbox = createSettingCheckbox(group, Messages.Label_Format_declarations, Messages.Tooltip_Format_declarations, null);
 
-        // Format calculations
-        Label formatCalculationsLabel = new Label(group, SWT.NONE);
-        formatCalculationsLabel.setText(Messages.Label_Format_calculations);
-        formatCalculationsLabel.setToolTipText(Messages.Tooltip_Format_calculations);
-
-        formatCalculationsCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
-        formatCalculationsCombo.setItems(preferences.getCalculationFormatters());
-        formatCalculationsCombo.setLayoutData(createStyleData());
-        formatCalculationsCombo.setToolTipText(Messages.Tooltip_Format_calculations);
-        previewPanel.addPreviewTrigger(formatCalculationsCombo, PreviewComments.FORMAT_CALCULATIONS);
+        formatCalculationsCombo = createSettingCombo(group, Messages.Label_Format_calculations, Messages.Tooltip_Format_calculations,
+            preferences.getCalculationFormatters(), PreviewComments.FORMAT_CALCULATIONS);
     }
 
     private void createSaveActionsGroup(Composite parent) {
@@ -609,16 +594,8 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         removeEmptyLinesBeforeDclPiCheckbox = createSettingCheckbox(group, Messages.Label_Remove_empty_lines_before_dcl_pi,
             Messages.Tooltip_Remove_empty_lines_before_dcl_pi, PreviewComments.REMOVE_EMPTY_LINES_BEFORE_DCL_PI);
 
-        // Outer parentheses of conditions
-        Label conditionParenthesesLabel = new Label(group, SWT.NONE);
-        conditionParenthesesLabel.setText(Messages.Label_Condition_parentheses);
-        conditionParenthesesLabel.setToolTipText(Messages.Tooltip_Condition_parentheses);
-
-        conditionParenthesesCombo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
-        conditionParenthesesCombo.setItems(preferences.getConditionParenthesesStyles());
-        conditionParenthesesCombo.setLayoutData(createStyleData());
-        conditionParenthesesCombo.setToolTipText(Messages.Tooltip_Condition_parentheses);
-        previewPanel.addPreviewTrigger(conditionParenthesesCombo, PreviewComments.CONDITION_PARENTHESES);
+        conditionParenthesesCombo = createSettingCombo(group, Messages.Label_Condition_parentheses, Messages.Tooltip_Condition_parentheses,
+            preferences.getConditionParenthesesStyles(), PreviewComments.CONDITION_PARENTHESES);
 
         formatOperationCodesAndBuiltInFunctionsCheckbox = createSettingCheckbox(group, Messages.Label_Format_operation_codes_and_built_in_functions,
             Messages.Tooltip_Format_operation_codes_and_built_in_functions, PreviewComments.FORMAT_OPERATION_CODES_AND_BUILT_IN_FUNCTIONS);
@@ -638,6 +615,26 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         previewPanel.addPreviewTrigger(checkbox, previewComment);
 
         return checkbox;
+    }
+
+    /**
+     * Creates a combo box of a formatter setting with its label, that updates
+     * the preview and scrolls it to the given comment. The label and the combo
+     * box show the same tooltip.
+     */
+    private Combo createSettingCombo(Composite group, String label, String tooltip, String[] items, String previewComment) {
+
+        Label comboLabel = new Label(group, SWT.NONE);
+        comboLabel.setText(label);
+        comboLabel.setToolTipText(tooltip);
+
+        Combo combo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
+        combo.setItems(items);
+        combo.setLayoutData(createStyleData());
+        combo.setToolTipText(tooltip);
+        previewPanel.addPreviewTrigger(combo, previewComment);
+
+        return combo;
     }
 
     private void createImportExportButtons(Composite parent) {
@@ -820,13 +817,7 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
     private void applyProfileDataToUI(ProfileData data) {
 
         // Scalar settings
-        try {
-            ParameterSpacingStyle style = ParameterSpacingStyle.valueOf(data.getParameterSpacingStyle());
-            parameterSpacingStyleCombo.select(style.ordinal());
-        } catch (IllegalArgumentException e) {
-            // Keep current selection if the value is invalid
-        }
-
+        selectByName(parameterSpacingStyleCombo, ParameterSpacingStyle.class, data.getParameterSpacingStyle());
         useConstKeywordCheckbox.setSelection(data.isUseConstKeyword());
         putDelimiterBeforeParameterCheckbox.setSelection(data.isDelimiterBeforeParameter());
         alignSubFieldsCheckbox.setSelection(data.isAlignSubFields());
@@ -838,21 +829,12 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         unindentCompilerDirectivesCheckbox.setSelection(data.isUnindentCompilerDirectives());
         maxNameLengthSpinner.setSelection(data.getMaxNameLength());
         minNameLengthSpinner.setSelection(data.getMinNameLength());
-        try {
-            CalculationFormatter formatter = CalculationFormatter.valueOf(data.getCalculationFormatter());
-            formatCalculationsCombo.select(formatter.ordinal());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            // Keep current selection if the value is invalid
-        }
+        selectByName(formatCalculationsCombo, CalculationFormatter.class, data.getCalculationFormatter());
         formatDeclarationsCheckbox.setSelection(data.isFormatDeclarations());
         formatOnSaveCheckbox.setSelection(data.isFormatOnSave());
         removeEmptyCommentLinesCheckbox.setSelection(data.isRemoveEmptyCommentLines());
         removeEmptyLinesBeforeDclPiCheckbox.setSelection(data.isRemoveEmptyLinesBeforeDclPi());
-        try {
-            conditionParenthesesCombo.select(ConditionParentheses.valueOf(data.getConditionParentheses()).ordinal());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            // Keep current selection if the value is invalid
-        }
+        selectByName(conditionParenthesesCombo, ConditionParentheses.class, data.getConditionParentheses());
         formatOperationCodesAndBuiltInFunctionsCheckbox.setSelection(data.isFormatOperationCodesAndBuiltInFunctions());
         formatSpecialWordsOfCalculationsCheckbox.setSelection(data.isFormatSpecialWordsOfCalculations());
 
@@ -876,6 +858,20 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // Refresh preview
         if (!previewPanel.isEditMode()) {
             previewPanel.formatPreview();
+        }
+    }
+
+    /**
+     * Selects the item of the constant with the given name, e.g. of a profile.
+     * The items of the combo box are in the order of the constants. A name,
+     * that is no constant, or <code>null</code> keeps the current selection.
+     */
+    private static <E extends Enum<E>> void selectByName(Combo combo, Class<E> type, String name) {
+
+        try {
+            combo.select(Enum.valueOf(type, name).ordinal());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // Keep the current selection
         }
     }
 
