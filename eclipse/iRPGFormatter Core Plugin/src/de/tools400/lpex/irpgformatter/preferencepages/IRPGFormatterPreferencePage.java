@@ -1218,16 +1218,16 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         String property = event.getProperty();
 
+        // The preview panel listens to the same store and formats the preview
+        // itself. The page only shows the new values in its read-only fields.
+
         // ----------------------------------------------------
         // Remote Systems -> Remote Systems LPEX Editor ->
         // IBM i Parsers -> ILE RPG -> Formatter
         // ----------------------------------------------------
 
-        if (property.startsWith("RPGLE.FORMATTING.")
-            || property.equals("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
-
+        if (property.startsWith("RPGLE.FORMATTING.")) {
             loadIbmPreferences();
-            previewPanel.formatPreview();
         }
 
         // ----------------------------------------------------
@@ -1235,7 +1235,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
         // IBM i Parsers -> ILE RPG -> Free-form SQL Formatting
         // ----------------------------------------------------
 
-        // The preview panel formats the preview itself.
         if (property.startsWith("SQLRPGLE.")) {
             loadIbmPreferences();
         }
@@ -1247,7 +1246,6 @@ public class IRPGFormatterPreferencePage extends PreferencePage implements IWork
 
         if (property.startsWith("com.ibm.etools.iseries.edit.preferences.parser.ilerpg.enter.autoclosecontrol")) {
             loadIbmPreferences();
-            previewPanel.formatPreview();
         }
     }
 
